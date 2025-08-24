@@ -67,3 +67,4 @@ gem 'pg' # PostgreSQL database adapter
 gem 'bootstrap', '~> 5.3' # For styling with Bootstrap
 gem 'tailwindcss-rails' # For styling with Tailwind CSS
 gem 'image_processing', '~> 1.2' # For image processing
+gem 'dartsass-rails' # For using Dart Sass with Rails
