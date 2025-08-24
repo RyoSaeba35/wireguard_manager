@@ -1,0 +1,180 @@
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    line-height: 1.6;
+  }
+  .header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  .login-btn {
+    background-color: #3498db;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 0 1rem;
+  }
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  .hero p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin-bottom: 2rem;
+  }
+  .cta-btn {
+    background-color: #e74c3c;
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .features {
+    padding: 4rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .features h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+  }
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+  .feature-card {
+    background-color: #f9f9f9;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .pricing {
+    background-color: #f4f4f4;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+  .pricing h2 {
+    margin-bottom: 2rem;
+    font-size: 2rem;
+  }
+  .plan {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 400px;
+    margin: 0 auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .plan h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+  .plan-price {
+    font-size: 2.5rem;
+    color: #e74c3c;
+    margin-bottom: 1rem;
+  }
+  .plan-features {
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+  .plan-btn {
+    background-color: #2ecc71;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .footer {
+    background-color: #2c3e50;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    margin-top: 2rem;
+  }
+</style>
+
+<header class="header">
+  <div class="logo">SecureVPN</div>
+  <a href="<%= new_user_session_path %>" class="login-btn">Log In</a>
+</header>
+
+<section class="hero">
+  <h1>Fast, Reliable, and Secure VPN in France</h1>
+  <p>SecureVPN offers a high-speed, reliable VPN connection from France. Protect your privacy and access content with ease.</p>
+  <a href="<%= new_user_registration_path %>" class="cta-btn">Get Started</a>
+</section>
+
+<section class="features">
+  <h2>Why Choose SecureVPN?</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h3>🌍 France Location</h3>
+      <p>Connect to our high-speed server in France for a fast and reliable experience.</p>
+    </div>
+    <div class="feature-card">
+      <h3>🔒 Advanced Encryption</h3>
+      <p>Your data is secured with cutting-edge encryption technology, ensuring your privacy.</p>
+    </div>
+    <div class="feature-card">
+      <h3>⚡ Blazing Fast Speeds</h3>
+      <p>Enjoy unlimited bandwidth and ultra-fast speeds for streaming, downloading, and browsing.</p>
+    </div>
+  </div>
+</section>
+
+<section class="pricing">
+  <h2>Choose Your Plan</h2>
+  <div class="plan">
+    <h3>Pay As You Go</h3>
+    <div class="plan-price">$19.95/month</div>
+    <div class="plan-features">
+      <p>✅ Unlimited Bandwidth</p>
+      <p>✅ France Server Access</p>
+      <p>✅ Advanced Encryption</p>
+      <p>✅ No Long-Term Commitment</p>
+    </div>
+    <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>&copy; 2025 SecureVPN. All rights reserved.</p>
+</footer>
