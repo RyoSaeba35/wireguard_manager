@@ -58,3 +58,12 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem 'rqrcode' # For generating QR codes
+gem 'net-ssh' # For executing commands on your Raspberry Pi via SSH
+gem 'devise' # For user authentication
+gem 'simple_form'# For easy form handling
+gem 'pg' # PostgreSQL database adapter
+gem 'bootstrap', '~> 5.3' # For styling with Bootstrap
+gem 'tailwindcss-rails' # For styling with Tailwind CSS
+gem 'image_processing', '~> 1.2' # For image processing
