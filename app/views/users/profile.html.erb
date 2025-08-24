@@ -1,0 +1,16 @@
+<h1>Your Profile</h1>
+<%= form_with(model: current_user, url: update_profile_path, method: :patch) do |form| %>
+  <div>
+    <%= form.label :email %>
+    <%= form.email_field :email, readonly: true %>
+  </div>
+  <div>
+    <%= form.label :password %>
+    <%= form.password_field :password, placeholder: "Leave blank if you don't want to change it" %>
+  </div>
+  <div>
+    <%= form.label :password_confirmation %>
+    <%= form.password_field :password_confirmation %>
+  </div>
+  <%= form.submit "Update Profile" %>
+<% end %>
