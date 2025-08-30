@@ -1,3 +1,4 @@
+# app/controllers/wireguard_clients_controller.rb
 class WireguardClientsController < ApplicationController
   before_action :authenticate_user!
 
@@ -6,23 +7,29 @@ class WireguardClientsController < ApplicationController
   end
 
   def create
-    @wireguard_client = current_user.wireguard_clients.new(wireguard_client_params)
+    # Use the service to create the WireGuard client and subscription
+    creator = WireguardClientCreator.new(current_user, wireguard_client_params[:name])
+    @wireguard_client = creator.call
 
-    if @wireguard_client.save
-      # Generate the WireGuard config and QR code here
-      redirect_to @wireguard_client, notice: 'WireGuard client was successfully created.'
+    if @wireguard_client.persisted?
+      redirect_to user_wireguard_client_path(current_user, @wireguard_client), notice: "WireGuard client created successfully."
     else
       render :new
     end
   end
 
+  # def show
+  #   @wireguard_client = current_user.wireguard_clients.find(params[:id])
+  # end
+
   def show
-    @wireguard_client = current_user.wireguard_clients.find(params[:id])
+    @wireguard_client = WireguardClient.find(params[:id])
   end
+
 
   private
 
   def wireguard_client_params
-    params.require(:wireguard_client).permit(:name, :public_key, :private_key, :ip_address)
+    params.require(:wireguard_client).permit(:name)
   end
 end
