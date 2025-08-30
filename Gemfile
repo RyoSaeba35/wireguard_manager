@@ -59,6 +59,8 @@ group :test do
   gem "selenium-webdriver"
 end
 
+gem 'dotenv-rails', groups: [:development, :test, :production]
+
 gem 'rqrcode' # For generating QR codes
 gem 'net-ssh' # For executing commands on your Raspberry Pi via SSH
 gem 'devise' # For user authentication
@@ -68,3 +70,10 @@ gem 'bootstrap', '~> 5.3' # For styling with Bootstrap
 gem 'tailwindcss-rails' # For styling with Tailwind CSS
 gem 'image_processing', '~> 1.2' # For image processing
 gem 'dartsass-rails' # For using Dart Sass with Rails
+gem 'whenever', require: false # For scheduling cron jobs
+
+# For ed25519 SSH key support
+gem 'ed25519', '~> 1.2'
+gem 'bcrypt_pbkdf', '~> 1.0'
+gem 'net-scp' # For SCP file transfers over SSH
+gem 'net-sftp' # For SFTP file transfers over SSH
