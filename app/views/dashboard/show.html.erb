@@ -1,0 +1,154 @@
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    line-height: 1.6;
+  }
+  .header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .nav-links a,
+  .nav-links button {
+    color: white;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  .nav-links a:hover,
+  .nav-links button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  .nav-links .logout-btn {
+    color: #e74c3c;
+  }
+  .nav-links .logout-btn:hover {
+    background-color: rgba(231, 76, 60, 0.2);
+  }
+  .dashboard-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+  }
+  .dashboard-header {
+    margin-bottom: 2rem;
+  }
+  .dashboard-header h1 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+  }
+  .subscription-section {
+    background-color: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+  }
+  .subscription-section h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+  .alert {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+  }
+  .alert-success {
+    background-color: #d4edda;
+    color: #27ae60;
+    border-left: 4px solid #27ae60;
+  }
+  .alert-warning {
+    background-color: #f8d7da;
+    color: #e74c3c;
+    border-left: 4px solid #e74c3c;
+  }
+  .alert p {
+    margin: 0.5rem 0;
+  }
+  .btn {
+    padding: 0.5rem 1rem;
+    background-color: #27ae60;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: inline-block;
+  }
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  ul li {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+  }
+  ul li:last-child {
+    border-bottom: none;
+  }
+</style>
+
+<header class="header">
+  <div class="logo">IronCryptVPN</div>
+  <nav class="nav-links">
+    <%= link_to "Edit Profile", profile_path %>
+    <%= button_to "Log Out", destroy_user_session_path, method: :delete, class: "logout-btn" %>
+  </nav>
+</header>
+
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1>Welcome, <%= current_user.email %></h1>
+  </header>
+
+  <section class="subscription-section">
+    <h2>Your VPN Subscription</h2>
+    <% if @has_subscription && @active_subscription.wireguard_client %>
+      <div class="alert alert-success">
+        <p>✅ You have an active subscription!</p>
+        <p>Expires at: <%= @active_subscription.expires_at %></p>
+        <%= link_to "View WireGuard Client", user_wireguard_client_path(current_user, @active_subscription.wireguard_client), class: "btn" %>
+      </div>
+    <% else %>
+      <div class="alert alert-warning">
+        <p>❌ You don't have an active subscription.</p>
+        <%= link_to "Subscribe Now", new_user_wireguard_client_path(current_user), class: "btn" %>
+      </div>
+    <% end %>
+
+    <h2>Expired Subscriptions</h2>
+    <% if @expired_subscriptions.any? %>
+      <ul>
+        <% @expired_subscriptions.each do |subscription| %>
+          <li>
+            <%= subscription.wireguard_client.name %> (Expired: <%= subscription.expires_at %>)
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p>No expired subscriptions.</p>
+    <% end %>
+  </section>
+</div>
