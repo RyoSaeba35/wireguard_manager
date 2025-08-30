@@ -6,4 +6,5 @@ class User < ApplicationRecord
 
   # Association with WireguardClient
   has_many :wireguard_clients, dependent: :destroy
+  has_many :subscriptions, dependent: :destroy
 end

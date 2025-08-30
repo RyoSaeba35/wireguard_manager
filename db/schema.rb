@@ -10,7 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_08_24_102057) do
+ActiveRecord::Schema[7.2].define(version: 2025_08_24_163846) do
+  create_table "subscriptions", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "wireguard_client_id", null: false
+    t.string "status", default: "active"
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_subscriptions_on_user_id"
+    t.index ["wireguard_client_id"], name: "index_subscriptions_on_wireguard_client_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -31,8 +42,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_24_102057) do
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "expires_at"
+    t.string "status", default: "active"
     t.index ["user_id"], name: "index_wireguard_clients_on_user_id"
   end
 
+  add_foreign_key "subscriptions", "users"
+  add_foreign_key "subscriptions", "wireguard_clients"
   add_foreign_key "wireguard_clients", "users"
 end

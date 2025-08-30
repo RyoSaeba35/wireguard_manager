@@ -1,1 +1,150 @@
-<%= image_tag "data:image/png;base64,#{Base64.encode64(@client.qr_code)}" %>
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    line-height: 1.6;
+  }
+  .header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .nav-links a,
+  .nav-links button {
+    color: white;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  .nav-links a:hover,
+  .nav-links button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  .nav-links .logout-btn {
+    color: #e74c3c;
+  }
+  .nav-links .logout-btn:hover {
+    background-color: rgba(231, 76, 60, 0.2);
+  }
+  .client-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+  }
+  .client-header {
+    margin-bottom: 2rem;
+  }
+  .client-header h1 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+  .client-meta {
+    color: #666;
+    margin-bottom: 2rem;
+  }
+  .client-section {
+    background-color: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+  }
+  .client-section h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+  .qr-code {
+    text-align: center;
+    margin: 1rem 0;
+  }
+  .qr-code img {
+    max-width: 200px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5rem;
+    background: white;
+  }
+  .download-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #27ae60;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+  .download-link:hover {
+    background-color: #219653;
+  }
+  .alert {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    background-color: #f8d7da;
+    color: #e74c3c;
+    border-left: 4px solid #e74c3c;
+  }
+</style>
+
+<header class="header">
+  <div class="logo">IronCryptVPN</div>
+  <nav class="nav-links">
+    <%= link_to "Dashboard", root_path %>
+    <%= link_to "Edit Profile", profile_path %>
+    <%= button_to "Log Out", destroy_user_session_path, method: :delete, class: "logout-btn" %>
+  </nav>
+</header>
+
+<div class="client-container">
+  <div class="client-header">
+    <h1>WireGuard Client: <%= @wireguard_client.name %></h1>
+    <p class="client-meta">Expires At: <%= @wireguard_client.expires_at %></p>
+  </div>
+
+  <% qr_code_path = Rails.root.join('public', 'qr_codes', "#{@wireguard_client.name}.png") %>
+  <div class="client-section">
+    <h3>QR Code:</h3>
+    <% if File.exist?(qr_code_path) %>
+      <div class="qr-code">
+        <%= image_tag "/qr_codes/#{@wireguard_client.name}.png", alt: "QR Code" %>
+      </div>
+    <% else %>
+      <div class="alert">
+        <p>QR code is not available.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <% config_path = Rails.root.join('public', 'configs', "#{@wireguard_client.name}.conf") %>
+  <div class="client-section">
+    <h3>Config File:</h3>
+    <% if File.exist?(config_path) %>
+      <p><%= link_to "Download Config", "/configs/#{@wireguard_client.name}.conf", class: "download-link", download: "#{@wireguard_client.name}.conf" %></p>
+    <% else %>
+      <div class="alert">
+        <p>Config file is not available.</p>
+      </div>
+    <% end %>
+  </div>
+</div>
