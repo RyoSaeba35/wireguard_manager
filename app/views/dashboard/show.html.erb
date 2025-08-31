@@ -86,6 +86,52 @@
     display: block;
   }
 
+  /* CSS for setup guide section */
+  .setup-guide-section {
+    background-color: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+  }
+
+  .setup-guide-section h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+
+  .setup-steps {
+    margin-top: 1rem;
+  }
+
+  .step {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .step:last-child {
+    border-bottom: none;
+  }
+
+  .step h3 {
+    color: #27ae60;
+    margin-bottom: 0.5rem;
+  }
+
+  .step p {
+    margin: 0.5rem 0;
+  }
+
+  .step ol {
+    margin: 0.5rem 0 0 1.5rem;
+    padding: 0;
+  }
+
+  .step li {
+    margin: 0.3rem 0;
+  }
+
   /* CSS for troubleshooting section */
   .troubleshooting-section {
     background-color: #f9f9f9;
@@ -197,16 +243,73 @@
 
     <h2>Expired Subscriptions</h2>
     <% if @expired_subscriptions.any? %>
-      <ul>
-        <% @expired_subscriptions.each do |subscription| %>
-          <li>
-            <%= subscription.wireguard_client.name %> (Expired: <%= subscription.expires_at %>)
-          </li>
-        <% end %>
-      </ul>
+      <% last_expired = @expired_subscriptions.last %>
+      <p>
+        <%= last_expired.wireguard_client.name %> (Expired: <%= last_expired.expires_at %>)
+      </p>
+      <% if @expired_subscriptions.size > 1 %>
+        <%= link_to "View Full History", expired_subscriptions_path, class: "history-button" %>
+      <% end %>
     <% else %>
       <p>No expired subscriptions.</p>
     <% end %>
+  </section>
+
+  <section class="setup-guide-section">
+    <h2>How to Set Up Your VPN</h2>
+    <p>Follow these steps to connect to your VPN using WireGuard:</p>
+
+    <div class="setup-steps">
+      <div class="step">
+        <h3>1. Download WireGuard</h3>
+        <p>Install the WireGuard app for your device:</p>
+        <ul>
+          <li><a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank">iOS (App Store)</a></li>
+          <li><a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank">Android (Google Play)</a></li>
+          <li><a href="https://www.wireguard.com/install/" target="_blank">Windows/macOS/Linux (Official Site)</a></li>
+        </ul>
+      </div>
+
+      <div class="step">
+        <h3>2. Get Your Configuration</h3>
+        <p>
+          After subscribing, you received:
+          <strong>a QR code</strong> (for mobile) and
+          <strong>a config file</strong> (for all devices).
+        </p>
+        <% if @has_subscription && @active_subscription && @active_subscription.wireguard_client %>
+          <p>
+            <%= link_to "Download your config file", user_wireguard_client_path(current_user, @active_subscription.wireguard_client), class: "btn" %>
+          </p>
+        <% else %>
+          <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">
+            🔒 Subscribe to download your config file.
+          </p>
+        <% end %>
+      </div>
+
+      <div class="step">
+        <h3>3. Set Up the VPN</h3>
+        <p><strong>Option A: QR Code (Mobile)</strong></p>
+        <ol>
+          <li>Open the WireGuard app.</li>
+          <li>Tap <strong>"Add Tunnel" → "Scan QR Code"</strong>.</li>
+          <li>Scan the QR code from your dashboard.</li>
+        </ol>
+        <p><strong>Option B: Config File (All Devices)</strong></p>
+        <ol>
+          <li>Open the WireGuard app.</li>
+          <li>Tap <strong>"Add Tunnel" → "Import from file"</strong>.</li>
+          <li>Select the downloaded config file.</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h3>4. Connect to the VPN</h3>
+        <p>Toggle the switch next to your tunnel to <strong>activate</strong> the connection.</p>
+        <p>Verify your connection at <a href="https://whatismyip.com" target="_blank">whatismyip.com</a>.</p>
+      </div>
+    </div>
   </section>
 
   <section class="troubleshooting-section">
@@ -270,61 +373,58 @@
   </section>
 
   <script>
-    document.querySelectorAll('.faq-question').forEach(button => {
-      button.addEventListener('click', () => {
-        const faqItem = button.parentElement;
-        const answer = faqItem.querySelector('.faq-answer');
-        const icon = button.querySelector('.faq-icon');
-
-        if (answer.classList.contains('active')) {
-          answer.classList.remove('active');
-          icon.textContent = '+';
-        } else {
-          // Close all other answers
-          document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
-          document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
-
-          // Open this answer
-          answer.classList.add('active');
-          icon.textContent = '-';
-        }
+    document.addEventListener("turbo:load", function() {
+      // FAQ toggle logic
+      document.querySelectorAll('.faq-question').forEach(button => {
+        button.addEventListener('click', () => {
+          const faqItem = button.parentElement;
+          const answer = faqItem.querySelector('.faq-answer');
+          const icon = button.querySelector('.faq-icon');
+          if (answer.classList.contains('active')) {
+            answer.classList.remove('active');
+            icon.textContent = '+';
+          } else {
+            // Close all other answers
+            document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
+            document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
+            // Open this answer
+            answer.classList.add('active');
+            icon.textContent = '-';
+          }
+        });
       });
-    });
 
-    // Convert and display expiration time in user's local timezone
-    document.addEventListener("DOMContentLoaded", function() {
-      const utcTime = "<%= @active_subscription.expires_at.iso8601 %>";
-      const expiresAt = new Date(utcTime);
-      const localTimeElement = document.getElementById("local-time-text");
+      // Subscription expiration logic
+      <% if @active_subscription %>
+        const utcTime = "<%= @active_subscription.expires_at.iso8601 %>";
+        const expiresAt = new Date(utcTime);
+        const localTimeElement = document.getElementById("local-time-text");
 
-      // Format local time as DD/MM/YYYY, HHhMM
-      const day = String(expiresAt.getDate()).padStart(2, '0');
-      const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
-      const year = expiresAt.getFullYear();
-      const hours = String(expiresAt.getHours()).padStart(2, '0');
-      const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
-      localTimeElement.textContent = `${day}/${month}/${year}, ${hours}h${minutes}`;
+        // Format local time as DD/MM/YYYY, HHhMM
+        const day = String(expiresAt.getDate()).padStart(2, '0');
+        const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
+        const year = expiresAt.getFullYear();
+        const hours = String(expiresAt.getHours()).padStart(2, '0');
+        const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
+        localTimeElement.textContent = `${day}/${month}/${year}, ${hours}h${minutes}`;
 
-      // Update countdown every second
-      function updateCountdown() {
-        const now = new Date();
-        const diff = expiresAt - now;
-
-        if (diff <= 0) {
-          document.getElementById("countdown").textContent = "Expired";
-          return;
+        // Update countdown every second
+        function updateCountdown() {
+          const now = new Date();
+          const diff = expiresAt - now;
+          if (diff <= 0) {
+            document.getElementById("countdown").textContent = "Expired";
+            return;
+          }
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hoursRemaining = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutesRemaining = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          document.getElementById("countdown").textContent =
+            `${days}d ${hoursRemaining}h ${minutesRemaining}m remaining`;
         }
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hoursRemaining = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutesRemaining = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-        document.getElementById("countdown").textContent =
-          `${days}d ${hoursRemaining}h ${minutesRemaining}m remaining`;
-      }
-
-      updateCountdown();
-      setInterval(updateCountdown, 60000); // Update every minute
+        updateCountdown();
+        setInterval(updateCountdown, 60000); // Update every minute
+      <% end %>
     });
   </script>
 </div>
