@@ -40,6 +40,77 @@
   .alert p {
     margin: 0.5rem 0;
   }
+
+  .subscription-alert {
+    display: flex;
+    align-items: flex-start;
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+    max-width: 600px;
+  }
+
+  .alert-icon {
+    font-size: 1.5em;
+    margin-right: 15px;
+    margin-top: 2px;
+  }
+
+  .alert-content h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    color: #155724;
+  }
+
+  .alert-content p {
+    margin: 5px 0;
+    line-height: 1.4;
+  }
+
+  .alert-content strong {
+    font-weight: 600;
+    color: #155724;
+  }
+
+  .local-time-container {
+    position: relative;
+    display: inline-block;
+    font-weight: 600;
+    color: #155724;
+    cursor: help;
+  }
+
+  .utc-tooltip {
+    display: none;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    white-space: nowrap;
+    z-index: 100;
+    left: 0;
+    top: 100%;
+    margin-top: 5px;
+  }
+
+  .local-time-container:hover .utc-tooltip {
+    display: block;
+  }
+
+  .countdown {
+    font-weight: 600;
+    color: #155724;
+    margin-bottom: 0;
+  }
+
+
+
   .btn {
     padding: 0.5rem 1rem;
     background-color: #27ae60;
@@ -64,7 +135,7 @@
   }
 
   /* CSS for local time display with tooltip */
-  .local-time-container {
+  /* .local-time-container {
     position: relative;
     display: inline-block;
     cursor: help;
@@ -84,6 +155,24 @@
   }
   .local-time-container:hover .utc-tooltip {
     display: block;
+  } */
+
+  .subscription-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+    max-width: 400px;
+  }
+
+  .subscription-card h3 {
+    margin-top: 0;
+    color: #333;
+  }
+
+  .subscription-card p {
+    margin: 5px 0;
   }
 
   /* CSS for setup guide section */
@@ -215,25 +304,33 @@
   <section class="subscription-section">
     <h2>Your VPN Subscription</h2>
     <% if @has_subscription && @active_subscription.wireguard_client %>
-      <div class="alert alert-success">
-        <p>✅ You have an active subscription!</p>
-        <p>
-          Expires at:
-          <span class="local-time-container">
-            <span id="local-time-text">
-              <!-- Fallback for non-JS users -->
-              <%= @active_subscription.expires_at.in_time_zone("Etc/UTC").strftime("%Y-%m-%d %H:%M:%S %Z") %>
+
+      <div class="subscription-alert">
+        <div class="alert-icon">✅</div>
+        <div class="alert-content">
+          <h3>Active Subscription</h3>
+          <p><strong>Client:</strong> <%= @active_subscription.wireguard_client.name %></p>
+          <p><strong>Plan:</strong> <%= "Pay As You Go" %></p>
+          <p>
+            Expires at:
+            <span class="local-time-container">
+              <span id="local-time-text">
+                <%= @active_subscription.expires_at.in_time_zone("Etc/UTC").strftime("%d/%m/%Y at %H:%M") %>
+              </span>
+              <span class="utc-tooltip">
+                UTC: <%= @active_subscription.expires_at.strftime("%d/%m/%Y at %H:%M") %>
+              </span>
             </span>
-            <span class="utc-tooltip">
-              <%= @active_subscription.expires_at %>
-            </span>
-          </span>
-          (local time)
-          –
-          <span id="countdown">Calculating...</span>
-        </p>
-        <%= link_to "View WireGuard Client", user_wireguard_client_path(current_user, @active_subscription.wireguard_client), class: "btn" %>
+            (local time)
+          </p>
+          <p class="countdown">
+            <span id="countdown">Calculating remaining time...</span>
+          </p>
+        </div>
       </div>
+
+      <%= link_to "View WireGuard Client", user_wireguard_client_path(current_user, @active_subscription.wireguard_client), class: "btn" %>
+
     <% else %>
       <div class="alert alert-warning">
         <p>❌ You don't have an active subscription.</p>
@@ -245,7 +342,18 @@
     <% if @expired_subscriptions.any? %>
       <% last_expired = @expired_subscriptions.last %>
       <p>
-        <%= last_expired.wireguard_client.name %> (Expired: <%= last_expired.expires_at %>)
+        <%# <%= last_expired.wireguard_client.name %>
+        <%# (Expired: <%= last_expired.expires_at) %>
+
+        <div class="subscription-card">
+          <h3>Subscription #<%= last_expired.wireguard_client.name %></h3>
+          <p><strong>Plan:</strong> <%= "Pay As You Go" %></p>
+          <p><strong>Started:</strong> <%= last_expired.created_at.strftime("%d/%m/%Y") %></p>
+          <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%d/%m/%Y") %></p>
+          <p><strong>Price:</strong> <%= number_to_currency(19.95) %>/month</p>
+          <p><strong>Duration:</strong> <%= distance_of_time_in_words(last_expired.created_at, last_expired.expires_at) %></p>
+        </div>
+
       </p>
       <% if @expired_subscriptions.size > 1 %>
         <%= link_to "View Full History", expired_subscriptions_path, class: "history-button" %>
@@ -400,28 +508,40 @@
         const expiresAt = new Date(utcTime);
         const localTimeElement = document.getElementById("local-time-text");
 
-        // Format local time as DD/MM/YYYY, HHhMM
-        const day = String(expiresAt.getDate()).padStart(2, '0');
-        const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
-        const year = expiresAt.getFullYear();
-        const hours = String(expiresAt.getHours()).padStart(2, '0');
-        const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
-        localTimeElement.textContent = `${day}/${month}/${year}, ${hours}h${minutes}`;
+        // Format local time as DD/MM/YYYY at HH:MM
+        const options = {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        };
+        const localTime = expiresAt.toLocaleString(undefined, options);
+        localTimeElement.textContent = localTime.replace(',', ' at');
 
-        // Update countdown every second
+        // Update countdown
         function updateCountdown() {
           const now = new Date();
           const diff = expiresAt - now;
+
           if (diff <= 0) {
-            document.getElementById("countdown").textContent = "Expired";
+            document.getElementById("countdown").textContent = "Subscription expired";
             return;
           }
+
           const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-          const hoursRemaining = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutesRemaining = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          document.getElementById("countdown").textContent =
-            `${days}d ${hoursRemaining}h ${minutesRemaining}m remaining`;
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+          let countdownText = [];
+          if (days > 0) countdownText.push(`${days} day${days !== 1 ? 's' : ''}`);
+          if (hours > 0 || days > 0) countdownText.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+          countdownText.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+
+          document.getElementById("countdown").textContent = `${countdownText.join(', ')} remaining`;
         }
+
         updateCountdown();
         setInterval(updateCountdown, 60000); // Update every minute
       <% end %>
