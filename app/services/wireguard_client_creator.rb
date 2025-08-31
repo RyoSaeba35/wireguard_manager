@@ -39,7 +39,7 @@ class WireguardClientCreator
       private_key: private_key,
       public_key: public_key,
       ip_address: ip_address,
-      expires_at: 2.minute.from_now,
+      expires_at: 5.minute.from_now,
       status: "active"
     )
 
