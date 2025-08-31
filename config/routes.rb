@@ -25,4 +25,7 @@ Rails.application.routes.draw do
   get 'privacy', to: 'pages#privacy'
   get 'terms', to: 'pages#terms'
   get 'logging', to: 'pages#logging'
+
+  get 'expired_subscriptions', to: 'pages#subscriptions_expired', as: :expired_subscriptions
+
 end
