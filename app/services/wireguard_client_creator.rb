@@ -23,25 +23,25 @@ class WireguardClientCreator
       raise "Failed to fetch a valid IP address"
     end
 
-    # Create the WireguardClient record in the database
-    wireguard_client = @user.wireguard_clients.create!(
-      name: @client_name,
-      private_key: private_key,
-      public_key: public_key,
-      ip_address: ip_address,
-      expires_at: 1.month.from_now,
-      status: "active"
-    )
-
     # # Create the WireguardClient record in the database
     # wireguard_client = @user.wireguard_clients.create!(
     #   name: @client_name,
     #   private_key: private_key,
     #   public_key: public_key,
     #   ip_address: ip_address,
-    #   expires_at: 2.minute.from_now,
+    #   expires_at: 1.month.from_now,
     #   status: "active"
     # )
+
+    # Create the WireguardClient record in the database
+    wireguard_client = @user.wireguard_clients.create!(
+      name: @client_name,
+      private_key: private_key,
+      public_key: public_key,
+      ip_address: ip_address,
+      expires_at: 2.minute.from_now,
+      status: "active"
+    )
 
     # Create the Subscription record
     @user.subscriptions.create!(

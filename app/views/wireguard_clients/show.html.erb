@@ -16,6 +16,30 @@
     color: #666;
     margin-bottom: 2rem;
   }
+
+  /* CSS for local time display with tooltip */
+  .local-time-container {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+  }
+  .utc-tooltip {
+    display: none;
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    white-space: nowrap;
+    z-index: 100;
+    left: 0;
+    top: 100%;
+  }
+  .local-time-container:hover .utc-tooltip {
+    display: block;
+  }
+
   .client-section {
     background-color: #f9f9f9;
     padding: 1.5rem;
@@ -64,7 +88,21 @@
 <div class="client-container">
   <div class="client-header">
     <h1>WireGuard Client: <%= @wireguard_client.name %></h1>
-    <p class="client-meta">Expires At: <%= @wireguard_client.expires_at %></p>
+    <p class="client-meta">
+      Expires at:
+      <span class="local-time-container">
+        <span id="local-time-text">
+          <!-- Fallback for non-JS users -->
+          <%= @wireguard_client.expires_at.in_time_zone("Etc/UTC").strftime("%Y-%m-%d %H:%M:%S %Z") %>
+        </span>
+        <span class="utc-tooltip">
+          <%= @wireguard_client.expires_at %>
+        </span>
+      </span>
+      (local time)
+      –
+      <span id="countdown">Calculating...</span>
+    </p>
   </div>
 
   <% qr_code_path = Rails.root.join('public', 'qr_codes', "#{@wireguard_client.name}.png") %>
@@ -111,3 +149,36 @@
     <% end %>
   </div>
 </div>
+<script>
+  document.addEventListener("turbo:load", function() {
+    // Subscription expiration logic
+    const utcTime = "<%= @wireguard_client.expires_at.iso8601 %>";
+    const expiresAt = new Date(utcTime);
+    const localTimeElement = document.getElementById("local-time-text");
+
+    // Format local time as DD/MM/YYYY, HHhMM
+    const day = String(expiresAt.getDate()).padStart(2, '0');
+    const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
+    const year = expiresAt.getFullYear();
+    const hours = String(expiresAt.getHours()).padStart(2, '0');
+    const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
+    localTimeElement.textContent = `${day}/${month}/${year}, ${hours}h${minutes}`;
+
+    // Update countdown every second
+    function updateCountdown() {
+      const now = new Date();
+      const diff = expiresAt - now;
+      if (diff <= 0) {
+        document.getElementById("countdown").textContent = "Expired";
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hoursRemaining = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutesRemaining = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      document.getElementById("countdown").textContent =
+        `${days}d ${hoursRemaining}h ${minutesRemaining}m remaining`;
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 60000); // Update every minute
+  });
+</script>
