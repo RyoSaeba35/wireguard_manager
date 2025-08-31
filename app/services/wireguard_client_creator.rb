@@ -33,6 +33,16 @@ class WireguardClientCreator
       status: "active"
     )
 
+    # # Create the WireguardClient record in the database
+    # wireguard_client = @user.wireguard_clients.create!(
+    #   name: @client_name,
+    #   private_key: private_key,
+    #   public_key: public_key,
+    #   ip_address: ip_address,
+    #   expires_at: 2.minute.from_now,
+    #   status: "active"
+    # )
+
     # Create the Subscription record
     @user.subscriptions.create!(
       wireguard_client: wireguard_client,
@@ -89,13 +99,34 @@ class WireguardClientCreator
     end
   end
 
+  # def download_config_file(wireguard_client)
+  #   config_dir = Rails.root.join('public', 'configs')
+  #   Dir.mkdir(config_dir) unless Dir.exist?(config_dir)
+
+  #   begin
+  #     Net::SCP.start(ENV['RASPBERRY_PI_IP'], ENV['RASPBERRY_PI_USER'], password: ENV['RASPBERRY_PI_PASSWORD']) do |scp|
+  #       scp.download!("/home/pi/configs/#{wireguard_client.name}.conf", config_dir.join("#{wireguard_client.name}.conf"))
+  #     end
+  #   rescue Net::SCP::Error => e
+  #     Rails.logger.error "SCP Error downloading config file: #{e.message}"
+  #     raise "Failed to download config file: #{e.message}"
+  #   end
+  # end
+
   def download_config_file(wireguard_client)
     config_dir = Rails.root.join('public', 'configs')
     Dir.mkdir(config_dir) unless Dir.exist?(config_dir)
 
+    # Sanitize the filename by replacing @ and . with underscores
+    sanitized_name = wireguard_client.name.gsub(/[@.]/, '_')
+
+    # Define remote and local paths
+    remote_path = "/home/pi/configs/#{wireguard_client.name}.conf"
+    local_path = config_dir.join("#{sanitized_name}.conf")
+
     begin
       Net::SCP.start(ENV['RASPBERRY_PI_IP'], ENV['RASPBERRY_PI_USER'], password: ENV['RASPBERRY_PI_PASSWORD']) do |scp|
-        scp.download!("/home/pi/configs/#{wireguard_client.name}.conf", config_dir.join("#{wireguard_client.name}.conf"))
+        scp.download!(remote_path, local_path)
       end
     rescue Net::SCP::Error => e
       Rails.logger.error "SCP Error downloading config file: #{e.message}"
