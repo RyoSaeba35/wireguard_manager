@@ -111,7 +111,7 @@
 
 
 
-  .btn {
+  /* .btn {
     padding: 0.5rem 1rem;
     background-color: #27ae60;
     color: white;
@@ -121,7 +121,31 @@
     cursor: pointer;
     font-size: 0.9rem;
     display: inline-block;
+  } */
+
+ .btn {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    margin: 15px auto;
+    transition: background-color 0.2s;
   }
+
+  .btn:hover {
+    background-color: #218838;
+    text-decoration: none;
+  }
+
   ul {
     list-style-type: none;
     padding: 0;
@@ -156,6 +180,14 @@
   .local-time-container:hover .utc-tooltip {
     display: block;
   } */
+
+  /* CSS for divider line */
+  .section-divider {
+    height: 1px;
+    background-color: #dee2e6;
+    margin: 30px 0;
+    width: 100%;
+  }
 
   .subscription-card {
     border: 1px solid #e0e0e0;
@@ -328,7 +360,6 @@
           </p>
         </div>
       </div>
-
       <%= link_to "View WireGuard Client", user_wireguard_client_path(current_user, @active_subscription.wireguard_client), class: "btn" %>
 
     <% else %>
@@ -337,6 +368,9 @@
         <%= link_to "Subscribe Now", new_user_wireguard_client_path(current_user), class: "btn" %>
       </div>
     <% end %>
+
+    <!-- Divider Line -->
+    <div class="section-divider"></div>
 
     <h2>Expired Subscriptions</h2>
     <% if @expired_subscriptions.any? %>
