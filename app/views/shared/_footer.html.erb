@@ -1,4 +1,9 @@
 <footer class="footer">
+  <div class="footer-links">
+    <%= link_to "Data Privacy", privacy_path %>
+    <%= link_to "Terms of Service", terms_path %>
+    <%= link_to "Logging Policy", logging_path %>
+  </div>
   <p>&copy; 2025 IronCryptVPN. All rights reserved.</p>
 </footer>
 
@@ -8,6 +13,22 @@
     color: white;
     text-align: center;
     padding: 2rem;
-    margin-top: 2rem;
+    /* margin-top: 2rem; */
+  }
+
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .footer-links a {
+    color: white;
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    text-decoration: underline;
   }
 </style>

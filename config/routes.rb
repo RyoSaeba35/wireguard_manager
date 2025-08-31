@@ -21,4 +21,8 @@ Rails.application.routes.draw do
   get 'dashboard', to: 'dashboard#show', as: 'dashboard'
   get 'profile', to: 'users#profile', as: 'profile'
   patch 'update_profile', to: 'users#update_profile', as: 'update_profile'
+
+  get 'privacy', to: 'pages#privacy'
+  get 'terms', to: 'pages#terms'
+  get 'logging', to: 'pages#logging'
 end
