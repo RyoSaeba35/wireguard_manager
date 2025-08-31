@@ -58,7 +58,8 @@
       <div class="form-group">
         <%# <%= form.label :name %>
         <%#= form.text_field :name, placeholder: "Enter a name for your WireGuard client" %>
-        <%= form.hidden_field :name, value: current_user.email %>
+        <%#= form.hidden_field :name, value: current_user.email %>
+        <%# No need for a name field; the token will be generated in the controller %>
       </div>
       <div class="form-group">
         <%= form.submit "Create" %>
