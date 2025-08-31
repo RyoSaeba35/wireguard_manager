@@ -20,6 +20,14 @@
 # Learn more: http://github.com/javan/whenever
 # config/schedule.rb
 
-every :day, at: '12:00 am' do
+# every :day, at: '12:00 am' do
+#   runner "RevokeExpiredSubscriptionsJob.perform_now"
+# end
+
+set :output, "log/cron.log"
+set :environment, 'development'
+set :job_template, "PATH=/home/pierre/.rbenv/shims:/home/pierre/.rbenv/bin:/usr/local/bin:/usr/bin:/bin RAILS_ENV=development cd :path && /home/pierre/.rbenv/shims/ruby -r dotenv/load :path/bin/bundle exec bin/rails runner ':job' >> :output 2>&1"
+
+every :hour do
   runner "RevokeExpiredSubscriptionsJob.perform_now"
 end
