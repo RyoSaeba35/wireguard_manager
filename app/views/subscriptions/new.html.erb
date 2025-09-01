@@ -53,12 +53,13 @@
 </style>
 <div class="super-container">
   <div class="form-container">
-    <h1>New WireGuard Client</h1>
-    <%= form_with(model: [current_user, @wireguard_client], local: true) do |form| %>
+    <h1>New Subscription</h1>
+    <%= form_with(model: [current_user, @subscription], local: true) do |form| %>
       <div class="form-group">
         <%# <%= form.label :name %>
         <%#= form.text_field :name, placeholder: "Enter a name for your WireGuard client" %>
-        <%#= form.hidden_field :name, value: current_user.email %>
+        <%= form.hidden_field :price, value: '19.95' %>
+        <%= form.hidden_field :plan, value: 'Pay As You Go' %>
         <%# No need for a name field; the token will be generated in the controller %>
       </div>
       <div class="form-group">

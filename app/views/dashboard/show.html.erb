@@ -335,14 +335,14 @@
 
   <section class="subscription-section">
     <h2>Your VPN Subscription</h2>
-    <% if @has_subscription && @active_subscription.wireguard_client %>
+    <% if @has_subscription %>
 
       <div class="subscription-alert">
         <div class="alert-icon">✅</div>
         <div class="alert-content">
           <h3>Active Subscription</h3>
-          <p><strong>Client:</strong> #<%= @active_subscription.wireguard_client.name %></p>
-          <p><strong>Plan:</strong> <%= "Pay As You Go" %></p>
+          <p><strong>Client:</strong> #<%= @active_subscription.name %></p>
+          <p><strong>Plan:</strong> <%= @active_subscription.plan %></p>
           <p>
             Expires at:
             <span class="local-time-container">
@@ -360,12 +360,12 @@
           </p>
         </div>
       </div>
-      <%= link_to "View WireGuard Client", user_wireguard_client_path(current_user, @active_subscription.wireguard_client), class: "btn" %>
+      <%= link_to "View Subscription", user_subscription_path(current_user, @active_subscription), class: "btn" %>
 
     <% else %>
       <div class="alert alert-warning">
         <p>❌ You don't have an active subscription.</p>
-        <%= link_to "Subscribe Now", new_user_wireguard_client_path(current_user), class: "btn" %>
+        <%= link_to "Subscribe Now", new_user_subscription_path(current_user), class: "btn" %>
       </div>
     <% end %>
 
@@ -376,15 +376,15 @@
     <% if @expired_subscriptions.any? %>
       <% last_expired = @expired_subscriptions.last %>
       <p>
-        <%# <%= last_expired.wireguard_client.name %>
+        <%# <%= last_expired.wireguard_clients.name %>
         <%# (Expired: <%= last_expired.expires_at) %>
 
         <div class="subscription-card">
-          <h3>Subscription #<%= last_expired.wireguard_client.name %></h3>
-          <p><strong>Plan:</strong> <%= "Pay As You Go" %></p>
+          <h3>Subscription #<%= last_expired.name %></h3>
+          <p><strong>Plan:</strong> <%= last_expired.plan %></p>
           <p><strong>Started:</strong> <%= last_expired.created_at.strftime("%d/%m/%Y") %></p>
           <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%d/%m/%Y") %></p>
-          <p><strong>Price:</strong> <%= number_to_currency(19.95) %>/month</p>
+          <p><strong>Price:</strong> <%= number_to_currency(last_expired.price) %>/month</p>
           <p><strong>Duration:</strong> <%= distance_of_time_in_words(last_expired.created_at, last_expired.expires_at) %></p>
         </div>
 
@@ -419,9 +419,9 @@
           <strong>a QR code</strong> (for mobile) and
           <strong>a config file</strong> (for all devices).
         </p>
-        <% if @has_subscription && @active_subscription && @active_subscription.wireguard_client %>
+        <% if @has_subscription && @active_subscription && @active_subscription.wireguard_clients %>
           <p>
-            <%= link_to "Download your config file", user_wireguard_client_path(current_user, @active_subscription.wireguard_client), class: "btn" %>
+            <%= link_to "Download your config file", user_subscription_path(current_user, @active_subscription), class: "btn" %>
           </p>
         <% else %>
           <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">

@@ -16,7 +16,7 @@
         <tbody>
           <% @expired_subscriptions.each do |subscription| %>
             <tr>
-              <td>#<%= subscription.wireguard_client.name %></td>
+              <td>#<%= subscription.name %></td>
               <td>Pay As You Go</td>
               <td><%= subscription.created_at.strftime("%d/%m/%Y") %></td>
               <td><%= subscription.expires_at.strftime("%d/%m/%Y") %></td>
