@@ -27,5 +27,4 @@ Rails.application.routes.draw do
   get 'logging', to: 'pages#logging'
 
   get 'expired_subscriptions', to: 'pages#subscriptions_expired', as: :expired_subscriptions
-
 end
