@@ -75,13 +75,10 @@ class SubscriptionsController < ApplicationController
       break random_name unless Subscription.exists?(name: random_name)
     end
 
-    # Generate a unique 6-character alphanumeric token for the wireguard client
-    client_name = "#{subscription_name}_1"
-
-    Rails.logger.info "Creating subscription: #{subscription_name} and WireGuard client: #{client_name}"
+    Rails.logger.info "Creating subscription: #{subscription_name}"
 
     # Use the service to create the subscription and wireguard client
-    creator = SubscriptionCreator.new(current_user, subscription_name, client_name, subscription_params)
+    creator = SubscriptionCreator.new(current_user, subscription_name, subscription_params)
     @subscription = creator.call
 
     if @subscription.persisted?
