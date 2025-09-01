@@ -13,7 +13,7 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
   resources :users do
-    resources :wireguard_clients, only: [:new, :create, :show]
+    resources :subscriptions, only: [:new, :create, :show]
   end
 
   root "home#index"
