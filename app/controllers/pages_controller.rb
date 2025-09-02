@@ -11,6 +11,6 @@ class PagesController < ApplicationController
   end
 
   def subscriptions_expired
-    @expired_subscriptions = Subscription.expired.order(expires_at: :desc)
+    @expired_subscriptions = current_user.subscriptions.expired.order(expires_at: :desc)
   end
 end

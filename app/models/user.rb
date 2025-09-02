@@ -5,6 +5,6 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   # Association with WireguardClient
-  has_many :wireguard_clients, dependent: :destroy
+  # has_many :wireguard_clients, dependent: :destroy
   has_many :subscriptions, dependent: :destroy
 end

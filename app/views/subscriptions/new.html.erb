@@ -4,67 +4,85 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: calc(100vh - 220px); /* Adjust based on header/footer height */
-    background-color: #ecf0f1;
+    min-height: calc(100vh - 220px);
+    background-color: #f4f4f4;
+    padding: 2rem 0;
   }
-  .form-container {
-    max-width: 600px;
-    margin: auto 0;
+  .pricing {
+    width: 100%;
+    text-align: center;
+  }
+  .pricing h2 {
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #2c3e50;
+  }
+  .plan {
+    background-color: white;
     padding: 2rem;
-    background-color: #f9f9f9;
     border-radius: 8px;
+    max-width: 300px;
+    margin: 0 auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
-  .form-container h1 {
+  .plan h3 {
     color: #2c3e50;
-    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .plan-price {
+    font-size: 2.5rem;
+    color: #e74c3c;
+    margin-bottom: 1rem;
+  }
+  .plan-features {
+    text-align: left;
     margin-bottom: 1.5rem;
   }
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-    color: #2c3e50;
-  }
-  .form-group input[type="text"] {
-    width: 100%;
-    padding: 0.8rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-  }
-  .form-group input[type="submit"] {
+  .plan-btn {
     background-color: #27ae60;
     color: white;
     padding: 0.8rem 1.5rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1rem;
+    text-decoration: none;
+    display: inline-block;
     width: 100%;
-    margin-top: 0.5rem;
+    text-align: center;
   }
-  .form-group input[type="submit"]:hover {
+  .plan-btn:hover {
     background-color: #219653;
   }
+  .tooltip-icon {
+    cursor: help;
+    margin-left: 5px;
+    font-size: 0.8em;
+    color: #666;
+  }
 </style>
+
 <div class="super-container">
-  <div class="form-container">
-    <h1>New Subscription</h1>
-    <%= form_with(model: [current_user, @subscription], local: true) do |form| %>
-      <div class="form-group">
-        <%# <%= form.label :name %>
-        <%#= form.text_field :name, placeholder: "Enter a name for your WireGuard client" %>
-        <%= form.hidden_field :price, value: '19.95' %>
-        <%= form.hidden_field :plan, value: 'Pay As You Go' %>
-        <%# No need for a name field; the token will be generated in the controller %>
+  <section class="pricing">
+    <h2>Choose Your Plan</h2>
+    <div class="plan">
+      <h3>Pay As You Go</h3>
+      <div class="plan-price">$19.95/month</div>
+      <div class="plan-features">
+        <p>✅ Unlimited Bandwidth</p>
+        <p>✅ France Server Access</p>
+        <p>✅ Advanced Encryption</p>
+        <p>✅ Up to 3 Devices Simultaneously
+          <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
+        </p>
+        <p>✅ No Long-Term Commitment</p>
       </div>
-      <div class="form-group">
-        <%= form.submit "Create" %>
-      </div>
-    <% end %>
-  </div>
+      <%= form_with(model: [current_user, @subscription], local: true) do |form| %>
+        <div class="form-group" style="margin: 0;">
+          <%= form.hidden_field :price, value: '19.95' %>
+          <%= form.hidden_field :plan, value: 'Pay As You Go' %>
+        </div>
+        <%= form.submit "Create", class: "plan-btn", style: "width: 100%; border: none; font-size: 1rem; padding: 0.8rem;" %>
+      <% end %>
+    </div>
+  </section>
 </div>
