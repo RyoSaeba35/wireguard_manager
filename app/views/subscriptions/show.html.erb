@@ -16,8 +16,6 @@
     color: #666;
     margin-bottom: 2rem;
   }
-
-  /* CSS for local time display with tooltip */
   .local-time-container {
     position: relative;
     display: inline-block;
@@ -39,17 +37,34 @@
   .local-time-container:hover .utc-tooltip {
     display: block;
   }
-
-  .client-section {
+  .tabs {
+    display: flex;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ddd;
+  }
+  .tab-button {
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 1rem;
+    color: #666;
+    transition: all 0.3s ease;
+  }
+  .tab-button.active {
+    color: #27ae60;
+    border-bottom: 3px solid #27ae60;
+  }
+  .tab-content {
+    display: none;
     background-color: #f9f9f9;
     padding: 1.5rem;
-    border-radius: 8px;
+    border-radius: 0 8px 8px 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
   }
-  .client-section h3 {
-    color: #2c3e50;
-    margin-bottom: 1rem;
+  .tab-content.active {
+    display: block;
   }
   .qr-code {
     text-align: center;
@@ -87,16 +102,15 @@
 
 <div class="client-container">
   <div class="client-header">
-    <h1>WireGuard Client: <%= @wireguard_client.name %></h1>
+    <h1>Subscription: <%= @subscription.name %></h1>
     <p class="client-meta">
       Expires at:
       <span class="local-time-container">
         <span id="local-time-text">
-          <!-- Fallback for non-JS users -->
-          <%= @wireguard_client.expires_at.in_time_zone("Etc/UTC").strftime("%Y-%m-%d %H:%M:%S %Z") %>
+          <%= @subscription.expires_at.in_time_zone("Etc/UTC").strftime("%Y-%m-%d %H:%M:%S %Z") %>
         </span>
         <span class="utc-tooltip">
-          <%= @wireguard_client.expires_at %>
+          <%= @subscription.expires_at %>
         </span>
       </span>
       (local time)
@@ -105,54 +119,79 @@
     </p>
   </div>
 
-  <% qr_code_path = Rails.root.join('public', 'qr_codes', "#{@wireguard_client.name}.png") %>
-  <div class="client-section">
-    <h3>QR Code:</h3>
-    <% if File.exist?(qr_code_path) %>
-      <div class="qr-code">
-        <%= image_tag "/qr_codes/#{@wireguard_client.name}.png", alt: "QR Code" %>
-      </div>
-    <% else %>
-      <div class="alert">
-        <p>QR code is not available.</p>
-      </div>
-    <% end %>
-  </div>
+  <% if @wireguard_clients.any? %>
+    <div class="tabs">
+      <% @wireguard_clients.each_with_index do |client, index| %>
+        <button class="tab-button <%= 'active' if index == 0 %>" data-tab="tab-<%= index %>">
+          <%= client.display_name %>
+        </button>
+      <% end %>
+    </div>
 
-  <%# <% config_path = Rails.root.join('public', 'configs', "#{@wireguard_client.name}.conf") %>
-  <%# <div class="client-section">
-    <h3>Config File:</h3>
-    <% if File.exist?(config_path) %>
-      <%# <p><%= link_to "Download Config", "/configs/#{@wireguard_client.name}.conf", class: "download-link", download: "#{@wireguard_client.name}.conf" %></p>
-    <%# <% else %>
-      <%# <div class="alert">
-        <p>Config file is not available.</p>
-      </div>
-    <% end %>
-  <%# </div> %>
+    <% @wireguard_clients.each_with_index do |client, index| %>
+      <div id="tab-<%= index %>" class="tab-content <%= 'active' if index == 0 %>">
+        <% qr_code_path = Rails.root.join('public', 'qr_codes', "#{client.name}.png") %>
+        <div class="qr-code">
+          <h3>QR Code:</h3>
+          <% if File.exist?(qr_code_path) %>
+            <%= image_tag "/qr_codes/#{client.name}.png", alt: "QR Code" %>
+          <% else %>
+            <div class="alert">
+              <p>QR code is not available.</p>
+            </div>
+          <% end %>
+        </div>
 
-  <% sanitized_name = @wireguard_client.name.gsub(/[@.]/, '_') %>
-  <% config_path = Rails.root.join('public', 'configs', "#{sanitized_name}.conf") %>
-  <div class="client-section">
-    <h3>Config File:</h3>
-    <% if File.exist?(config_path) %>
-      <p>
-        <%= link_to "Download Config",
-                    "/configs/#{sanitized_name}.conf",
-                    class: "download-link",
-                    download: "#{sanitized_name}.conf" %>
-      </p>
-    <% else %>
-      <div class="alert">
-        <p>Config file is not available.</p>
+        <% sanitized_name = client.name.gsub(/[@.]/, '_') %>
+        <% config_path = Rails.root.join('public', 'configs', "#{sanitized_name}.conf") %>
+        <div>
+          <h3>Config File:</h3>
+          <% if File.exist?(config_path) %>
+            <p>
+              <%= link_to "Download Config",
+                          "/configs/#{sanitized_name}.conf",
+                          class: "download-link",
+                          download: "#{sanitized_name}.conf" %>
+            </p>
+          <% else %>
+            <div class="alert">
+              <p>Config file is not available.</p>
+            </div>
+          <% end %>
+        </div>
       </div>
     <% end %>
-  </div>
+  <% end %>
 </div>
+
 <script>
   document.addEventListener("turbo:load", function() {
+    // Tab switching logic
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+
+        // Deactivate all tab buttons
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.classList.remove('active');
+        });
+
+        // Show the selected tab content
+        document.getElementById(tabId).classList.add('active');
+
+        // Activate the clicked tab button
+        button.classList.add('active');
+      });
+    });
+
     // Subscription expiration logic
-    const utcTime = "<%= @wireguard_client.expires_at.iso8601 %>";
+    const utcTime = "<%= @subscription.expires_at.iso8601 %>";
     const expiresAt = new Date(utcTime);
     const localTimeElement = document.getElementById("local-time-text");
 

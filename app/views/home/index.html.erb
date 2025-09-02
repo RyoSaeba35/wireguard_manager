@@ -1,4 +1,5 @@
 <style>
+  /* Desktop styles (unchanged) */
   .hero {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
     background-size: cover;
@@ -94,6 +95,49 @@
     text-decoration: none;
     display: inline-block;
   }
+
+  /* Mobile styles */
+  @media (max-width: 768px) {
+    .hero {
+      height: 50vh;
+      padding: 0 1.5rem;
+    }
+    .hero h1 {
+      font-size: 2rem;
+    }
+    .hero p {
+      font-size: 1rem;
+      max-width: 100%;
+    }
+    .cta-btn {
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+    }
+    .features {
+      padding: 2rem 1rem;
+    }
+    .feature-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    .feature-card {
+      padding: 1.5rem;
+    }
+    .pricing {
+      padding: 2rem 1rem;
+    }
+    .plan {
+      max-width: 100%;
+      padding: 1.5rem;
+    }
+    .plan-price {
+      font-size: 2rem;
+    }
+    .plan-btn {
+      padding: 0.7rem 1.2rem;
+      font-size: 0.9rem;
+    }
+  }
 </style>
 
 <section class="hero">
@@ -129,6 +173,7 @@
       <p>✅ Unlimited Bandwidth</p>
       <p>✅ France Server Access</p>
       <p>✅ Advanced Encryption</p>
+      <p>✅ Up to 3 Devices Simultaneously</p>
       <p>✅ No Long-Term Commitment</p>
     </div>
     <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>

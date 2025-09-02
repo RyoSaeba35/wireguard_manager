@@ -16,7 +16,7 @@
         <tbody>
           <% @expired_subscriptions.each do |subscription| %>
             <tr>
-              <td>#<%= subscription.wireguard_client.name %></td>
+              <td>#<%= subscription.name %></td>
               <td>Pay As You Go</td>
               <td><%= subscription.created_at.strftime("%d/%m/%Y") %></td>
               <td><%= subscription.expires_at.strftime("%d/%m/%Y") %></td>
@@ -84,5 +84,30 @@
   }
   .back-button:hover {
     background-color: #e0e0e0;
+  }
+
+  /* Adaptations pour mobile */
+  @media (max-width: 600px) {
+    .super-container {
+      padding: 10px;
+    }
+    .super-container h2 {
+      font-size: 1.2rem;
+    }
+    .subscription-table-container {
+      padding: 10px;
+    }
+    .subscription-table {
+      font-size: 0.8rem;
+    }
+    .subscription-table th,
+    .subscription-table td {
+      padding: 8px 10px;
+    }
+    .back-button {
+      padding: 12px 24px;
+      width: 100%;
+      text-align: center;
+    }
   }
 </style>

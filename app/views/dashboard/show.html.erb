@@ -326,6 +326,29 @@
     display: block;
   }
 
+  /* Mobile-specific adjustments */
+  @media (max-width: 600px) {
+    .dashboard-container {
+      padding: 0.75rem;
+    }
+    .subscription-alert {
+      flex-direction: column;
+      text-align: center;
+    }
+    .alert-icon {
+      margin-bottom: 8px;
+    }
+    .alert-content {
+      text-align: center;
+    }
+    .btn {
+      max-width: 100%;
+      padding: 8px;
+    }
+    .step ol, .faq-answer ul {
+      margin-left: 1rem;
+    }
+  }
 </style>
 
 <div class="dashboard-container">
@@ -335,14 +358,14 @@
 
   <section class="subscription-section">
     <h2>Your VPN Subscription</h2>
-    <% if @has_subscription && @active_subscription.wireguard_client %>
+    <% if @has_subscription %>
 
       <div class="subscription-alert">
         <div class="alert-icon">✅</div>
         <div class="alert-content">
           <h3>Active Subscription</h3>
-          <p><strong>Client:</strong> #<%= @active_subscription.wireguard_client.name %></p>
-          <p><strong>Plan:</strong> <%= "Pay As You Go" %></p>
+          <p><strong>Client:</strong> #<%= @active_subscription.name %></p>
+          <p><strong>Plan:</strong> <%= @active_subscription.plan %></p>
           <p>
             Expires at:
             <span class="local-time-container">
@@ -360,12 +383,12 @@
           </p>
         </div>
       </div>
-      <%= link_to "View WireGuard Client", user_wireguard_client_path(current_user, @active_subscription.wireguard_client), class: "btn" %>
+      <%= link_to "View Subscription", user_subscription_path(current_user, @active_subscription), class: "btn" %>
 
     <% else %>
       <div class="alert alert-warning">
         <p>❌ You don't have an active subscription.</p>
-        <%= link_to "Subscribe Now", new_user_wireguard_client_path(current_user), class: "btn" %>
+        <%= link_to "Subscribe Now", new_user_subscription_path(current_user), class: "btn" %>
       </div>
     <% end %>
 
@@ -376,15 +399,15 @@
     <% if @expired_subscriptions.any? %>
       <% last_expired = @expired_subscriptions.last %>
       <p>
-        <%# <%= last_expired.wireguard_client.name %>
+        <%# <%= last_expired.wireguard_clients.name %>
         <%# (Expired: <%= last_expired.expires_at) %>
 
         <div class="subscription-card">
-          <h3>Subscription #<%= last_expired.wireguard_client.name %></h3>
-          <p><strong>Plan:</strong> <%= "Pay As You Go" %></p>
+          <h3>Subscription #<%= last_expired.name %></h3>
+          <p><strong>Plan:</strong> <%= last_expired.plan %></p>
           <p><strong>Started:</strong> <%= last_expired.created_at.strftime("%d/%m/%Y") %></p>
           <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%d/%m/%Y") %></p>
-          <p><strong>Price:</strong> <%= number_to_currency(19.95) %>/month</p>
+          <p><strong>Price:</strong> <%= number_to_currency(last_expired.price) %>/month</p>
           <p><strong>Duration:</strong> <%= distance_of_time_in_words(last_expired.created_at, last_expired.expires_at) %></p>
         </div>
 
@@ -401,6 +424,15 @@
     <h2>How to Set Up Your VPN</h2>
     <p>Follow these steps to connect to your VPN using WireGuard:</p>
 
+    <div class="alert alert-warning" style="margin-bottom: 1.5rem; padding: 1rem; background-color: #fff3cd; color: #856404; border-left: 4px solid #ffeeba;">
+      <strong>Important Device Information:</strong>
+      <ul style="margin-bottom: 0; padding-left: 1.2rem;">
+        <li>Use <strong>only one client per device</strong> (one config file or QR code per device).</li>
+        <li>Your subscription allows VPN connections on <strong>up to 3 different devices</strong> simultaneously.</li>
+        <li>Each device must use its own unique configuration.</li>
+      </ul>
+    </div>
+
     <div class="setup-steps">
       <div class="step">
         <h3>1. Download WireGuard</h3>
@@ -414,15 +446,15 @@
 
       <div class="step">
         <h3>2. Get Your Configuration</h3>
-        <p>
-          After subscribing, you received:
-          <strong>a QR code</strong> (for mobile) and
-          <strong>a config file</strong> (for all devices).
-        </p>
-        <% if @has_subscription && @active_subscription && @active_subscription.wireguard_client %>
+        <p>After subscribing, you received a QR code (for mobile) and a config file (for all devices).</p>
+
+        <% if @has_subscription && @active_subscription && @active_subscription.wireguard_clients %>
           <p>
-            <%= link_to "Download your config file", user_wireguard_client_path(current_user, @active_subscription.wireguard_client), class: "btn" %>
+            <%= link_to "Download your config file", user_subscription_path(current_user, @active_subscription), class: "btn" %>
           </p>
+          <div class="alert" style="margin-top: 1rem; padding: 0.75rem; background-color: #e7f5ff; color: #1864b7; border-left: 4px solid #b8daff;">
+            <strong>Note:</strong> Your subscription includes configurations for up to 3 devices. Access all your config files from your subscription dashboard.
+          </div>
         <% else %>
           <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">
             🔒 Subscribe to download your config file.
@@ -436,13 +468,14 @@
         <ol>
           <li>Open the WireGuard app.</li>
           <li>Tap <strong>"Add Tunnel" → "Scan QR Code"</strong>.</li>
-          <li>Scan the QR code from your dashboard.</li>
+          <li>Scan the QR code from your dashboard (use a different QR code for each device).</li>
         </ol>
+
         <p><strong>Option B: Config File (All Devices)</strong></p>
         <ol>
           <li>Open the WireGuard app.</li>
           <li>Tap <strong>"Add Tunnel" → "Import from file"</strong>.</li>
-          <li>Select the downloaded config file.</li>
+          <li>Select the downloaded config file (each device needs its own unique config file).</li>
         </ol>
       </div>
 
@@ -451,68 +484,105 @@
         <p>Toggle the switch next to your tunnel to <strong>activate</strong> the connection.</p>
         <p>Verify your connection at <a href="https://whatismyip.com" target="_blank">whatismyip.com</a>.</p>
       </div>
+
+      <div class="step">
+        <h3>5. Device Management</h3>
+        <p>Your subscription includes configurations for up to 3 devices:</p>
+        <ul>
+          <li>Each config file/QR code is for <strong>one device only</strong>.</li>
+          <li>You can use up to 3 devices simultaneously with your subscription.</li>
+          <li><strong>If you want to use the VPN on a new device:</strong>
+            <ol style="margin-top: 0.5rem;">
+              <li>First, <strong>remove the VPN configuration from one of your existing devices</strong> by deleting the tunnel in the WireGuard app.</li>
+              <li>Then, you can set up the VPN on your new device using one of your available configurations.</li>
+            </ol>
+          </li>
+        </ul>
+        <div class="alert" style="margin-top: 1rem; padding: 0.75rem; background-color: #f8d7da; color: #721c24; border-left: 4px solid #f5c6cb;">
+          <strong>Important:</strong> If you have already set up the VPN on 3 devices and want to add a 4th device, you must first remove the configuration from one of your existing devices before setting up the new one.
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="troubleshooting-section">
-    <h2>Troubleshooting</h2>
+<section class="troubleshooting-section">
+  <h2>Troubleshooting</h2>
 
-    <div class="faq-item">
-      <button class="faq-question">
-        Connection Drops <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Symptoms:</strong> The VPN disconnects frequently or fails to connect.</p>
-        <ul>
-          <li>Check your internet connection.</li>
-          <li>Restart the VPN client.</li>
-          <li>Restart your device.</li>
-          <li>Check for firewall/antivirus interference.</li>
-          <li>Reinstall the VPN configuration.</li>
-          <li>Update the VPN app.</li>
-        </ul>
-      </div>
+  <div class="faq-item">
+    <button class="faq-question">
+      Connection Issues <span class="faq-icon">+</span>
+    </button>
+    <div class="faq-answer">
+      <p><strong>Symptoms:</strong> The VPN fails to connect or has connection problems.</p>
+      <ul>
+        <li><strong>Check for duplicate configurations:</strong> Ensure each config file/QR code is used on only one device. If the same configuration is installed on multiple devices, remove it from all but one device.</li>
+        <li>Check your internet connection.</li>
+        <li>Restart the VPN client.</li>
+        <li>Restart your device.</li>
+        <li>Check for firewall/antivirus interference.</li>
+        <li>Reinstall the VPN configuration.</li>
+        <li>Update the VPN app.</li>
+      </ul>
     </div>
+  </div>
 
-    <div class="faq-item">
-      <button class="faq-question">
-        Slow Speeds <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Symptoms:</strong> The VPN connection is active, but browsing/downloads are slower than usual.</p>
-        <ul>
-          <li>Test your base internet speed.</li>
-          <li>Close background applications.</li>
-          <li>Check for network congestion.</li>
-          <li>Restart your router.</li>
-        </ul>
-      </div>
+  <div class="faq-item">
+    <button class="faq-question">
+      Connection Drops <span class="faq-icon">+</span>
+    </button>
+    <div class="faq-answer">
+      <p><strong>Symptoms:</strong> The VPN disconnects frequently or fails to connect.</p>
+      <ul>
+        <li>Check your internet connection.</li>
+        <li>Restart the VPN client.</li>
+        <li>Restart your device.</li>
+        <li>Check for firewall/antivirus interference.</li>
+        <li>Reinstall the VPN configuration.</li>
+        <li>Update the VPN app.</li>
+      </ul>
     </div>
+  </div>
 
-    <div class="faq-item">
-      <button class="faq-question">
-        Unable to Access Certain Websites <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Symptoms:</strong> Some websites or services are blocked or unavailable while connected to the VPN.</p>
-        <ul>
-          <li>Clear your browser cache.</li>
-          <li>Disable IPv6.</li>
-          <li>Check for DNS leaks.</li>
-          <li>Contact support.</li>
-        </ul>
-      </div>
+  <div class="faq-item">
+    <button class="faq-question">
+      Slow Speeds <span class="faq-icon">+</span>
+    </button>
+    <div class="faq-answer">
+      <p><strong>Symptoms:</strong> The VPN connection is active, but browsing/downloads are slower than usual.</p>
+      <ul>
+        <li>Test your base internet speed.</li>
+        <li>Close background applications.</li>
+        <li>Check for network congestion.</li>
+        <li>Restart your router.</li>
+      </ul>
     </div>
+  </div>
 
-    <div class="faq-item">
-      <button class="faq-question">
-        General Tips <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p>Keep your app updated and check for announcements. If issues persist, contact support at <a href="mailto:support@ironcryptvpn.com">support@ironcryptvpn.com</a>.</p>
-      </div>
+  <div class="faq-item">
+    <button class="faq-question">
+      Unable to Access Certain Websites <span class="faq-icon">+</span>
+    </button>
+    <div class="faq-answer">
+      <p><strong>Symptoms:</strong> Some websites or services are blocked or unavailable while connected to the VPN.</p>
+      <ul>
+        <li>Clear your browser cache.</li>
+        <li>Disable IPv6.</li>
+        <li>Check for DNS leaks.</li>
+        <li>Contact support.</li>
+      </ul>
     </div>
-  </section>
+  </div>
+
+  <div class="faq-item">
+    <button class="faq-question">
+      General Tips <span class="faq-icon">+</span>
+    </button>
+    <div class="faq-answer">
+      <p>Keep your app updated and check for announcements. If issues persist, contact support at <a href="mailto:support@ironcryptvpn.com">support@ironcryptvpn.com</a>.</p>
+    </div>
+  </div>
+</section>
+
 
   <script>
     document.addEventListener("turbo:load", function() {
