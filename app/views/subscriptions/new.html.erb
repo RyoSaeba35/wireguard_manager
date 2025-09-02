@@ -1,0 +1,88 @@
+<style>
+  .super-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: calc(100vh - 220px);
+    background-color: #f4f4f4;
+    padding: 2rem 0;
+  }
+  .pricing {
+    width: 100%;
+    text-align: center;
+  }
+  .pricing h2 {
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #2c3e50;
+  }
+  .plan {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 300px;
+    margin: 0 auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  .plan h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+  .plan-price {
+    font-size: 2.5rem;
+    color: #e74c3c;
+    margin-bottom: 1rem;
+  }
+  .plan-features {
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+  .plan-btn {
+    background-color: #27ae60;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+  }
+  .plan-btn:hover {
+    background-color: #219653;
+  }
+  .tooltip-icon {
+    cursor: help;
+    margin-left: 5px;
+    font-size: 0.8em;
+    color: #666;
+  }
+</style>
+
+<div class="super-container">
+  <section class="pricing">
+    <h2>Choose Your Plan</h2>
+    <div class="plan">
+      <h3>Pay As You Go</h3>
+      <div class="plan-price">$19.95/month</div>
+      <div class="plan-features">
+        <p>✅ Unlimited Bandwidth</p>
+        <p>✅ France Server Access</p>
+        <p>✅ Advanced Encryption</p>
+        <p>✅ Up to 3 Devices Simultaneously
+          <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
+        </p>
+        <p>✅ No Long-Term Commitment</p>
+      </div>
+      <%= form_with(model: [current_user, @subscription], local: true) do |form| %>
+        <div class="form-group" style="margin: 0;">
+          <%= form.hidden_field :price, value: '19.95' %>
+          <%= form.hidden_field :plan, value: 'Pay As You Go' %>
+        </div>
+        <%= form.submit "Create", class: "plan-btn", style: "width: 100%; border: none; font-size: 1rem; padding: 0.8rem;" %>
+      <% end %>
+    </div>
+  </section>
+</div>

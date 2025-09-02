@@ -10,16 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_08_24_163846) do
+ActiveRecord::Schema[7.2].define(version: 2025_09_01_193129) do
   create_table "subscriptions", force: :cascade do |t|
     t.integer "user_id", null: false
-    t.integer "wireguard_client_id", null: false
     t.string "status", default: "active"
     t.datetime "expires_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "name", null: false
+    t.decimal "price", precision: 8, scale: 2, null: false
+    t.string "plan", null: false
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
-    t.index ["wireguard_client_id"], name: "index_subscriptions_on_wireguard_client_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -39,15 +40,14 @@ ActiveRecord::Schema[7.2].define(version: 2025_08_24_163846) do
     t.text "public_key"
     t.text "private_key"
     t.string "ip_address"
-    t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "expires_at"
     t.string "status", default: "active"
-    t.index ["user_id"], name: "index_wireguard_clients_on_user_id"
+    t.integer "subscription_id", null: false
+    t.index ["subscription_id"], name: "index_wireguard_clients_on_subscription_id"
   end
 
   add_foreign_key "subscriptions", "users"
-  add_foreign_key "subscriptions", "wireguard_clients"
-  add_foreign_key "wireguard_clients", "users"
+  add_foreign_key "wireguard_clients", "subscriptions"
 end
