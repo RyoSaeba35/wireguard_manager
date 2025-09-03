@@ -20,3 +20,4 @@ class Subscription < ApplicationRecord
     status == "active" && expires_at > Time.current
   end
 end
+

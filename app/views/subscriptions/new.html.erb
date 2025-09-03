@@ -24,19 +24,37 @@
     max-width: 300px;
     margin: 0 auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-top: 4px solid #27ae60;
+  }
+  .popular-badge {
+    background-color: #e74c3c;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin-bottom: 1rem;
   }
   .plan h3 {
     color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+  .plan-subtitle {
+    color: #7f8c8d;
     margin-bottom: 1rem;
+    font-size: 0.9rem;
   }
   .plan-price {
     font-size: 2.5rem;
     color: #e74c3c;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
   }
   .plan-features {
     text-align: left;
     margin-bottom: 1.5rem;
+  }
+  .plan-features p {
+    margin: 0.5rem 0;
   }
   .plan-btn {
     background-color: #27ae60;
@@ -49,15 +67,42 @@
     display: inline-block;
     width: 100%;
     text-align: center;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
   }
-  .plan-btn:hover {
+  .plan-btn:hover:not(:disabled) {
     background-color: #219653;
+  }
+  .plan-btn:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
   }
   .tooltip-icon {
     cursor: help;
     margin-left: 5px;
     font-size: 0.8em;
     color: #666;
+    border-bottom: 1px dotted #666;
+  }
+  .plan-unavailable {
+    color: #e74c3c;
+    font-weight: bold;
+    padding: 1rem;
+    background-color: #fdecea;
+    border-radius: 4px;
+    margin-top: 1rem;
+  }
+  .plan-unavailable p {
+    margin: 0.5rem 0;
+  }
+  @media (max-width: 768px) {
+    .plan {
+      max-width: 90%;
+      padding: 1.5rem;
+    }
+    .plan-price {
+      font-size: 2rem;
+    }
   }
 </style>
 
@@ -65,23 +110,32 @@
   <section class="pricing">
     <h2>Choose Your Plan</h2>
     <div class="plan">
+      <div class="popular-badge">Popular</div>
       <h3>Pay As You Go</h3>
+      <p class="plan-subtitle">Flexible, cancel anytime</p>
       <div class="plan-price">$19.95/month</div>
       <div class="plan-features">
-        <p>✅ Unlimited Bandwidth</p>
-        <p>✅ France Server Access</p>
-        <p>✅ Advanced Encryption</p>
+        <p><strong>✅ Unlimited Bandwidth</strong></p>
+        <p><strong>✅ France Server Access</strong></p>
+        <p><strong>✅ Advanced Encryption</strong></p>
         <p>✅ Up to 3 Devices Simultaneously
           <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
         </p>
-        <p>✅ No Long-Term Commitment</p>
+        <p><strong>✅ No Long-Term Commitment</strong></p>
       </div>
-      <%= form_with(model: [current_user, @subscription], local: true) do |form| %>
-        <div class="form-group" style="margin: 0;">
-          <%= form.hidden_field :price, value: '19.95' %>
-          <%= form.hidden_field :plan, value: 'Pay As You Go' %>
+      <% if Subscription.where(plan: 'Pay As You Go', status: 'active').count < 5 %>
+        <%= form_with(model: [current_user, @subscription], local: true) do |form| %>
+          <div class="form-group" style="margin: 0;">
+            <%= form.hidden_field :price, value: '19.95' %>
+            <%= form.hidden_field :plan, value: 'Pay As You Go' %>
+          </div>
+          <%= form.submit "Subscribe Now", class: "plan-btn", style: "width: 100%; border: none; font-size: 1rem; padding: 0.8rem;" %>
+        <% end %>
+      <% else %>
+        <div class="plan-unavailable">
+          <p>This plan is currently unavailable.</p>
+          <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>
         </div>
-        <%= form.submit "Create", class: "plan-btn", style: "width: 100%; border: none; font-size: 1rem; padding: 0.8rem;" %>
       <% end %>
     </div>
   </section>

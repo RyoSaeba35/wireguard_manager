@@ -1,5 +1,15 @@
 Rails.application.routes.draw do
+  namespace :admin do
+    get "dashboard/index"
+  end
   devise_for :users
+
+  namespace :admin do
+    get 'dashboard', to: 'dashboard#index'
+    resources :users, only: [:index, :show]
+    resources :subscriptions, only: [:index, :show]
+    resources :wireguard_clients, only: [:index, :show]
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

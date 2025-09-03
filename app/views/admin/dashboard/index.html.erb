@@ -1,0 +1,505 @@
+<div class="admin-dashboard">
+  <h1>Admin Dashboard</h1>
+
+  <!-- Search and Filter Controls -->
+  <div class="controls">
+    <input type="text" id="search-input" placeholder="Search by email or subscription name..." class="search-input">
+    <div class="filter-options">
+      <label>
+        <input type="checkbox" id="hide-inactive" checked>
+        Hide users without active subscriptions
+      </label>
+      <div class="sort-options">
+        <span>Sort by:</span>
+        <button id="sort-email" class="sort-btn active">Email</button>
+      </div>
+    </div>
+  </div>
+
+  <h2>Users</h2>
+  <table class="users-table">
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Active Subscriptions</th>
+        <th>Expired Subscriptions</th>
+      </tr>
+    </thead>
+    <tbody id="users-table-body">
+      <% @users.each do |user| %>
+        <tr class="user-row" data-email="<%= user.email.downcase %>" data-has-active="<%= user.subscriptions.active.any? ? 'true' : 'false' %>">
+          <td><%= user.email %></td>
+          <td>
+            <% if user.subscriptions.active.any? %>
+              <button class="toggle-details toggle-active" data-target="<%= user.id %>-active">
+                <%= user.subscriptions.active.count %> <span class="toggle-span">(Show)</span>
+              </button>
+            <% else %>
+              <span class="count-display"><%= user.subscriptions.active.count %></span>
+            <% end %>
+          </td>
+          <td>
+            <% if user.subscriptions.expired.any? %>
+              <button class="toggle-details toggle-expired" data-target="<%= user.id %>-expired">
+                <%= user.subscriptions.expired.count %> <span class="toggle-span">(Show)</span>
+              </button>
+            <% else %>
+              <span class="count-display"><%= user.subscriptions.expired.count %></span>
+            <% end %>
+          </td>
+        </tr>
+
+        <!-- Active Subscriptions Details Row -->
+        <% if user.subscriptions.active.any? %>
+          <tr id="<%= user.id %>-active" class="details-row" style="display: none;" data-subscriptions="<%= user.subscriptions.active.map(&:name).join(' ').downcase %>">
+            <td colspan="3">
+              <div class="details-content">
+                <strong>Active Subscriptions for <%= user.email %></strong>
+                <table class="subscription-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Plan</th>
+                      <th>Expires At</th>
+                      <th>WireGuard Clients</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% user.subscriptions.active.each do |subscription| %>
+                      <tr>
+                        <td><%= subscription.name %></td>
+                        <td><%= subscription.plan %></td>
+                        <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
+                        <td>
+                          <% subscription.wireguard_clients.each do |client| %>
+                            <div class="wireguard-clients"><%= client.name %></div>
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+
+        <!-- Expired Subscriptions Details Row -->
+        <% if user.subscriptions.expired.any? %>
+          <tr id="<%= user.id %>-expired" class="details-row" style="display: none;" data-subscriptions="<%= user.subscriptions.expired.map(&:name).join(' ').downcase %>">
+            <td colspan="3">
+              <div class="details-content">
+                <strong>Expired Subscriptions for <%= user.email %></strong>
+                <table class="subscription-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Plan</th>
+                      <th>Expired At</th>
+                      <th>WireGuard Clients</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% user.subscriptions.expired.each do |subscription| %>
+                      <tr>
+                        <td><%= subscription.name %></td>
+                        <td><%= subscription.plan %></td>
+                        <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
+                        <td>
+                          <% subscription.wireguard_clients.each do |client| %>
+                            <div class="wireguard-clients"><%= client.name %></div>
+                          <% end %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  document.addEventListener('turbo:load', function() {
+    // Toggle details functionality
+    document.querySelectorAll('.toggle-details').forEach(button => {
+      button.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const detailsRow = document.getElementById(targetId);
+        const span = this.querySelector('.toggle-span');
+        if (detailsRow.style.display === 'none') {
+          detailsRow.style.display = 'table-row';
+          span.textContent = '(Hide)';
+        } else {
+          detailsRow.style.display = 'none';
+          span.textContent = '(Show)';
+        }
+      });
+    });
+
+    // Improved search functionality
+    document.getElementById('search-input').addEventListener('keyup', function() {
+      const searchTerm = this.value.toLowerCase().trim();
+      const rows = document.querySelectorAll('.user-row');
+      const detailsRows = document.querySelectorAll('.details-row');
+      const hideInactive = document.getElementById('hide-inactive').checked;
+
+      // First hide all details rows
+      detailsRows.forEach(row => {
+        row.style.display = 'none';
+      });
+
+      // Then filter user rows
+      rows.forEach(row => {
+        const email = row.getAttribute('data-email');
+        const hasActive = row.getAttribute('data-has-active') === 'true';
+
+        // Check if email matches
+        const emailMatch = email.includes(searchTerm);
+
+        // If no search term or email matches, show the row
+        if ((searchTerm === '' || emailMatch) && (!hideInactive || hasActive)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      // Now check details rows for subscription matches
+      if (searchTerm !== '') {
+        detailsRows.forEach(row => {
+          const userRow = document.querySelector(`[data-target="${row.id.split('-')[0]}-active"], [data-target="${row.id.split('-')[0]}-expired"]`).closest('.user-row');
+
+          // Get all subscription names from this row
+          const subscriptions = row.getAttribute('data-subscriptions') || '';
+
+          // Check if any subscription name contains the search term
+          const subscriptionMatch = subscriptions.split(' ').some(name =>
+            name.includes(searchTerm)
+          );
+
+          if (subscriptionMatch) {
+            row.style.display = 'table-row';
+            // Also show the parent user row if it was hidden
+            if (userRow) userRow.style.display = '';
+          }
+        });
+      }
+    });
+
+    // Hide inactive users toggle
+    document.getElementById('hide-inactive').addEventListener('change', function() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+      const rows = document.querySelectorAll('.user-row');
+      const detailsRows = document.querySelectorAll('.details-row');
+
+      // First hide all details rows
+      detailsRows.forEach(row => {
+        row.style.display = 'none';
+      });
+
+      // Then filter user rows
+      rows.forEach(row => {
+        const email = row.getAttribute('data-email');
+        const hasActive = row.getAttribute('data-has-active') === 'true';
+
+        // Check if email matches
+        const emailMatch = email.includes(searchTerm);
+
+        if ((searchTerm === '' || emailMatch) && (!this.checked || hasActive)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      // Show details rows that match search term even if parent is hidden
+      if (searchTerm !== '') {
+        detailsRows.forEach(row => {
+          const subscriptions = row.getAttribute('data-subscriptions') || '';
+
+          // Check if any subscription name contains the search term
+          const subscriptionMatch = subscriptions.split(' ').some(name =>
+            name.includes(searchTerm)
+          );
+
+          if (subscriptionMatch) {
+            row.style.display = 'table-row';
+            // Also show the parent user row
+            const userId = row.id.split('-')[0];
+            const userRow = document.querySelector(`.user-row[data-email*="${userId}"]`);
+            if (userRow) userRow.style.display = '';
+          }
+        });
+      }
+    });
+
+    // Sorting functionality
+    document.getElementById('sort-email').addEventListener('click', function() {
+      sortUsers();
+    });
+
+    function sortUsers() {
+      const tableBody = document.getElementById('users-table-body');
+      const userRows = Array.from(tableBody.querySelectorAll('.user-row'));
+      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+      const hideInactive = document.getElementById('hide-inactive').checked;
+
+      // Filter visible user rows first
+      const visibleUserRows = userRows.filter(row => {
+        const email = row.getAttribute('data-email');
+        const hasActive = row.getAttribute('data-has-active') === 'true';
+
+        // Check if email matches
+        const emailMatch = email.includes(searchTerm);
+
+        return (searchTerm === '' || emailMatch) && (!hideInactive || hasActive);
+      });
+
+      // Sort the visible user rows by email
+      visibleUserRows.sort((a, b) => {
+        const aEmail = a.getAttribute('data-email');
+        const bEmail = b.getAttribute('data-email');
+        return aEmail.localeCompare(bEmail);
+      });
+
+      // Clear all rows (both user and details)
+      const allRows = Array.from(tableBody.querySelectorAll('tr'));
+      allRows.forEach(row => row.remove());
+
+      // Add sorted user rows back
+      visibleUserRows.forEach(userRow => {
+        tableBody.appendChild(userRow);
+
+        // Find and append the associated details rows
+        const userId = userRow.querySelector('.toggle-active')?.getAttribute('data-target')?.split('-')[0];
+        if (userId) {
+          const activeDetailsRow = document.getElementById(`${userId}-active`);
+          if (activeDetailsRow) {
+            tableBody.appendChild(activeDetailsRow);
+          }
+
+          const expiredDetailsRow = document.getElementById(`${userId}-expired`);
+          if (expiredDetailsRow) {
+            tableBody.appendChild(expiredDetailsRow);
+          }
+        }
+      });
+    }
+  });
+</script>
+
+
+<style>
+  /* Admin Dashboard Styles */
+  .admin-dashboard {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    line-height: 1.5;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .admin-dashboard h1 {
+    color: #333;
+    font-size: 28px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+  }
+
+  .admin-dashboard h2 {
+    color: #444;
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+
+  /* Controls Styles */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+  }
+
+  .search-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 250px;
+    flex-grow: 1;
+  }
+
+  .filter-options {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .filter-options label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #555;
+  }
+
+  .sort-options {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sort-btn {
+    padding: 6px 12px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .sort-btn:hover {
+    background: #e9ecef;
+  }
+
+  .sort-btn.active {
+    background: #0066cc;
+    color: white;
+    border-color: #0066cc;
+  }
+
+  /* Table Styles */
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 30px;
+  }
+
+  .users-table th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    color: #333;
+  }
+
+  .users-table td {
+    padding: 12px 15px;
+    vertical-align: top;
+    border-bottom: 1px solid #eee;
+  }
+
+  .users-table tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  .users-table tr.user-row:hover {
+    background-color: #f9f9f9;
+  }
+
+  .toggle-details {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 0;
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  .toggle-active {
+    color: #0066cc;
+  }
+
+  .toggle-active:hover {
+    color: #0052a3;
+    text-decoration: underline;
+  }
+
+  .toggle-expired {
+    color: #cc3300;
+  }
+
+  .toggle-expired:hover {
+    color: #a32900;
+    text-decoration: underline;
+  }
+
+  .count-display {
+    color: #666;
+  }
+
+  .details-row {
+    background-color: #f5f7fa;
+    display: none;
+  }
+
+  .details-row td {
+    padding: 15px;
+    border-top: 1px solid #e9ecef;
+  }
+
+  .details-content {
+    width: 100%;
+  }
+
+  .subscription-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+
+  .subscription-table th {
+    padding: 8px 12px;
+    text-align: left;
+    background-color: #e9ecef;
+    color: #495057;
+  }
+
+  .subscription-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .wireguard-clients {
+    margin-bottom: 4px;
+    color: #555;
+  }
+
+  .toggle-span {
+    font-size: 0.9em;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-options {
+      justify-content: space-between;
+    }
+
+    .users-table th, .users-table td {
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+  }
+</style>
