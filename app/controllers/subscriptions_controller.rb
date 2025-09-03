@@ -69,6 +69,11 @@ class SubscriptionsController < ApplicationController
   end
 
   def create
+    if Subscription.where(plan: 'Pay As You Go', status: 'active').lock.count >= 5
+      redirect_to pricing_path, alert: "We limit the number of active 'Pay As You Go' subscriptions to 5 to ensure the best quality of service. Please choose another plan."
+      return
+    end
+
     # Generate a unique 6-character alphanumeric token for the subscription
     subscription_name = loop do
       random_name = SecureRandom.alphanumeric(6).upcase
@@ -85,6 +90,7 @@ class SubscriptionsController < ApplicationController
       redirect_to user_subscription_path(current_user, @subscription),
                   notice: "Subscription and WireGuard client created successfully."
     else
+      Rails.logger.error "Failed to create subscription: #{@subscription.errors.full_messages}"
       render :new
     end
   end
