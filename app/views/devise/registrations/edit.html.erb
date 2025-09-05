@@ -1,35 +1,147 @@
-<h2>Edit <%= resource_name.to_s.humanize %></h2>
+<style>
+  .auth-super-container {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  .auth-container {
+    background-color: white;
+    padding: 2rem;
+    margin: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+  }
+  .auth-container h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+  }
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  .form-group input:focus {
+    border-color: #3498db;
+    outline: none;
+  }
+  .auth-btn {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    background-color: #3498db;
+    color: white;
+  }
+  .auth-btn:hover {
+    background-color: #2980b9;
+  }
+  .cancel-account-btn {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    background-color: #e74c3c;
+    color: white;
+  }
+  .cancel-account-btn:hover {
+    background-color: #c0392b;
+  }
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    color: #3498db;
+    text-decoration: none;
+  }
+  .error-message {
+    color: #e74c3c;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  small {
+    display: block;
+    color: #7f8c8d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+  h3 {
+    text-align: center;
+    margin-top: 2rem;
+    color: #2c3e50;
+    font-size: 1.25rem;
+  }
+</style>
 
-<%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
-  <%= f.error_notification %>
+<div class="auth-super-container">
+  <div class="auth-container">
+    <h2>Edit <%= resource_name.to_s.humanize %></h2>
 
-  <div class="form-inputs">
-    <%= f.input :email, required: true, autofocus: true %>
+    <%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+      <%= f.error_notification %>
 
-    <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-      <p>Currently waiting confirmation for: <%= resource.unconfirmed_email %></p>
+      <div class="form-group">
+        <%= f.label :email %>
+        <%= f.email_field :email, required: true, autofocus: true, class: "form-control" %>
+      </div>
+
+      <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+        <p class="error-message">
+          Currently waiting confirmation for: <%= resource.unconfirmed_email %>
+        </p>
+      <% end %>
+
+      <div class="form-group">
+        <%= f.label :password %>
+        <%= f.password_field :password, placeholder: "Leave blank if you don't want to change it", class: "form-control" %>
+        <small>Leave blank if you don't want to change it</small>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :password_confirmation %>
+        <%= f.password_field :password_confirmation, class: "form-control" %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :current_password %>
+        <%= f.password_field :current_password, placeholder: "We need your current password to confirm changes", required: true, class: "form-control" %>
+        <small>We need your current password to confirm your changes</small>
+      </div>
+
+      <div class="actions">
+        <%= f.submit "Update", class: "auth-btn" %>
+      </div>
     <% end %>
 
-    <%= f.input :password,
-                hint: "leave it blank if you don't want to change it",
-                required: false,
-                input_html: { autocomplete: "new-password" } %>
-    <%= f.input :password_confirmation,
-                required: false,
-                input_html: { autocomplete: "new-password" } %>
-    <%= f.input :current_password,
-                hint: "we need your current password to confirm your changes",
-                required: true,
-                input_html: { autocomplete: "current-password" } %>
+    <h3>Cancel my account</h3>
+    <div>
+      Unhappy?
+      <%= button_to "Cancel my account", registration_path(resource_name), method: :delete, class: "cancel-account-btn", data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" } %>
+    </div>
+
+    <%= link_to "Back", :back, class: "back-link" %>
   </div>
-
-  <div class="form-actions">
-    <%= f.button :submit, "Update" %>
-  </div>
-<% end %>
-
-<h3>Cancel my account</h3>
-
-<div>Unhappy? <%= button_to "Cancel my account", registration_path(resource_name), data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, method: :delete %></div>
-
-<%= link_to "Back", :back %>
+</div>

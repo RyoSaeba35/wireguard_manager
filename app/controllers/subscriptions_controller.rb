@@ -65,12 +65,22 @@ class SubscriptionsController < ApplicationController
   before_action :authenticate_user!
 
   def new
+    if current_user.subscriptions.where(status: 'active').exists?
+      @existing_subscription = current_user.subscriptions.find_by(status: 'active')
+      redirect_to user_subscription_path(current_user, @existing_subscription),
+                  alert: "You already have an active subscription to #{@existing_subscription.plan.name}."
+      return
+    end
+
+    @plans = Plan.all
     @subscription = current_user.subscriptions.new
   end
 
   def create
-    if Subscription.where(plan: 'Pay As You Go', status: 'active').lock.count >= 5
-      redirect_to pricing_path, alert: "We limit the number of active 'Pay As You Go' subscriptions to 5 to ensure the best quality of service. Please choose another plan."
+    selected_plan = Plan.find(subscription_params[:plan_id])
+
+    if Subscription.where(plan_id: selected_plan.id, status: 'active').lock.count >= 5
+      redirect_to pricing_path, alert: "We limit the number of active '#{selected_plan.name}' subscriptions to 5 to ensure the best quality of service. Please choose another plan."
       return
     end
 
@@ -104,6 +114,6 @@ class SubscriptionsController < ApplicationController
   private
 
   def subscription_params
-    params.require(:subscription).permit(:plan, :price)
+    params.require(:subscription).permit(:plan_id, :price)
   end
 end

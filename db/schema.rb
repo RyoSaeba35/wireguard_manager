@@ -10,7 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_09_03_195715) do
+ActiveRecord::Schema[7.2].define(version: 2025_09_05_172300) do
+  create_table "plans", force: :cascade do |t|
+    t.string "name", null: false
+    t.decimal "price", precision: 8, scale: 2, null: false
+    t.string "interval", null: false
+    t.boolean "active", default: true
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "subscriptions", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "status", default: "active"
@@ -19,7 +29,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_03_195715) do
     t.datetime "updated_at", null: false
     t.string "name", null: false
     t.decimal "price", precision: 8, scale: 2, null: false
-    t.string "plan", null: false
+    t.integer "plan_id"
+    t.string "plan_interval"
+    t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
   end
 
@@ -32,8 +44,21 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_03_195715) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "admin", default: false
+    t.datetime "locked_at"
+    t.datetime "confirmed_at"
+    t.string "confirmation_token"
+    t.datetime "confirmation_sent_at"
+    t.integer "sign_in_count"
+    t.datetime "current_sign_in_at"
+    t.datetime "last_sign_in_at"
+    t.string "current_sign_in_ip"
+    t.string "last_sign_in_ip"
+    t.integer "failed_attempts"
+    t.string "unconfirmed_email"
+    t.string "unlock_token"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["unlock_token"], name: "index_users_on_unlock_token", unique: true
   end
 
   create_table "wireguard_clients", force: :cascade do |t|
@@ -49,6 +74,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_03_195715) do
     t.index ["subscription_id"], name: "index_wireguard_clients_on_subscription_id"
   end
 
+  add_foreign_key "subscriptions", "plans"
   add_foreign_key "subscriptions", "users"
   add_foreign_key "wireguard_clients", "subscriptions"
 end

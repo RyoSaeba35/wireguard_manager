@@ -13,10 +13,21 @@ class SubscriptionCreator
   def call
     Rails.logger.info "Creating subscription: #{@subscription_name}"
 
+    # Fetch the selected plan
+    selected_plan = Plan.find(@subscription_params[:plan_id])
+
+    # Calculate expires_at based on the plan's interval
+    expires_at = case selected_plan.interval
+                when 'week'  then 1.week.from_now
+                when 'month' then 1.month.from_now
+                when 'year'  then 1.year.from_now
+                else 1.month.from_now # Default fallback
+    end
+
     # Create the subscription
     subscription = @user.subscriptions.create!(@subscription_params.merge(
       name: @subscription_name,
-      expires_at: 5.minutes.from_now,
+      expires_at: expires_at,
       status: "active"
     ))
 

@@ -1,5 +1,5 @@
 <style>
-  /* Desktop styles (unchanged) */
+  /* Hero Section */
   .hero {
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
     background-size: cover;
@@ -12,16 +12,21 @@
     text-align: center;
     color: white;
     padding: 0 1rem;
+    width: 100%;
+    box-sizing: border-box;
   }
+
   .hero h1 {
     font-size: 3rem;
     margin-bottom: 1rem;
   }
+
   .hero p {
     font-size: 1.2rem;
     max-width: 600px;
     margin-bottom: 2rem;
   }
+
   .cta-btn {
     background-color: #e74c3c;
     color: white;
@@ -33,21 +38,29 @@
     text-decoration: none;
     display: inline-block;
   }
+
+  /* Features Section */
   .features {
-    padding: 4rem 2rem;
+    padding: 4rem 1rem;
     max-width: 1200px;
     margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
   }
+
   .features h2 {
     text-align: center;
     margin-bottom: 2rem;
     font-size: 2rem;
   }
+
   .feature-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
+    width: 100%;
   }
+
   .feature-card {
     background-color: #f9f9f9;
     padding: 2rem;
@@ -55,84 +68,196 @@
     text-align: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
-  .pricing {
+
+  /* Super Container */
+  .super-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     background-color: #f4f4f4;
-    padding: 4rem 2rem;
-    text-align: center;
+    /* padding: 2rem 1rem; */
+    box-sizing: border-box;
   }
+
+  /* Pricing Section */
+  .pricing {
+    width: 100%;
+    text-align: center;
+    padding: 1rem;
+    padding-top: 0;
+    box-sizing: border-box;
+  }
+
   .pricing h2 {
     margin-bottom: 2rem;
     font-size: 2rem;
+    color: #2c3e50;
   }
+
+  /* Plan Grid */
+  .plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Plan Card */
   .plan {
     background-color: white;
     padding: 2rem;
     border-radius: 8px;
-    max-width: 400px;
-    margin: 0 auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-top: 4px solid #27ae60;
+    position: relative;
   }
+
+  /* Popular Badge */
+  .popular-badge {
+    background-color: #e74c3c;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Plan Title and Subtitle */
   .plan h3 {
     color: #2c3e50;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
+
+  .plan-subtitle {
+    color: #7f8c8d;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Plan Price */
   .plan-price {
     font-size: 2.5rem;
     color: #e74c3c;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
   }
+
+  /* Plan Features */
   .plan-features {
     text-align: left;
     margin-bottom: 1.5rem;
   }
+
+  .plan-features p {
+    margin: 0.5rem 0;
+  }
+
+  /* Tooltip Icon */
+  .tooltip-icon {
+    cursor: help;
+    margin-left: 5px;
+    font-size: 0.8em;
+    color: #666;
+    border-bottom: 1px dotted #666;
+  }
+
+  /* Plan Button */
   .plan-btn {
-    background-color: #2ecc71;
+    background-color: #27ae60;
     color: white;
-    padding: 0.8rem 1.5rem;
+    padding: 0.8rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     text-decoration: none;
-    display: inline-block;
+    display: block; /* Changed from inline-block to block */
+    width: 100%; /* Full width of the parent container */
+    text-align: center;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin: 0 auto; /* Center the button if needed */
+    box-sizing: border-box; /* Include padding in the width */
+  }
+
+  .plan-btn:hover:not(:disabled) {
+    background-color: #219653;
+  }
+
+  .plan-btn:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+  }
+
+  /* Unavailable Plan Message */
+  .plan-unavailable {
+    color: #e74c3c;
+    font-weight: bold;
+    padding: 1rem;
+    background-color: #fdecea;
+    border-radius: 4px;
+    margin-top: 1rem;
+  }
+
+  .plan-unavailable p {
+    margin: 0.5rem 0;
   }
 
   /* Mobile styles */
   @media (max-width: 768px) {
     .hero {
       height: 50vh;
-      padding: 0 1.5rem;
+      padding: 0 1rem;
     }
+
     .hero h1 {
       font-size: 2rem;
     }
+
     .hero p {
       font-size: 1rem;
       max-width: 100%;
     }
+
     .cta-btn {
       padding: 0.8rem 1.5rem;
       font-size: 1rem;
     }
+
     .features {
-      padding: 2rem 1rem;
+      padding: 2rem 0.5rem;
     }
+
     .feature-grid {
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
+
     .feature-card {
       padding: 1.5rem;
     }
+
     .pricing {
-      padding: 2rem 1rem;
+      padding: 2rem 0.5rem;
     }
+
+    .plan-grid {
+      grid-template-columns: 1fr;
+    }
+
     .plan {
-      max-width: 100%;
       padding: 1.5rem;
     }
+
     .plan-price {
       font-size: 2rem;
     }
+
     .plan-btn {
       padding: 0.7rem 1.2rem;
       font-size: 0.9rem;
@@ -140,42 +265,57 @@
   }
 </style>
 
-<section class="hero">
-  <h1>Fast, Reliable, and Secure VPN in France</h1>
-  <p>IronCryptVPN offers a high-speed, reliable VPN connection from France. Protect your privacy and access content with ease.</p>
-  <a href="<%= new_user_registration_path %>" class="cta-btn">Get Started</a>
-</section>
+<div class="super-container">
+  <section class="hero">
+    <h1>Fast, Reliable, and Secure VPN in France</h1>
+    <p>IronCryptVPN offers a high-speed, reliable VPN connection from France. Protect your privacy and access content with ease.</p>
+    <a href="<%= new_user_registration_path %>" class="cta-btn">Get Started</a>
+  </section>
 
-<section class="features">
-  <h2>Why Choose IronCryptVPN?</h2>
-  <div class="feature-grid">
-    <div class="feature-card">
-      <h3>🌍 France Location</h3>
-      <p>Connect to our high-speed server in France for a fast and reliable experience.</p>
+  <section class="features">
+    <h2>Why Choose IronCryptVPN?</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>🌍 France Location</h3>
+        <p>Connect to our high-speed server in France for a fast and reliable experience.</p>
+      </div>
+      <div class="feature-card">
+        <h3>🔒 Advanced Encryption</h3>
+        <p>Your data is secured with cutting-edge encryption technology, ensuring your privacy.</p>
+      </div>
+      <div class="feature-card">
+        <h3>⚡ Blazing Fast Speeds</h3>
+        <p>Enjoy unlimited bandwidth and ultra-fast speeds for streaming, downloading, and browsing.</p>
+      </div>
     </div>
-    <div class="feature-card">
-      <h3>🔒 Advanced Encryption</h3>
-      <p>Your data is secured with cutting-edge encryption technology, ensuring your privacy.</p>
-    </div>
-    <div class="feature-card">
-      <h3>⚡ Blazing Fast Speeds</h3>
-      <p>Enjoy unlimited bandwidth and ultra-fast speeds for streaming, downloading, and browsing.</p>
-    </div>
-  </div>
-</section>
+  </section>
 
-<section class="pricing">
-  <h2>Choose Your Plan</h2>
-  <div class="plan">
-    <h3>Pay As You Go</h3>
-    <div class="plan-price">$19.95/month</div>
-    <div class="plan-features">
-      <p>✅ Unlimited Bandwidth</p>
-      <p>✅ France Server Access</p>
-      <p>✅ Advanced Encryption</p>
-      <p>✅ Up to 3 Devices Simultaneously</p>
-      <p>✅ No Long-Term Commitment</p>
+  <section class="pricing">
+    <h2>Choose Your Plan</h2>
+    <div class="plan-grid">
+      <% @plans.each do |plan| %>
+        <div class="plan">
+          <% if plan.name.include?("Month") %>
+            <div class="popular-badge">Popular</div>
+          <% end %>
+          <h3><%= plan.name %></h3>
+          <p class="plan-subtitle">Flexible, cancel anytime</p>
+          <div class="plan-price">$<%= plan.price %>/<%= plan.interval %></div>
+          <div class="plan-features">
+            <% plan.description.split(', ').each do |feature| %>
+              <% if feature.include?("Devices") %>
+                <p>
+                  ✅ <%= feature %>
+                  <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
+                </p>
+              <% else %>
+                <p><strong>✅ <%= feature %></strong></p>
+              <% end %>
+            <% end %>
+          </div>
+          <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>
+        </div>
+      <% end %>
     </div>
-    <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>
-  </div>
-</section>
+  </section>
+</div>
