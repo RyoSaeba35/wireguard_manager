@@ -25,15 +25,19 @@
     margin: 0 auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-top: 4px solid #27ae60;
+    position: relative; /* Add this for absolute positioning of the badge */
   }
+
   .popular-badge {
     background-color: #e74c3c;
     color: white;
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
     font-size: 0.8rem;
-    display: inline-block;
-    margin-bottom: 1rem;
+    position: absolute; /* Absolute position */
+    top: 10px; /* Position above the card */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Perfect centering */
   }
   .plan h3 {
     color: #2c3e50;
@@ -56,19 +60,23 @@
   .plan-features p {
     margin: 0.5rem 0;
   }
+  /* Plan Button */
   .plan-btn {
     background-color: #27ae60;
     color: white;
-    padding: 0.8rem 1.5rem;
+    padding: 0.8rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     text-decoration: none;
-    display: inline-block;
-    width: 100%;
+    display: block; /* Changed from inline-block to block */
+    width: 100%; /* Full width of the parent container */
     text-align: center;
     font-weight: bold;
+    font-size: 1rem;
     transition: background-color 0.3s ease;
+    margin: 0 auto; /* Center the button if needed */
+    box-sizing: border-box; /* Include padding in the width */
   }
   .plan-btn:hover:not(:disabled) {
     background-color: #219653;
@@ -95,6 +103,13 @@
   .plan-unavailable p {
     margin: 0.5rem 0;
   }
+  .plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
   @media (max-width: 768px) {
     .plan {
       max-width: 90%;
@@ -109,32 +124,41 @@
 <div class="super-container">
   <section class="pricing">
     <h2>Choose Your Plan</h2>
-    <div class="plan">
-      <div class="popular-badge">Popular</div>
-      <h3>Pay As You Go</h3>
-      <p class="plan-subtitle">Flexible, cancel anytime</p>
-      <div class="plan-price">$19.95/month</div>
-      <div class="plan-features">
-        <p><strong>✅ Unlimited Bandwidth</strong></p>
-        <p><strong>✅ France Server Access</strong></p>
-        <p><strong>✅ Advanced Encryption</strong></p>
-        <p>✅ Up to 3 Devices Simultaneously
-          <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
-        </p>
-        <p><strong>✅ No Long-Term Commitment</strong></p>
-      </div>
-      <% if Subscription.where(plan: 'Pay As You Go', status: 'active').count < 5 %>
-        <%= form_with(model: [current_user, @subscription], local: true) do |form| %>
-          <div class="form-group" style="margin: 0;">
-            <%= form.hidden_field :price, value: '19.95' %>
-            <%= form.hidden_field :plan, value: 'Pay As You Go' %>
+    <div class="plan-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto;">
+      <% @plans.each do |plan| %>
+        <div class="plan">
+          <% if plan.name.include?("Month") %>
+            <div class="popular-badge">Popular</div>
+          <% end %>
+          <h3><%= plan.name %></h3>
+          <p class="plan-subtitle">Flexible, cancel anytime</p>
+          <div class="plan-price">$<%= plan.price %>/<%= plan.interval %></div>
+          <div class="plan-features">
+            <% plan.description.split(', ').each do |feature| %>
+              <% if feature.include?("Devices") %>
+                <p>
+                  ✅ <%= feature %>
+                  <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
+                </p>
+              <% else %>
+                <p><strong>✅ <%= feature %></strong></p>
+              <% end %>
+            <% end %>
           </div>
-          <%= form.submit "Subscribe Now", class: "plan-btn", style: "width: 100%; border: none; font-size: 1rem; padding: 0.8rem;" %>
-        <% end %>
-      <% else %>
-        <div class="plan-unavailable">
-          <p>This plan is currently unavailable.</p>
-          <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>
+          <% if plan.active && Subscription.where(plan_id: plan.id, status: 'active').count < 5 %>
+            <!-- Show the subscription form or button -->
+            <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>
+          <% else %>
+            <!-- Show the unavailable message -->
+            <div class="plan-unavailable">
+              <% if !plan.active %>
+                <p>This plan is currently not available.</p>
+              <% else %>
+                <p>This plan is currently unavailable.</p>
+                <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>
+              <% end %>
+            </div>
+          <% end %>
         </div>
       <% end %>
     </div>

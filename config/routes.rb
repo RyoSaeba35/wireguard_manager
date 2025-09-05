@@ -2,13 +2,17 @@ Rails.application.routes.draw do
   namespace :admin do
     get "dashboard/index"
   end
-  devise_for :users
+  devise_for :users, controllers: {
+    registrations: 'users/registrations',
+    confirmations: 'users/confirmations'
+  }
 
   namespace :admin do
     get 'dashboard', to: 'dashboard#index'
     resources :users, only: [:index, :show]
     resources :subscriptions, only: [:index, :show]
     resources :wireguard_clients, only: [:index, :show]
+    resources :plans, only: [:create, :update]
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

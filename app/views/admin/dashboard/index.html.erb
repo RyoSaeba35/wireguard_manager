@@ -68,7 +68,7 @@
                     <% user.subscriptions.active.each do |subscription| %>
                       <tr>
                         <td><%= subscription.name %></td>
-                        <td><%= subscription.plan %></td>
+                        <td><%= subscription.plan.name %></td>
                         <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
                         <td>
                           <% subscription.wireguard_clients.each do |client| %>
@@ -121,6 +121,84 @@
       <% end %>
     </tbody>
   </table>
+
+<h2>Manage Plans</h2>
+<div class="plans-section">
+  <div class="controls">
+    <button id="add-plan-btn" class="action-btn">Add New Plan</button>
+  </div>
+
+  <table class="plans-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Interval</th>
+        <th>Active</th>
+        <th>Features</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="plans-table-body">
+      <% @plans.each do |plan| %>
+        <tr class="plan-row" data-plan-id="<%= plan.id %>">
+          <td class="editable" data-field="name" data-plan-id="<%= plan.id %>"><%= plan.name %></td>
+          <td class="editable" data-field="price" data-plan-id="<%= plan.id %>">$<%= plan.price %></td>
+          <td class="editable" data-field="interval" data-plan-id="<%= plan.id %>"><%= plan.interval %></td>
+          <td>
+            <input type="checkbox" class="plan-active-toggle" data-plan-id="<%= plan.id %>" <%= plan.active ? 'checked' : '' %>>
+          </td>
+          <td class="editable" data-field="description" data-plan-id="<%= plan.id %>">
+            <%= plan.description %>
+          </td>
+          <td>
+            <button class="edit-plan-btn" data-plan-id="<%= plan.id %>">Edit</button>
+            <button class="save-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">Save</button>
+            <button class="cancel-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">Cancel</button>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Plan Modal -->
+<div id="add-plan-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal">&times;</span>
+    <h3>Add New Plan</h3>
+    <form id="add-plan-form">
+      <div class="form-group">
+        <label for="new-plan-name">Plan Name:</label>
+        <input type="text" id="new-plan-name" required>
+      </div>
+      <div class="form-group">
+        <label for="new-plan-price">Price:</label>
+        <input type="number" step="0.01" id="new-plan-price" required>
+      </div>
+      <div class="form-group">
+        <label for="new-plan-interval">Interval:</label>
+        <select id="new-plan-interval" required>
+          <option value="week">Week</option>
+          <option value="month" selected>Month</option>
+          <option value="year">Year</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="new-plan-features">Features (comma-separated):</label>
+        <textarea id="new-plan-features" rows="3" required></textarea>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="new-plan-active" checked>
+          Active
+        </label>
+      </div>
+      <button type="submit" class="action-btn">Create Plan</button>
+    </form>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -291,8 +369,192 @@
       });
     }
   });
-</script>
 
+  // Plan Management Functionality
+  document.addEventListener('turbo:load', function() {
+    // Existing code...
+
+    // Add new plan button
+    document.getElementById('add-plan-btn').addEventListener('click', function() {
+      document.getElementById('add-plan-modal').style.display = 'block';
+    });
+
+    // Close modal
+    document.querySelectorAll('.close-modal').forEach(button => {
+      button.addEventListener('click', function() {
+        document.getElementById('add-plan-modal').style.display = 'none';
+      });
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+      if (event.target === document.getElementById('add-plan-modal')) {
+        document.getElementById('add-plan-modal').style.display = 'none';
+      }
+    });
+
+    // Add new plan form submission
+    document.getElementById('add-plan-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('new-plan-name').value;
+      const price = document.getElementById('new-plan-price').value;
+      const interval = document.getElementById('new-plan-interval').value;
+      const features = document.getElementById('new-plan-features').value;
+      const active = document.getElementById('new-plan-active').checked;
+
+      // Send AJAX request to create new plan
+      fetch('/admin/plans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          plan: {
+            name: name,
+            price: price,
+            interval: interval,
+            description: features,
+            active: active
+          }
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Refresh the page or add the new plan to the table
+          location.reload();
+        } else {
+          alert('Error creating plan: ' + data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while creating the plan');
+      });
+    });
+
+    // Edit plan functionality
+    document.querySelectorAll('.edit-plan-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const planId = this.getAttribute('data-plan-id');
+        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
+
+        // Show save and cancel buttons
+        row.querySelector('.edit-plan-btn').style.display = 'none';
+        row.querySelector('.save-plan-btn').style.display = 'inline-block';
+        row.querySelector('.cancel-plan-btn').style.display = 'inline-block';
+
+        // Make fields editable
+        row.querySelectorAll('.editable').forEach(cell => {
+          const field = cell.getAttribute('data-field');
+          const value = cell.textContent.replace('$', '');
+
+          if (field === 'description') {
+            const textarea = document.createElement('textarea');
+            textarea.value = value;
+            textarea.className = 'edit-textarea';
+            cell.innerHTML = '';
+            cell.appendChild(textarea);
+          } else {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = value;
+            input.className = 'edit-input';
+            cell.innerHTML = '';
+            cell.appendChild(input);
+          }
+        });
+      });
+    });
+
+    // Save plan changes
+    document.querySelectorAll('.save-plan-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const planId = this.getAttribute('data-plan-id');
+        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
+
+        // Collect updated data
+        const updatedData = {};
+        row.querySelectorAll('.editable').forEach(cell => {
+          const field = cell.getAttribute('data-field');
+          const input = cell.querySelector('input, textarea');
+
+          if (field === 'price') {
+            updatedData[field] = parseFloat(input.value.replace('$', ''));
+          } else {
+            updatedData[field] = input.value;
+          }
+        });
+
+        // Get active status
+        updatedData.active = row.querySelector('.plan-active-toggle').checked;
+
+        // Send AJAX request to update plan
+        fetch(`/admin/plans/${planId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ plan: updatedData })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Error updating plan: ' + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while updating the plan');
+        });
+      });
+    });
+
+    // Cancel plan editing
+    document.querySelectorAll('.cancel-plan-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        location.reload();
+      });
+    });
+
+    // Toggle plan active status
+    document.querySelectorAll('.plan-active-toggle').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const planId = this.getAttribute('data-plan-id');
+        const active = this.checked;
+
+        // Send AJAX request to update plan active status
+        fetch(`/admin/plans/${planId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ plan: { active: active } })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success) {
+            alert('Error updating plan status: ' + data.error);
+            // Revert checkbox if error
+            this.checked = !this.checked;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while updating the plan status');
+          // Revert checkbox if error
+          this.checked = !this.checked;
+        });
+      });
+    });
+  });
+</script>
 
 <style>
   /* Admin Dashboard Styles */
@@ -484,6 +746,126 @@
 
   .toggle-span {
     font-size: 0.9em;
+  }
+
+  /* Plans Section Styles */
+  .plans-section {
+    margin-top: 40px;
+  }
+
+  .plans-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 30px;
+  }
+
+  .plans-table th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    color: #333;
+  }
+
+  .plans-table td {
+    padding: 12px 15px;
+    vertical-align: top;
+    border-bottom: 1px solid #eee;
+  }
+
+  .plans-table tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  .editable:hover {
+    background-color: #f0f8ff;
+    cursor: pointer;
+  }
+
+  .edit-input, .edit-textarea {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+  }
+
+  .edit-textarea {
+    min-height: 60px;
+    resize: vertical;
+  }
+
+  .action-btn {
+    padding: 6px 12px;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 5px;
+  }
+
+  .action-btn:hover {
+    background-color: #0052a3;
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    width: 80%;
+    max-width: 500px;
+  }
+
+  .close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .close-modal:hover {
+    color: #333;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
   }
 
   /* Responsive adjustments */

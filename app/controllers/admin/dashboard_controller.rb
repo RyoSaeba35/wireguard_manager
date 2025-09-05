@@ -9,6 +9,7 @@ module Admin
       @active_subscriptions = Subscription.active.order(expires_at: :desc)
       @expired_subscriptions = Subscription.expired.order(expires_at: :desc)
       @wireguard_clients = WireguardClient.all.includes(:subscription)
+      @plans = Plan.all 
     end
 
     private
