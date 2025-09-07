@@ -1,6 +1,7 @@
 class Subscription < ApplicationRecord
   belongs_to :user
   belongs_to :plan
+  belongs_to :server
   has_many :wireguard_clients, dependent: :destroy
 
   validates :name, :price, :plan, :expires_at, presence: true
