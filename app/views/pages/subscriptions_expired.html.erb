@@ -17,11 +17,14 @@
           <% @expired_subscriptions.each do |subscription| %>
             <tr>
               <td>#<%= subscription.name %></td>
-              <td>Pay As You Go</td>
+              <td><%= subscription.plan.name %></td>
               <td><%= subscription.created_at.strftime("%d/%m/%Y") %></td>
               <td><%= subscription.expires_at.strftime("%d/%m/%Y") %></td>
               <td>$<%= '%.2f' % (19.95.to_f) %></td>
-              <td><%= distance_of_time_in_words(subscription.created_at, subscription.expires_at) %></td>
+              <td>
+                <% days = (subscription.expires_at.to_date - subscription.created_at.to_date).to_i %>
+                <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
+              </td>
             </tr>
           <% end %>
         </tbody>

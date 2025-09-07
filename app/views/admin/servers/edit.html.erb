@@ -1,0 +1,143 @@
+<%# app/views/admin/servers/edit.html.erb %>
+<div class="admin-dashboard">
+  <div class="admin-section">
+    <div class="section-header">
+      <h1>Edit Server: <%= @server.name %></h1>
+      <p class="section-description">Update configuration for this VPN server</p>
+    </div>
+
+    <%= render 'form' %>
+
+    <div class="form-actions">
+      <%= link_to "Back to Servers", admin_servers_path, class: "admin-btn admin-btn--secondary" %>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Admin Section */
+  .admin-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+    margin: 20px auto;
+    max-width: 800px;
+  }
+
+  /* Section Header */
+  .section-header {
+    margin-bottom: 25px;
+  }
+
+  .section-header h1 {
+    color: #2c3e50;
+    font-size: 24px;
+    margin: 0 0 8px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #ecf0f1;
+    position: relative;
+  }
+
+  .section-header h1:after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background-color: #e74c3c;
+  }
+
+  /* Section Description */
+  .section-description {
+    color: #7f8c8d;
+    margin: 0;
+    font-size: 14px;
+  }
+
+  /* Form Actions */
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 15px;
+  }
+
+  /* Admin Buttons */
+  .admin-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+    flex: 1;
+  }
+
+  /* Secondary Button */
+  .admin-btn--secondary {
+    background-color: #95a5a6;
+    color: white;
+  }
+
+  .admin-btn--secondary:hover {
+    background-color: #7f8c8d;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Info Button */
+  .admin-btn--info {
+    background-color: #3498db;
+    color: white;
+  }
+
+  .admin-btn--info:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .admin-section {
+      padding: 20px;
+      margin: 10px;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+
+    .admin-btn {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .admin-section {
+      background-color: #2d3748;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .section-header h1 {
+      color: #e2e8f0;
+      border-bottom-color: #4a5568;
+    }
+
+    .section-header h1:after {
+      background-color: #f6ad55;
+    }
+
+    .section-description {
+      color: #a0aec0;
+    }
+  }
+</style>

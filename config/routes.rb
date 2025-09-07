@@ -13,6 +13,8 @@ Rails.application.routes.draw do
     resources :subscriptions, only: [:index, :show]
     resources :wireguard_clients, only: [:index, :show]
     resources :plans, only: [:create, :update]
+    resource :setting, only: [:edit, :update], controller: 'setting'
+    resources :servers, only: [:index, :new, :create, :edit, :update]
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

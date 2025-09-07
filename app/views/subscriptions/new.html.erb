@@ -8,15 +8,18 @@
     background-color: #f4f4f4;
     padding: 2rem 0;
   }
+
   .pricing {
     width: 100%;
     text-align: center;
   }
+
   .pricing h2 {
     margin-bottom: 2rem;
     font-size: 2rem;
     color: #2c3e50;
   }
+
   .plan {
     background-color: white;
     padding: 2rem;
@@ -25,7 +28,31 @@
     margin: 0 auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-top: 4px solid #27ae60;
-    position: relative; /* Add this for absolute positioning of the badge */
+    position: relative;
+    transition: filter 0.3s ease;
+  }
+
+  .plan.unavailable {
+    position: relative;
+  }
+
+  .plan.unavailable::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    background: linear-gradient(
+      to bottom right,
+      transparent calc(50% - 2px),
+      #e74c3c calc(50% - 4px),
+      #e74c3c calc(50% + 4px),
+      transparent calc(50% + 2px)
+    );
+    pointer-events: none;
+    z-index: 5;
+    border-radius: 4px;
   }
 
   .popular-badge {
@@ -34,33 +61,38 @@
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
     font-size: 0.8rem;
-    position: absolute; /* Absolute position */
-    top: 10px; /* Position above the card */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Perfect centering */
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
   }
+
   .plan h3 {
     color: #2c3e50;
     margin-bottom: 0.5rem;
   }
+
   .plan-subtitle {
     color: #7f8c8d;
     margin-bottom: 1rem;
     font-size: 0.9rem;
   }
+
   .plan-price {
     font-size: 2.5rem;
     color: #e74c3c;
     margin-bottom: 1.5rem;
   }
+
   .plan-features {
     text-align: left;
     margin-bottom: 1.5rem;
   }
+
   .plan-features p {
     margin: 0.5rem 0;
   }
-  /* Plan Button */
+
   .plan-btn {
     background-color: #27ae60;
     color: white;
@@ -69,40 +101,64 @@
     border-radius: 4px;
     cursor: pointer;
     text-decoration: none;
-    display: block; /* Changed from inline-block to block */
-    width: 100%; /* Full width of the parent container */
+    display: block;
+    width: 100%;
     text-align: center;
     font-weight: bold;
     font-size: 1rem;
     transition: background-color 0.3s ease;
-    margin: 0 auto; /* Center the button if needed */
-    box-sizing: border-box; /* Include padding in the width */
+    box-sizing: border-box;
   }
+
   .plan-btn:hover:not(:disabled) {
     background-color: #219653;
   }
+
   .plan-btn:disabled {
     background-color: #95a5a6;
     cursor: not-allowed;
   }
+
   .tooltip-icon {
     cursor: help;
     margin-left: 5px;
     font-size: 0.8em;
-    color: #666;
+    color: #888;
     border-bottom: 1px dotted #666;
   }
+
   .plan-unavailable {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 8px;
+    z-index: 10;
     color: #e74c3c;
     font-weight: bold;
-    padding: 1rem;
-    background-color: #fdecea;
-    border-radius: 4px;
-    margin-top: 1rem;
+    font-size: 1.1rem;
   }
-  .plan-unavailable p {
-    margin: 0.5rem 0;
+
+  .plan-unavailable p:first-child {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
   }
+
+  .plan-unavailable p:last-child {
+    font-size: 0.9rem;
+    color: #4d4c4cff;
+    max-width: 80%;
+    margin-top: 0;
+  }
+
   .plan-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -110,11 +166,13 @@
     max-width: 1200px;
     margin: 0 auto;
   }
+
   @media (max-width: 768px) {
     .plan {
       max-width: 90%;
       padding: 1.5rem;
     }
+
     .plan-price {
       font-size: 2rem;
     }
@@ -126,7 +184,7 @@
     <h2>Choose Your Plan</h2>
     <div class="plan-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto;">
       <% @plans.each do |plan| %>
-        <div class="plan">
+        <div class="plan <%= !plan.active || Subscription.where(status: 'active').count >= Setting.max_active_subscriptions ? 'unavailable' : '' %>">
           <% if plan.name.include?("Month") %>
             <div class="popular-badge">Popular</div>
           <% end %>
@@ -145,16 +203,21 @@
               <% end %>
             <% end %>
           </div>
-          <% if plan.active && Subscription.where(plan_id: plan.id, status: 'active').count < 5 %>
-            <!-- Show the subscription form or button -->
-            <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>
+          <% if plan.active && Subscription.where(status: 'active').count < Setting.max_active_subscriptions %>
+            <%= form_with(model: [current_user, @subscription], local: true) do |form| %>
+              <div class="form-group" style="margin: 0;">
+                <%= form.hidden_field :price, value: plan.price %>
+                <%= form.hidden_field :plan_id, value: plan.id %> <!-- Use plan.id instead of plan.name -->
+              </div>
+              <%= form.submit "Subscribe Now", class: "plan-btn", style: "width: 100%; border: none; font-size: 1rem; padding: 0.8rem;" %>
+            <% end %>
           <% else %>
             <!-- Show the unavailable message -->
             <div class="plan-unavailable">
-              <% if !plan.active %>
+              <% if !plan.active && Subscription.where(status: 'active').count < Setting.max_active_subscriptions %>
                 <p>This plan is currently not available.</p>
               <% else %>
-                <p>This plan is currently unavailable.</p>
+                <p>Plan Sold Out</p>
                 <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>
               <% end %>
             </div>

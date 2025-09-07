@@ -10,13 +10,34 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_09_05_172300) do
+ActiveRecord::Schema[7.2].define(version: 2025_09_07_130312) do
   create_table "plans", force: :cascade do |t|
     t.string "name", null: false
     t.decimal "price", precision: 8, scale: 2, null: false
     t.string "interval", null: false
     t.boolean "active", default: true
     t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "servers", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "ip_address", null: false
+    t.string "wireguard_server_ip", null: false
+    t.string "wireguard_public_key"
+    t.integer "max_subscriptions", default: 0
+    t.integer "current_subscriptions", default: 0
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "ssh_user"
+    t.string "ssh_password"
+  end
+
+  create_table "settings", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -31,7 +52,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_05_172300) do
     t.decimal "price", precision: 8, scale: 2, null: false
     t.integer "plan_id"
     t.string "plan_interval"
+    t.integer "server_id"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
+    t.index ["server_id"], name: "index_subscriptions_on_server_id"
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
   end
 
@@ -75,6 +98,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_05_172300) do
   end
 
   add_foreign_key "subscriptions", "plans"
+  add_foreign_key "subscriptions", "servers"
   add_foreign_key "subscriptions", "users"
   add_foreign_key "wireguard_clients", "subscriptions"
 end
