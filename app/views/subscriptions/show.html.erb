@@ -98,6 +98,53 @@
     color: #e74c3c;
     border-left: 4px solid #e74c3c;
   }
+  .info-box {
+    padding: 1.5rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+  }
+  .loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0,0,0,.1);
+    border-radius: 50%;
+    border-top-color: #27ae60;
+    animation: spin 1s ease-in-out infinite;
+    margin: 1rem 0;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .progress-container {
+    margin: 1.5rem 0;
+    text-align: center;
+  }
+  .progress-bar {
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    margin: 0.5rem 0;
+    overflow: hidden;
+  }
+  .progress {
+    height: 100%;
+    background-color: #27ae60;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .client-container {
+      padding: 0 1rem;
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  }
 </style>
 
 <div class="client-container">
@@ -119,48 +166,68 @@
     </p>
   </div>
 
-  <% if @wireguard_clients.any? %>
-    <div class="tabs">
-      <% @wireguard_clients.each_with_index do |client, index| %>
-        <button class="tab-button <%= 'active' if index == 0 %>" data-tab="tab-<%= index %>">
-          <%= client.display_name %>
-        </button>
-      <% end %>
+  <% if @subscription.pending? %>
+    <div class="info-box">
+      <h3>Your VPN is being set up!</h3>
+      <div class="loading-spinner"></div>
+      <p>Your configuration files and QR codes are being generated. This may take a few minutes.</p>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress" style="width: 100%;"></div>
+        </div>
+        <p>Preparing your VPN configuration...</p>
+      </div>
+      <p>You will receive an email at <strong><%= @subscription.user.email %></strong> when everything is ready.</p>
+      <p>This page will automatically refresh when your VPN is ready.</p>
+      <p style="margin-top: 1rem;">
+        While you wait, you can
+        <%= link_to "read the setup guide", setup_guide_path %>
+        to prepare for connecting your devices.
+      </p>
     </div>
 
-    <% @wireguard_clients.each_with_index do |client, index| %>
-      <div id="tab-<%= index %>" class="tab-content <%= 'active' if index == 0 %>">
-        <% qr_code_path = Rails.root.join('public', 'qr_codes', "#{client.name}.png") %>
-        <div class="qr-code">
-          <h3>QR Code:</h3>
-          <% if File.exist?(qr_code_path) %>
-            <%= image_tag "/qr_codes/#{client.name}.png", alt: "QR Code" %>
-          <% else %>
-            <div class="alert">
-              <p>QR code is not available.</p>
-            </div>
-          <% end %>
+    <!-- Auto-reload script -->
+    <script>
+      // Reload the page every 10 seconds to check for updates
+      setTimeout(function() {
+        window.location.reload();
+      }, 10000);
+    </script>
+  <% else %>
+    <% if @wireguard_clients.any? %>
+      <div class="tabs">
+        <% @wireguard_clients.each_with_index do |client, index| %>
+          <button class="tab-button <%= 'active' if index == 0 %>" data-tab="tab-<%= index %>">
+            <%= client.display_name || client.name %>
+          </button>
+        <% end %>
+      </div>
+      <% @wireguard_clients.each_with_index do |client, index| %>
+        <div id="tab-<%= index %>" class="tab-content <%= 'active' if index == 0 %>">
+          <div class="qr-code">
+            <h3>QR Code:</h3>
+            <%= image_tag download_qr_code_path(filename: "#{client.name}.png") %>
+          </div>
+          <div>
+            <h3>Config File:</h3>
+            <%= link_to "Download Config",
+                        download_config_path(filename: "#{client.name}.conf"),
+                        class: "download-link" %>
+          </div>
         </div>
-
-        <% sanitized_name = client.name.gsub(/[@.]/, '_') %>
-        <% config_path = Rails.root.join('public', 'configs', "#{sanitized_name}.conf") %>
-        <div>
-          <h3>Config File:</h3>
-          <% if File.exist?(config_path) %>
-            <p>
-              <%= link_to "Download Config",
-                          "/configs/#{sanitized_name}.conf",
-                          class: "download-link",
-                          download: "#{sanitized_name}.conf" %>
-            </p>
-          <% else %>
-            <div class="alert">
-              <p>Config file is not available.</p>
-            </div>
-          <% end %>
-        </div>
+      <% end %>
+    <% else %>
+      <div class="alert">
+        <p>No WireGuard clients found for this subscription.</p>
       </div>
     <% end %>
+    <!-- Add this section -->
+    <div class="info-box" style="text-align: center; margin-top: 2rem;">
+      <h3>Read our Setup Guide for setting up your VPN</h3>
+      <p>
+        <%= link_to "View Setup Guide", setup_guide_path, class: "download-link", style: "font-size: 1rem; padding: 0.75rem 1.5rem;" %>
+      </p>
+    </div>
   <% end %>
 </div>
 
@@ -168,56 +235,56 @@
   document.addEventListener("turbo:load", function() {
     // Tab switching logic
     const tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const tabId = button.getAttribute('data-tab');
-
-        // Hide all tab contents
-        document.querySelectorAll('.tab-content').forEach(content => {
-          content.classList.remove('active');
+    if (tabButtons.length > 0) {
+      tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const tabId = button.getAttribute('data-tab');
+          // Hide all tab contents
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+          });
+          // Deactivate all tab buttons
+          document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          // Show the selected tab content
+          document.getElementById(tabId).classList.add('active');
+          // Activate the clicked tab button
+          button.classList.add('active');
         });
-
-        // Deactivate all tab buttons
-        document.querySelectorAll('.tab-button').forEach(btn => {
-          btn.classList.remove('active');
-        });
-
-        // Show the selected tab content
-        document.getElementById(tabId).classList.add('active');
-
-        // Activate the clicked tab button
-        button.classList.add('active');
       });
-    });
+    }
 
     // Subscription expiration logic
     const utcTime = "<%= @subscription.expires_at.iso8601 %>";
     const expiresAt = new Date(utcTime);
     const localTimeElement = document.getElementById("local-time-text");
 
-    // Format local time as DD/MM/YYYY, HHhMM
-    const day = String(expiresAt.getDate()).padStart(2, '0');
-    const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
-    const year = expiresAt.getFullYear();
-    const hours = String(expiresAt.getHours()).padStart(2, '0');
-    const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
-    localTimeElement.textContent = `${day}/${month}/${year}, ${hours}h${minutes}`;
+    if (localTimeElement) {
+      // Format local time as DD/MM/YYYY, HHhMM
+      const day = String(expiresAt.getDate()).padStart(2, '0');
+      const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
+      const year = expiresAt.getFullYear();
+      const hours = String(expiresAt.getHours()).padStart(2, '0');
+      const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
+      localTimeElement.textContent = `${day}/${month}/${year}, ${hours}h${minutes}`;
 
-    // Update countdown every second
-    function updateCountdown() {
-      const now = new Date();
-      const diff = expiresAt - now;
-      if (diff <= 0) {
-        document.getElementById("countdown").textContent = "Expired";
-        return;
+      // Update countdown every second
+      function updateCountdown() {
+        const now = new Date();
+        const diff = expiresAt - now;
+        if (diff <= 0) {
+          document.getElementById("countdown").textContent = "Expired";
+          return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hoursRemaining = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutesRemaining = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        document.getElementById("countdown").textContent =
+          `${days}d ${hoursRemaining}h ${minutesRemaining}m remaining`;
       }
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hoursRemaining = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutesRemaining = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      document.getElementById("countdown").textContent =
-        `${days}d ${hoursRemaining}h ${minutesRemaining}m remaining`;
+      updateCountdown();
+      setInterval(updateCountdown, 60000); // Update every minute
     }
-    updateCountdown();
-    setInterval(updateCountdown, 60000); // Update every minute
   });
 </script>

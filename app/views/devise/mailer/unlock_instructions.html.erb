@@ -1,7 +1,38 @@
-<p>Hello <%= @resource.email %>!</p>
-
-<p>Your account has been locked due to an excessive number of unsuccessful sign in attempts.</p>
-
-<p>Click the link below to unlock your account:</p>
-
-<p><%= link_to 'Unlock my account', unlock_url(@resource, unlock_token: @token) %></p>
+<h1 style="color: #2c3e50; font-family: Arial, sans-serif;">Your Account Has Been Locked</h1>
+<p style="font-family: Arial, sans-serif; font-size: 16px;">
+  Hello <%= @resource.email %>!
+</p>
+<p style="font-family: Arial, sans-serif; font-size: 16px;">
+  Your account has been locked due to an excessive number of unsuccessful sign-in attempts.
+</p>
+<p style="text-align: center; margin: 20px 0;">
+  <a
+    href="<%= unlock_url(@resource, unlock_token: @token) %>"
+    class="cta-btn"
+    style="
+      background-color: #e74c3c;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      text-decoration: none;
+      display: inline-block;
+      font-family: Arial, sans-serif;
+    "
+  >
+    Unlock My Account
+  </a>
+</p>
+<p style="font-family: Arial, sans-serif; font-size: 16px;">
+  If you did not attempt to sign in, please <a href="https://fenguardvpn.com/support" style="color: #e74c3c; text-decoration: none;">contact support</a> immediately.
+</p>
+<p style="font-family: Arial, sans-serif; font-size: 16px;">
+  Best regards,<br>
+  <strong>The Fenguard VPN Team</strong>
+</p>
+<p style="font-family: Arial, sans-serif; font-size: 12px; color: #7f8c8d; margin-top: 20px;">
+  © 2025 Fenguard VPN. All rights reserved.<br>
+  <a href="https://fenguardvpn.com/privacy" style="color: #7f8c8d; text-decoration: none;">Privacy Policy</a> -
+  <a href="https://fenguardvpn.com/terms" style="color: #7f8c8d; text-decoration: none;">Terms of Service</a>
+</p>

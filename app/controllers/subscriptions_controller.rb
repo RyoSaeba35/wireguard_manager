@@ -1,4 +1,3 @@
-# app/controllers/subscriptions_controller.rb
 class SubscriptionsController < ApplicationController
   before_action :authenticate_user!
 
@@ -39,16 +38,44 @@ class SubscriptionsController < ApplicationController
 
     Rails.logger.info "Creating subscription: #{subscription_name}"
 
-    # Use the service to create the subscription and wireguard client
-    creator = SubscriptionCreator.new(current_user, subscription_name, subscription_params)
-    @subscription = creator.call
+    # Select a server
+    server = Server.where(active: true)
+                  .where("current_subscriptions < max_subscriptions")
+                  .order(:current_subscriptions)
+                  .first
 
-    if @subscription.persisted?
+    # Calculate expires_at
+    expires_at = case selected_plan.interval
+                 when 'week'  then 1.week.from_now
+                 when 'month' then 1.month.from_now
+                 when 'year'  then 1.year.from_now
+                 else 1.month.from_now
+    end
+
+    # Create the subscription record immediately
+    @subscription = current_user.subscriptions.new(
+      subscription_params.merge(
+        name: subscription_name,
+        status: 'pending',
+        server: server,
+        expires_at: expires_at,
+        plan: selected_plan
+      )
+    )
+
+    if @subscription.save
+      # Increment the server's current_subscriptions counter
+      server.increment!(:current_subscriptions)
+
+      # Enqueue the background job to create WireGuard clients
+      WireguardClientCreationJob.perform_later(@subscription.id)
+
       redirect_to user_subscription_path(current_user, @subscription),
-                  notice: "Subscription and WireGuard client created successfully."
+                  notice: "Subscription created! Your VPN config will be ready in a few minutes. You'll receive an email with your config files."
     else
-      Rails.logger.error "Failed to create subscription: #{@subscription&.errors&.full_messages || 'Unknown error'}"
-      render :new
+      Rails.logger.error "Failed to create subscription: #{@subscription.errors.full_messages.join(', ')}"
+      @plans = Plan.all
+      render :new, status: :unprocessable_entity
     end
   end
 
