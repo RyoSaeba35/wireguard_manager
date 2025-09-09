@@ -43,4 +43,9 @@ Rails.application.routes.draw do
   get 'logging', to: 'pages#logging'
 
   get 'expired_subscriptions', to: 'pages#subscriptions_expired', as: :expired_subscriptions
+
+  get 'setup', to: 'dashboard#setup', as: :setup_guide
+
+  get 'download_config/:filename', to: 'downloads#config', as: :download_config
+  get 'download_qr_code/:filename', to: 'downloads#qr_code', as: :download_qr_code
 end

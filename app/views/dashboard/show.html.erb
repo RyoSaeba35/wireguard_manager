@@ -330,7 +330,14 @@
   /* Mobile-specific adjustments */
   @media (max-width: 600px) {
     .dashboard-container {
-      padding: 0.75rem;
+      padding: 0 0.75rem;
+    }
+    .subscription-section, .setup-guide-section, .troubleshooting-section {
+      padding: 1rem 0;
+      margin-top: 0rem;
+      H2 {
+        margin-top: 0;
+      }
     }
     .subscription-alert {
       flex-direction: column;
@@ -425,9 +432,7 @@
   </section>
 
   <section class="setup-guide-section">
-    <h2>How to Set Up Your VPN</h2>
-    <p>Follow these steps to connect to your VPN using WireGuard:</p>
-
+    <h2>Get Started with Your VPN</h2>
     <div class="alert alert-warning" style="margin-bottom: 1.5rem; padding: 1rem; background-color: #fff3cd; color: #856404; border-left: 4px solid #ffeeba;">
       <strong>Important Device Information:</strong>
       <ul style="margin-bottom: 0; padding-left: 1.2rem;">
@@ -436,75 +441,26 @@
         <li>Each device must use its own unique configuration.</li>
       </ul>
     </div>
-
     <div class="setup-steps">
       <div class="step">
         <h3>1. Download WireGuard</h3>
-        <p>Install the WireGuard app for your device:</p>
         <ul>
-          <li><a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank">iOS (App Store)</a></li>
-          <li><a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank">Android (Google Play)</a></li>
-          <li><a href="https://www.wireguard.com/install/" target="_blank">Windows/macOS/Linux (Official Site)</a></li>
+          <li><a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank">iOS</a></li>
+          <li><a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank">Android</a></li>
+          <li><a href="https://www.wireguard.com/install/" target="_blank">Windows/macOS/Linux</a></li>
         </ul>
       </div>
-
       <div class="step">
         <h3>2. Get Your Configuration</h3>
-        <p>After subscribing, you received a QR code (for mobile) and a config file (for all devices).</p>
-
-        <% if @has_subscription && @active_subscription && @active_subscription.wireguard_clients %>
-          <p>
-            <%= link_to "Download your config file", user_subscription_path(current_user, @active_subscription), class: "btn" %>
-          </p>
-          <div class="alert" style="margin-top: 1rem; padding: 0.75rem; background-color: #e7f5ff; color: #1864b7; border-left: 4px solid #b8daff;">
-            <strong>Note:</strong> Your subscription includes configurations for up to 3 devices. Access all your config files from your subscription dashboard.
-          </div>
+        <% if @has_subscription && @active_subscription %>
+          <p><%= link_to "Download Config File", user_subscription_path(current_user, @active_subscription), class: "btn" %></p>
         <% else %>
-          <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">
-            🔒 Subscribe to download your config file.
-          </p>
+          <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">🔒 Subscribe to download your config file.</p>
         <% end %>
       </div>
-
       <div class="step">
-        <h3>3. Set Up the VPN</h3>
-        <p><strong>Option A: QR Code (Mobile)</strong></p>
-        <ol>
-          <li>Open the WireGuard app.</li>
-          <li>Tap <strong>"Add Tunnel" → "Scan QR Code"</strong>.</li>
-          <li>Scan the QR code from your dashboard (use a different QR code for each device).</li>
-        </ol>
-
-        <p><strong>Option B: Config File (All Devices)</strong></p>
-        <ol>
-          <li>Open the WireGuard app.</li>
-          <li>Tap <strong>"Add Tunnel" → "Import from file"</strong>.</li>
-          <li>Select the downloaded config file (each device needs its own unique config file).</li>
-        </ol>
-      </div>
-
-      <div class="step">
-        <h3>4. Connect to the VPN</h3>
-        <p>Toggle the switch next to your tunnel to <strong>activate</strong> the connection.</p>
-        <p>Verify your connection at <a href="https://whatismyip.com" target="_blank">whatismyip.com</a>.</p>
-      </div>
-
-      <div class="step">
-        <h3>5. Device Management</h3>
-        <p>Your subscription includes configurations for up to 3 devices:</p>
-        <ul>
-          <li>Each config file/QR code is for <strong>one device only</strong>.</li>
-          <li>You can use up to 3 devices simultaneously with your subscription.</li>
-          <li><strong>If you want to use the VPN on a new device:</strong>
-            <ol style="margin-top: 0.5rem;">
-              <li>First, <strong>remove the VPN configuration from one of your existing devices</strong> by deleting the tunnel in the WireGuard app.</li>
-              <li>Then, you can set up the VPN on your new device using one of your available configurations.</li>
-            </ol>
-          </li>
-        </ul>
-        <div class="alert" style="margin-top: 1rem; padding: 0.75rem; background-color: #f8d7da; color: #721c24; border-left: 4px solid #f5c6cb;">
-          <strong>Important:</strong> If you have already set up the VPN on 3 devices and want to add a 4th device, you must first remove the configuration from one of your existing devices before setting up the new one.
-        </div>
+        <h3>3. Need More Help?</h3>
+        <p><%= link_to "View Full Setup Guide", setup_guide_path, class: "btn", style: "background-color: #3498db;" %></p>
       </div>
     </div>
   </section>

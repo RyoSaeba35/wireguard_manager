@@ -1,0 +1,388 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1>VPN Setup Guide</h1>
+  </header>
+
+  <section class="setup-guide-section">
+    <h2>How to Set Up Your VPN</h2>
+    <p>Follow these steps to connect to your VPN using WireGuard:</p>
+
+    <!-- Full instructions (copy from your current dashboard) -->
+    <div class="setup-steps">
+      <div class="step">
+        <h3>1. Download WireGuard</h3>
+        <p>Install the WireGuard app for your device:</p>
+        <ul>
+          <li><a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank">iOS (App Store)</a></li>
+          <li><a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank">Android (Google Play)</a></li>
+          <li><a href="https://www.wireguard.com/install/" target="_blank">Windows/macOS/Linux (Official Site)</a></li>
+        </ul>
+      </div>
+      <div class="step">
+        <h3>2. Get Your Configuration</h3>
+        <p>After subscribing, you received a QR code (for mobile) and a config file (for all devices).</p>
+        <% if @has_subscription && @active_subscription %>
+          <p><%= link_to "Download your config file", user_subscription_path(current_user, @active_subscription), class: "btn" %></p>
+        <% else %>
+          <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">🔒 Subscribe to download your config file.</p>
+        <% end %>
+      </div>
+      <div class="step">
+        <h3>3. Set Up the VPN</h3>
+        <p><strong>Option A: QR Code (Mobile)</strong></p>
+        <ol>
+          <li>Open the WireGuard app.</li>
+          <li>Tap <strong>"Add Tunnel" → "Scan QR Code"</strong>.</li>
+          <li>Scan the QR code from your dashboard.</li>
+        </ol>
+        <p><strong>Option B: Config File (All Devices)</strong></p>
+        <ol>
+          <li>Open the WireGuard app.</li>
+          <li>Tap <strong>"Add Tunnel" → "Import from file"</strong>.</li>
+          <li>Select the downloaded config file.</li>
+        </ol>
+      </div>
+      <div class="step">
+        <h3>4. Connect to the VPN</h3>
+        <p>Toggle the switch next to your tunnel to <strong>activate</strong> the connection.</p>
+        <p>Verify your connection at <a href="https://whatismyip.com" target="_blank">whatismyip.com</a>.</p>
+      </div>
+      <div class="step">
+        <h3>5. Device Management</h3>
+        <p>Your subscription includes configurations for up to 3 devices:</p>
+        <ul>
+          <li>Each config file/QR code is for <strong>one device only</strong>.</li>
+          <li>If you want to use the VPN on a new device, remove the configuration from one of your existing devices first.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Troubleshooting section (copy from your current dashboard) -->
+  <section class="troubleshooting-section">
+    <h2>Troubleshooting</h2>
+
+    <div class="faq-item">
+      <button class="faq-question">
+        Connection Issues <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Symptoms:</strong> The VPN fails to connect or has connection problems.</p>
+        <ul>
+          <li><strong>Check for duplicate configurations:</strong> Ensure each config file/QR code is used on only one device. If the same configuration is installed on multiple devices, remove it from all but one device.</li>
+          <li>Check your internet connection.</li>
+          <li>Restart the VPN client.</li>
+          <li>Restart your device.</li>
+          <li>Check for firewall/antivirus interference.</li>
+          <li>Reinstall the VPN configuration.</li>
+          <li>Update the VPN app.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">
+        Connection Drops <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Symptoms:</strong> The VPN disconnects frequently or fails to connect.</p>
+        <ul>
+          <li>Check your internet connection.</li>
+          <li>Restart the VPN client.</li>
+          <li>Restart your device.</li>
+          <li>Check for firewall/antivirus interference.</li>
+          <li>Reinstall the VPN configuration.</li>
+          <li>Update the VPN app.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">
+        Slow Speeds <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Symptoms:</strong> The VPN connection is active, but browsing/downloads are slower than usual.</p>
+        <ul>
+          <li>Test your base internet speed.</li>
+          <li>Close background applications.</li>
+          <li>Check for network congestion.</li>
+          <li>Restart your router.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">
+        Unable to Access Certain Websites <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Symptoms:</strong> Some websites or services are blocked or unavailable while connected to the VPN.</p>
+        <ul>
+          <li>Clear your browser cache.</li>
+          <li>Disable IPv6.</li>
+          <li>Check for DNS leaks.</li>
+          <li>Contact support.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">
+        General Tips <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Keep your app updated and check for announcements. If issues persist, contact support at <a href="mailto:support@FenguardVPN.com">support@fenguardvpn.com</a>.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<style>
+  /* Container and header */
+  .dashboard-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .dashboard-header {
+    margin-bottom: 2rem;
+  }
+
+  .dashboard-header h1 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+  }
+
+  /* Section styles */
+  .setup-guide-section,
+  .troubleshooting-section {
+    background-color: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+  }
+
+  .setup-guide-section h2,
+  .troubleshooting-section h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+  }
+
+  /* Setup steps */
+  .setup-steps {
+    margin-top: 1rem;
+  }
+
+  .step {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .step:last-child {
+    border-bottom: none;
+  }
+
+  .step h3 {
+    color: #27ae60;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+
+  .step p {
+    margin: 0.5rem 0;
+  }
+
+  .step ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+  }
+
+  .step li {
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .step li:last-child {
+    border-bottom: none;
+  }
+
+  .step a {
+    color: #3498db;
+    text-decoration: none;
+  }
+
+  .step a:hover {
+    text-decoration: underline;
+  }
+
+  .step ol {
+    margin: 0.5rem 0 0 1.5rem;
+    padding: 0;
+  }
+
+  .step ol li {
+    margin: 0.3rem 0;
+    list-style-type: decimal;
+  }
+
+  /* Alerts */
+  .alert {
+    padding: 1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+
+  .alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 4px solid #ffeeba;
+  }
+
+  /* Buttons */
+  .btn {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    background-color: #28a745;
+    color: white !important;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    margin: 15px auto;
+    transition: background-color 0.2s;
+    box-sizing: border-box;
+  }
+
+  .btn:hover {
+    background-color: #218838;
+    text-decoration: none;
+  }
+
+  /* FAQ section */
+  .faq-item {
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+  }
+
+  .faq-question {
+    width: 100%;
+    text-align: left;
+    padding: 1rem 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #2c3e50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+  }
+
+  .faq-question:hover {
+    background-color: rgba(44, 62, 80, 0.1);
+    border-radius: 4px;
+  }
+
+  .faq-icon {
+    font-size: 1.2rem;
+    transition: transform 0.2s;
+  }
+
+  .faq-answer {
+    display: none;
+    padding: 0 0 1rem;
+    line-height: 1.6;
+  }
+
+  .faq-answer.active {
+    display: block;
+  }
+
+  .faq-answer ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0.5rem 0 0 1.5rem;
+  }
+
+  .faq-answer li {
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .faq-answer li:last-child {
+    border-bottom: none;
+  }
+
+  .faq-answer a {
+    color: #3498db;
+    text-decoration: none;
+  }
+
+  .faq-answer a:hover {
+    text-decoration: underline;
+  }
+
+  /* Mobile-specific adjustments */
+  @media (max-width: 600px) {
+    .dashboard-container {
+      padding: 1rem;
+    }
+
+    .setup-guide-section,
+    .troubleshooting-section {
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .btn {
+      max-width: 100%;
+      padding: 8px;
+    }
+
+    .step ol,
+    .faq-answer ul {
+      margin-left: 1rem;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // FAQ toggle logic
+    document.querySelectorAll('.faq-question').forEach(button => {
+      button.addEventListener('click', () => {
+        const faqItem = button.parentElement;
+        const answer = faqItem.querySelector('.faq-answer');
+        const icon = button.querySelector('.faq-icon');
+
+        if (answer.classList.contains('active')) {
+          answer.classList.remove('active');
+          icon.textContent = '+';
+        } else {
+          // Close all other answers
+          document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
+          document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
+          // Open this answer
+          answer.classList.add('active');
+          icon.textContent = '-';
+        }
+      });
+    });
+  });
+</script>

@@ -20,7 +20,7 @@
               <td><%= subscription.plan.name %></td>
               <td><%= subscription.created_at.strftime("%d/%m/%Y") %></td>
               <td><%= subscription.expires_at.strftime("%d/%m/%Y") %></td>
-              <td>$<%= '%.2f' % (19.95.to_f) %></td>
+              <td>$<%= '%.2f' % (subscription.price.to_f) %></td>
               <td>
                 <% days = (subscription.expires_at.to_date - subscription.created_at.to_date).to_i %>
                 <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>

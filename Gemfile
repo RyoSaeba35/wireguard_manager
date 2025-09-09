@@ -79,3 +79,4 @@ gem 'net-scp' # For SCP file transfers over SSH
 gem 'net-sftp' # For SFTP file transfers over SSH
 
 gem 'lockbox' # For encrypting sensitive data
+gem 'sidekiq' # For background job processing
