@@ -1,0 +1,352 @@
+<%# app/views/admin/servers/_form.html.erb %>
+<div class="server-form-container">
+  <%= form_with(model: [:admin, @server], local: true, class: "server-form") do |form| %>
+    <% if @server.errors.any? %>
+      <div class="form-alert form-alert--warning">
+        <div class="form-alert__header">
+          <svg class="form-alert__icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <h3 class="form-alert__title">
+            <%= pluralize(@server.errors.count, "error") %> prohibited this server from being saved
+          </h3>
+        </div>
+        <ul class="form-alert__list">
+          <% @server.errors.full_messages.each do |message| %>
+            <li class="form-alert__item"><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <%= form.label :name, class: "form-label" do %>
+          Server Name <span class="required-indicator">*</span>
+        <% end %>
+        <%= form.text_field :name, class: "form-input", placeholder: "e.g., Paris Server 1" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :ip_address, class: "form-label" do %>
+          SSH IP Address <span class="required-indicator">*</span>
+        <% end %>
+        <%= form.text_field :ip_address, class: "form-input", placeholder: "e.g., 192.168.1.100" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :wireguard_server_ip, class: "form-label" do %>
+          WireGuard IP <span class="required-indicator">*</span>
+        <% end %>
+        <%= form.text_field :wireguard_server_ip, class: "form-input", placeholder: "e.g., 10.8.0.1" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :ssh_user, class: "form-label" do %>
+          SSH Username <span class="required-indicator">*</span>
+        <% end %>
+        <%= form.text_field :ssh_user, class: "form-input", placeholder: "e.g., root" %>
+      </div>
+
+      <div class="form-group form-group--full-width">
+        <%= form.label :ssh_public_key, class: "form-label" %>
+        <%= form.text_area :ssh_public_key, class: "form-textarea", placeholder: "Paste SSH public key here (optional)", rows: 2 %>
+        <div class="form-hint">Public key for SSH authentication (optional, but recommended).</div>
+      </div>
+      <div class="form-group form-group--full-width">
+        <%= form.label :ssh_private_key, class: "form-label" do %>
+          SSH Private Key <%= @server.persisted? ? "(leave blank to keep current)" : "" %>
+        <% end %>
+        <%= form.text_area :ssh_private_key, class: "form-textarea", placeholder: "Private key will be generated here...", rows: 1 %>
+        <div class="form-hint">
+          Private key for SSH authentication. If provided, password will not be used.
+          <%= link_to "Generate new key pair", "#", id: "generate-ssh-key", class: "generate-key-button" %>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :ssh_password, class: "form-label" do %>
+          SSH Password <%= @server.persisted? ? "(leave blank to keep current)" : "<span class='required-indicator'>*</span>".html_safe %>
+        <% end %>
+        <%= form.password_field :ssh_password, class: "form-input", placeholder: "Enter SSH password", value: "" %>
+      </div>
+
+      <div class="form-group form-group--full-width">
+        <%= form.label :wireguard_public_key, class: "form-label" %>
+        <%= form.text_area :wireguard_public_key, class: "form-textarea", placeholder: "Paste WireGuard public key here", rows: 1 %>
+        <div class="form-hint">Public key used for WireGuard authentication</div>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :max_subscriptions, class: "form-label" do %>
+          Maximum Subscriptions <span class="required-indicator">*</span>
+        <% end %>
+        <%= form.number_field :max_subscriptions, class: "form-input", min: 1, max: 1000, placeholder: "e.g., 50" %>
+      </div>
+
+      <div class="form-group form-group--checkbox">
+        <%= form.check_box :active, class: "form-checkbox" %>
+        <%= form.label :active, "Server is active", class: "form-checkbox-label" %>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <%= form.submit @server.persisted? ? "Update Server" : "Create Server", class: "form-submit" %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  /* Form Container */
+  .server-form-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* Form Grid Layout */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 25px;
+  }
+
+  /* Full width groups */
+  .form-group--full-width {
+    grid-column: 1 / -1;
+  }
+
+  /* Form Groups */
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  /* Form Labels */
+  .form-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 550;
+    color: #2c3e50;
+    font-size: 14px;
+  }
+
+  /* Required Indicator */
+  .required-indicator {
+    color: #e74c3c;
+    font-size: 14px;
+  }
+
+  /* Form Inputs */
+  .form-input,
+  .form-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    background-color: #fff;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  }
+
+  /* Textarea Specific */
+  .form-textarea {
+    /* min-height: 100px; */
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.5;
+  }
+
+  /* Form Hint */
+  .form-hint {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-top: 4px;
+  }
+
+  /* Checkbox Group */
+  .form-group--checkbox {
+    display: flex;
+    align-items: center;
+    grid-column: 1;
+    margin-top: 10px;
+  }
+
+  /* Checkbox Input */
+  .form-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+
+  /* Checkbox Label */
+  .form-checkbox-label {
+    cursor: pointer;
+    font-weight: 500;
+    color: #2c3e50;
+  }
+
+  /* Form Actions */
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+  }
+
+  /* Submit Button */
+  .form-submit {
+    background-color: #27ae60;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 150px;
+    text-align: center;
+  }
+
+  .form-submit:hover {
+    background-color: #219653;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+  }
+
+  /* Alert Styles */
+  .form-alert {
+    padding: 15px 20px;
+    border-radius: 6px;
+    margin-bottom: 25px;
+    background-color: #f8f9fa;
+    border-left: 4px solid #ffeeba;
+  }
+
+  .form-alert--warning {
+    background-color: #fff3cd;
+    border-left-color: #ffeeba;
+  }
+
+  .form-alert__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .form-alert__icon {
+    margin-right: 12px;
+    color: #856404;
+    flex-shrink: 0;
+  }
+
+  .form-alert__title {
+    margin: 0;
+    color: #856404;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .form-alert__list {
+    margin: 0;
+    padding-left: 32px;
+  }
+
+  .form-alert__item {
+    margin-bottom: 5px;
+    color: #856404;
+    font-size: 14px;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group--checkbox {
+      grid-column: 1;
+    }
+
+    .form-actions {
+      justify-content: center;
+    }
+
+    .form-submit {
+      width: 100%;
+      max-width: 300px;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .form-input,
+    .form-textarea {
+      background-color: #2d3748;
+      border-color: #4a5568;
+      color: #e2e8f0;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+      border-color: #4299e1;
+      box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.3);
+    }
+
+    .form-label {
+      color: #e2e8f0;
+    }
+
+    .form-alert--warning {
+      background-color: #2d3748;
+      border-left-color: #f6ad55;
+    }
+
+    .form-alert__title,
+    .form-alert__item {
+      color: #f6ad55;
+    }
+  }
+
+  .generate-key-button {
+    color: #3498db;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: 5px;
+  }
+  .generate-key-button:hover {
+    text-decoration: underline;
+  }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('generate-ssh-key').addEventListener('click', async function(e) {
+      e.preventDefault();
+      const response = await fetch('<%= generate_ssh_key_admin_servers_path %>', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        }
+      });
+      const { private_key, public_key } = await response.json();
+      document.querySelector('#server_ssh_private_key').value = private_key;
+      document.querySelector('#server_ssh_public_key').value = public_key;
+      alert('New SSH key pair generated! Copy the public key to your Raspberry Pi.');
+    });
+  });
+</script>

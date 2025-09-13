@@ -1,0 +1,249 @@
+<div class="admin-dashboard">
+  <h1>Manage VPN Servers</h1>
+  <p class="server-capacity">Total Capacity: <%= @servers.sum(:max_subscriptions) %> subscriptions</p>
+
+  <%# Success/Error Messages %>
+  <% if flash[:notice] %>
+    <div class="alert alert-success">
+      <%= flash[:notice] %>
+    </div>
+  <% end %>
+  <% if flash[:alert] %>
+    <div class="alert alert-warning">
+      <%= flash[:alert] %>
+    </div>
+  <% end %>
+
+  <%# Add New Server Button %>
+  <div class="admin-actions">
+    <%= link_to "Add New Server", new_admin_server_path, class: "admin-btn admin-btn--servers" %>
+  </div>
+
+  <%# Active Servers Section %>
+  <div class="admin-section">
+    <h2>Active Servers (<%= @servers.where(active: true).count %>)</h2>
+    <% if @servers.where(active: true).any? %>
+      <div class="table-responsive">
+        <table class="servers-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>IP Address</th>
+              <th>WireGuard IP</th>
+              <th>Current Load</th>
+              <th>Capacity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @servers.where(active: true).each do |server| %>
+              <tr class="server-row">
+                <td><%= server.name %></td>
+                <td><%= server.ip_address %></td>
+                <td><%= server.wireguard_server_ip %></td>
+                <td>
+                  <div class="load-indicator">
+                    <span class="load-text">
+                      <%= server.current_subscriptions %> / <%= server.max_subscriptions %>
+                    </span>
+                    <div class="load-bar">
+                      <div class="load-fill"
+                           style="width: <%= [server.current_subscriptions.to_f / server.max_subscriptions * 100, 100].min %>%;
+                                background-color: <%= server.current_subscriptions.to_f / server.max_subscriptions * 100 > 80 ? '#e74c3c' : '#27ae60' %>;">
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td><%= server.max_subscriptions %></td>
+                <td class="server-actions">
+                  <%= link_to "Edit", edit_admin_server_path(server), class: "admin-btn admin-btn--users" %>
+                  <%= button_to "Deactivate", admin_server_path(server, server: { active: false }), method: :patch,
+                                class: "admin-btn admin-btn--warning",
+                                data: { turbo_confirm: "Are you sure you want to deactivate #{server.name}?" } %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <p>No active servers found.</p>
+        <%= link_to "Add your first server", new_admin_server_path, class: "admin-btn admin-btn--servers" %>
+      </div>
+    <% end %>
+  </div>
+
+  <%# Inactive Servers Section %>
+  <div class="admin-section">
+    <h2>Inactive Servers (<%= @servers.where(active: false).count %>)</h2>
+    <% if @servers.where(active: false).any? %>
+      <div class="table-responsive">
+        <table class="servers-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>IP Address</th>
+              <th>WireGuard IP</th>
+              <th>Capacity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @servers.where(active: false).each do |server| %>
+              <tr class="server-row">
+                <td><%= server.name %></td>
+                <td><%= server.ip_address %></td>
+                <td><%= server.wireguard_server_ip %></td>
+                <td><%= server.max_subscriptions %></td>
+                <td class="server-actions">
+                  <%= button_to "Activate", admin_server_path(server, server: { active: true }), method: :patch,
+                                class: "admin-btn admin-btn--servers" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <p>No inactive servers found.</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  /* Admin Dashboard Container */
+  .admin-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50;
+  }
+  
+  /* Server Capacity Info */
+  .server-capacity {
+    color: #7f8c8d;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+
+  /* Table Responsive Container */
+  .table-responsive {
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+
+  /* Servers Table */
+  .servers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0;
+  }
+
+  .servers-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    color: #2c3e50;
+  }
+
+  .servers-table td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .servers-table tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  .server-row {
+    transition: background-color 0.2s ease;
+  }
+
+  /* Load Indicator */
+  .load-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .load-text {
+    font-size: 14px;
+    color: #2c3e50;
+    font-weight: 500;
+  }
+
+  .load-bar {
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .load-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+  }
+
+  /* Server Actions */
+  .server-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .server-actions .admin-btn {
+    padding: 6px 12px;
+    font-size: 14px;
+    width: auto;
+    min-width: 80px;
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: #7f8c8d;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 20px;
+  }
+
+  .empty-state .admin-btn {
+    margin-top: 15px;
+    width: auto;
+    padding: 8px 20px;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .server-actions {
+      flex-direction: column;
+    }
+
+    .server-actions .admin-btn {
+      width: 100%;
+      margin-bottom: 6px;
+    }
+
+    .servers-table th,
+    .servers-table td {
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .load-bar {
+      height: 6px;
+    }
+  }
+</style>

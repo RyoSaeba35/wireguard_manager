@@ -41,6 +41,17 @@
     border-color: #3498db;
     outline: none;
   }
+  .form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .form-group label[for="user_remember_me"] {
+    display: inline;
+    vertical-align: middle;
+    margin-bottom: 0;
+  }
   .login-btn {
     width: 100%;
     background-color: #3498db;
@@ -82,8 +93,10 @@
 
       <% if devise_mapping.rememberable? %>
         <div class="form-group">
-          <%= f.check_box :remember_me %>
-          <%= f.label :remember_me %>
+          <div>
+            <%= f.check_box :remember_me %>
+            <%= f.label :remember_me %>
+          </div>
         </div>
       <% end %>
 

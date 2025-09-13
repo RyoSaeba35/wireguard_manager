@@ -1,0 +1,46 @@
+<h1 style="color: #2c3e50; font-family: Arial, sans-serif;">Your Fenguard VPN Configuration is Ready!</h1>
+
+<p style="font-family: Arial, sans-serif; font-size: 16px;">Hello <%= @user.email %>,</p>
+
+<p style="font-family: Arial, sans-serif; font-size: 16px;">
+  Your VPN configuration for your subscription <strong>#<%= @subscription.name %></strong> is now ready to use.
+  With <strong>Fenguard VPN</strong>, you can enjoy fast, secure, and private internet access with a French IP adress.
+</p>
+
+<p style="text-align: center; margin: 20px 0;">
+  <a
+    href="<%= user_subscription_url(@user, @user.subscriptions.find_by(status: "active")) %>"
+    class="cta-btn"
+    style="
+      background-color: #e74c3c;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      text-decoration: none;
+      display: inline-block;
+      font-family: Arial, sans-serif;
+    "
+  >
+    Download Your Configuration
+  </a>
+</p>
+
+<p style="font-family: Arial, sans-serif; font-size: 16px;">
+  Need help setting up?
+  <a href="http://localhost:3000/setup" style="color: #27ae60; text-decoration: none;">Check out our step-by-step guide</a> or
+  <a href="#" style="color: #27ae60; text-decoration: none;">contact support</a>.
+</p>
+
+<p style="font-family: Arial, sans-serif; font-size: 16px;">
+  Best regards,<br>
+  <strong>The Fenguard VPN Team</strong>
+</p>
+
+<p style="font-family: Arial, sans-serif; font-size: 12px; color: #7f8c8d; margin-top: 20px;">
+  © 2025 Fenguard VPN. All rights reserved.<br>
+  <a href="https://fenguardvpn.com/privacy" style="color: #7f8c8d; text-decoration: none;">Privacy Policy</a> -
+  <a href="https://fenguardvpn.com/terms" style="color: #7f8c8d; text-decoration: none;">Terms of Service</a> -
+  <a href="https://fenguardvpn.com/logging" style="color: #7f8c8d; text-decoration: none;">Logging Policy</a>
+</p>

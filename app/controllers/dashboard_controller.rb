@@ -7,4 +7,9 @@ class DashboardController < ApplicationController
     @expired_subscriptions = current_user.subscriptions.where("expires_at < ?", Time.current)
     @has_subscription = @active_subscription.present?
   end
+
+  def setup
+    @has_subscription = current_user.subscriptions.active.any?
+    @active_subscription = current_user.subscriptions.active.first
+  end
 end

@@ -1,0 +1,1032 @@
+<div class="admin-dashboard">
+  <h1>Admin Dashboard</h1>
+
+  <!-- Search and Filter Controls -->
+  <div class="admin-section">
+    <div class="controls">
+      <input type="text" id="search-input" placeholder="Search by email, subscription name, or server..." class="search-input">
+      <div class="filter-options">
+        <label>
+          <input type="checkbox" id="hide-inactive" checked>
+          Hide users without active subscriptions
+        </label>
+        <div class="sort-options">
+          <span>Sort by:</span>
+          <button id="sort-email" class="sort-btn active">Email</button>
+          <button id="sort-server" class="sort-btn">Server</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users Section -->
+  <div class="admin-section">
+    <h2>Users</h2>
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Active Subscriptions</th>
+          <th>Server</th> <!-- New column header -->
+          <th>Expired Subscriptions</th>
+        </tr>
+      </thead>
+      <tbody id="users-table-body">
+        <% @users.each do |user| %>
+          <tr class="user-row" data-email="<%= user.email.downcase %>"
+              data-has-active="<%= user.subscriptions.active.any? ? 'true' : 'false' %>"
+              data-server="<%= user.subscriptions.active.first&.server&.name&.downcase || '' %>">
+            <td><%= user.email %></td>
+            <td>
+              <% if user.subscriptions.active.any? %>
+                <button class="toggle-details" data-target="<%= user.id %>-active" aria-expanded="false">
+                  <%= user.subscriptions.active.count %> <span class="toggle-span">(Show)</span>
+                </button>
+              <% else %>
+                <span class="count-display"><%= user.subscriptions.active.count %></span>
+              <% end %>
+            </td>
+            <td>
+              <% if user.subscriptions.active.any? %>
+                <%= user.subscriptions.active.first.server.name %>
+              <% else %>
+                <span class="no-server">No active server</span>
+              <% end %>
+            </td>
+            <td>
+              <% if user.subscriptions.expired.any? %>
+                <button class="toggle-details" data-target="<%= user.id %>-expired" aria-expanded="false">
+                  <%= user.subscriptions.expired.count %> <span class="toggle-span">(Show)</span>
+                </button>
+              <% else %>
+                <span class="count-display"><%= user.subscriptions.expired.count %></span>
+              <% end %>
+            </td>
+          </tr>
+
+          <!-- Active Subscriptions Details Row -->
+          <% if user.subscriptions.active.any? %>
+            <tr id="<%= user.id %>-active" class="details-row" aria-expanded="false" style="display: none;"
+                data-subscriptions="<%= user.subscriptions.active.map(&:name).join(' ').downcase %>"
+                data-server="<%= user.subscriptions.active.first.server.name.downcase %>">
+              <td colspan="4">
+                <div class="details-content">
+                  <strong>Active Subscriptions for <%= user.email %></strong>
+                  <table class="subscription-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Plan</th>
+                        <th>Server</th> <!-- New column header -->
+                        <th>Expires At</th>
+                        <th>WireGuard Clients</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% user.subscriptions.active.each do |subscription| %>
+                        <tr>
+                          <td><%= subscription.name %></td>
+                          <td><%= subscription.plan.name %></td>
+                          <td><%= subscription.server.name %></td> <!-- Server name -->
+                          <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
+                          <td>
+                            <% subscription.wireguard_clients.each do |client| %>
+                              <div class="wireguard-clients"><%= client.name %></div>
+                            <% end %>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+
+          <!-- Expired Subscriptions Details Row -->
+          <% if user.subscriptions.expired.any? %>
+            <tr id="<%= user.id %>-expired" class="details-row" aria-expanded="false" style="display: none;"
+                data-subscriptions="<%= user.subscriptions.expired.map(&:name).join(' ').downcase %>">
+              <td colspan="4">
+                <div class="details-content">
+                  <strong>Expired Subscriptions for <%= user.email %></strong>
+                  <table class="subscription-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Plan</th>
+                        <th>Server</th> <!-- New column header -->
+                        <th>Expired At</th>
+                        <th>WireGuard Clients</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% user.subscriptions.expired.each do |subscription| %>
+                        <tr>
+                          <td><%= subscription.name %></td>
+                          <td><%= subscription.plan.name %></td>
+                          <td><%= subscription.server&.name || 'N/A' %></td> <!-- Server name -->
+                          <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
+                          <td>
+                            <% subscription.wireguard_clients.each do |client| %>
+                              <div class="wireguard-clients"><%= client.name %></div>
+                            <% end %>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Plans Section -->
+  <div class="admin-section">
+    <h2>Manage Plans</h2>
+    <div class="controls">
+      <button id="add-plan-btn" class="admin-btn admin-btn--plans">Add New Plan</button>
+    </div>
+    <table class="plans-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Interval</th>
+          <th>Active</th>
+          <th>Features</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="plans-table-body">
+        <% @plans.each do |plan| %>
+          <tr class="plan-row" data-plan-id="<%= plan.id %>">
+            <td class="editable" data-field="name" data-plan-id="<%= plan.id %>"><%= plan.name %></td>
+            <td class="editable" data-field="price" data-plan-id="<%= plan.id %>">$<%= plan.price %></td>
+            <td><%= plan.interval.capitalize %></td>
+            <td>
+              <input type="checkbox" class="plan-active-toggle" data-plan-id="<%= plan.id %>" <%= plan.active ? 'checked' : '' %>>
+            </td>
+            <td class="editable" data-field="description" data-plan-id="<%= plan.id %>">
+              <%= plan.description %>
+            </td>
+            <td>
+              <button class="edit-plan-btn admin-btn admin-btn--users" data-plan-id="<%= plan.id %>">Edit</button>
+              <button class="save-plan-btn admin-btn admin-btn--servers" data-plan-id="<%= plan.id %>" style="display: none;">Save</button>
+              <button class="cancel-plan-btn admin-btn" data-plan-id="<%= plan.id %>" style="display: none;">Cancel</button>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Servers Section -->
+  <div class="admin-section">
+    <h2>Manage Servers</h2>
+    <div class="admin-actions">
+      <%= link_to "Admin: Manage Servers", admin_servers_path, class: "admin-btn admin-btn--servers" %>
+    </div>
+  </div>
+
+  <!-- Add Plan Modal -->
+  <div id="add-plan-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3>Add New Plan</h3>
+      <form id="add-plan-form">
+        <div class="form-group">
+          <label for="new-plan-name">Plan Name:</label>
+          <input type="text" id="new-plan-name" required>
+        </div>
+        <div class="form-group">
+          <label for="new-plan-price">Price:</label>
+          <input type="number" step="0.01" id="new-plan-price" required>
+        </div>
+        <div class="form-group">
+          <label for="new-plan-interval">Interval:</label>
+          <select id="new-plan-interval" required>
+            <option value="week">Week</option>
+            <option value="month" selected>Month</option>
+            <option value="year">Year</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="new-plan-features">Features (comma-separated):</label>
+          <textarea id="new-plan-features" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="new-plan-active" checked>
+            Active
+          </label>
+        </div>
+        <button type="submit" class="admin-btn admin-btn--plans">Create Plan</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Admin Dashboard Styles */
+  .admin-dashboard {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    line-height: 1.5;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .admin-dashboard h1 {
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ecf0f1;
+  }
+
+  .admin-dashboard h2 {
+    color: #2c3e50;
+    font-size: 24px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #ecf0f1;
+    position: relative;
+  }
+
+  .admin-dashboard h2:after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background-color: #3498db;
+  }
+
+  /* Admin Actions Section */
+  .admin-actions {
+    margin: 1.5rem auto;
+    text-align: center;
+    max-width: 300px;
+  }
+
+  /* Admin Button Base Style */
+  .admin-btn {
+    display: inline-block;
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: white;
+    background-color: #0066cc;
+    margin: 5px 0;
+  }
+
+  /* Server Management Button */
+  .admin-btn--servers {
+    background-color: #e74c3c;
+  }
+
+  .admin-btn--servers:hover {
+    background-color: #d62c1a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+  }
+
+  /* Plans Section Button */
+  .admin-btn--plans {
+    background-color: #9b59b6;
+  }
+
+  .admin-btn--plans:hover {
+    background-color: #8e44ad;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(155, 89, 182, 0.3);
+  }
+
+  /* Users Section Button */
+  .admin-btn--users {
+    background-color: #3498db;
+  }
+
+  .admin-btn--users:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+  }
+
+  /* Section Cards */
+  .admin-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin-bottom: 2rem;
+  }
+
+  /* Controls Styles */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+  }
+
+  .search-input {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 250px;
+    flex-grow: 1;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  }
+
+  .filter-options {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .filter-options label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: #555;
+    cursor: pointer;
+  }
+
+  .sort-options {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sort-btn {
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+
+  .sort-btn:hover {
+    background: #e9ecef;
+  }
+
+  .sort-btn.active {
+    background: #0066cc;
+    color: white;
+    border-color: #0066cc;
+  }
+
+  /* Table Styles */
+  .users-table, .plans-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0;
+  }
+
+  .users-table th, .plans-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    color: #2c3e50;
+  }
+
+  .users-table td, .plans-table td {
+    padding: 12px 16px;
+    vertical-align: top;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .users-table tr:hover, .plans-table tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  .toggle-details {
+    background: none;
+    border: none;
+    color: #3498db;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+  }
+
+  .toggle-details:hover {
+    color: #2980b9;
+    text-decoration: none;
+  }
+
+  .toggle-details::after {
+    content: "+";
+    font-size: 14px;
+    transition: transform 0.2s;
+  }
+
+  .toggle-details[aria-expanded="true"]::after {
+    transform: rotate(45deg);
+  }
+
+  .count-display {
+    color: #666;
+    display: block;
+    padding: 4px 0;
+  }
+
+  .details-row {
+    background-color: #f8f9fa;
+    display: none;
+  }
+
+  .details-row[aria-expanded="true"] {
+    display: table-row;
+  }
+
+  .details-content {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .subscription-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+
+  .subscription-table th {
+    padding: 10px 12px;
+    text-align: left;
+    background-color: #e9ecef;
+    color: #495057;
+    font-weight: 600;
+  }
+
+  .subscription-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .wireguard-clients {
+    margin-bottom: 4px;
+    color: #555;
+    font-size: 14px;
+  }
+
+  .toggle-span {
+    font-size: 0.9em;
+    color: #7f8c8d;
+  }
+
+  /* Plans Table Specific */
+  .editable:hover {
+    background-color: #f0f8ff;
+    cursor: pointer;
+  }
+
+  .edit-input, .edit-textarea {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .edit-textarea {
+    min-height: 60px;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .plan-active-toggle {
+    cursor: pointer;
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    overflow: auto;
+  }
+
+  .modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 600px;
+    animation: modalopen 0.3s;
+  }
+
+  @keyframes modalopen {
+    from {opacity: 0; transform: translateY(-20px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+
+  .close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .close-modal:hover {
+    color: #333;
+  }
+
+  .modal-content h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 20px;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Form Group Styling */
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="number"],
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .admin-btn {
+      font-size: 14px;
+      padding: 10px 16px;
+    }
+
+    .admin-dashboard h2 {
+      font-size: 20px;
+    }
+
+    .users-table th,
+    .users-table td,
+    .plans-table th,
+    .plans-table td {
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-options {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    .modal-content {
+      margin: 10% auto;
+      width: 95%;
+    }
+  }
+
+  /* Add these new styles for the server column */
+  .no-server {
+    color: #95a5a6;
+    font-style: italic;
+  }
+
+  /* Server name styling */
+  .users-table td:nth-child(3) {
+    font-weight: 500;
+    color: #2c3e50;
+  }
+
+  /* Sort button for server column */
+  #sort-server {
+    background-color: #e74c3c;
+    color: white;
+    border-color: #e74c3c;
+  }
+
+  #sort-server:hover {
+    background-color: #d62c1a;
+  }
+
+  /* Subscription table server column */
+  .subscription-table td:nth-child(3) {
+    font-weight: 500;
+    color: #e74c3c;
+  }
+</style>
+
+<script>
+  document.addEventListener('turbo:load', function() {
+    // Toggle details functionality with ARIA
+    document.querySelectorAll('.toggle-details').forEach(button => {
+      button.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const detailsRow = document.getElementById(targetId);
+        const isExpanded = detailsRow.getAttribute('aria-expanded') === 'true';
+
+        // Update ARIA attributes
+        this.setAttribute('aria-expanded', !isExpanded);
+        detailsRow.setAttribute('aria-expanded', !isExpanded);
+
+        // Toggle visibility
+        detailsRow.style.display = isExpanded ? 'none' : 'table-row';
+
+        // Update button text
+        const span = this.querySelector('.toggle-span');
+        span.textContent = isExpanded ? '(Show)' : '(Hide)';
+      });
+    });
+
+    // Enhanced search functionality to include server names
+    document.getElementById('search-input').addEventListener('keyup', function() {
+      filterUsers();
+    });
+
+    // Hide inactive users toggle
+    document.getElementById('hide-inactive').addEventListener('change', function() {
+      filterUsers();
+    });
+
+    // Sort by server functionality
+    document.getElementById('sort-server').addEventListener('click', function() {
+      document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+      sortUsersByServer();
+    });
+
+    // Sort by email functionality
+    document.getElementById('sort-email').addEventListener('click', function() {
+      document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+      sortUsers();
+    });
+
+    function filterUsers() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+      const hideInactive = document.getElementById('hide-inactive').checked;
+      const rows = document.querySelectorAll('.user-row');
+      const detailsRows = document.querySelectorAll('.details-row');
+
+      // Hide all details rows first
+      detailsRows.forEach(row => {
+        row.style.display = 'none';
+        row.setAttribute('aria-expanded', 'false');
+      });
+
+      // Filter user rows
+      rows.forEach(row => {
+        const email = row.getAttribute('data-email');
+        const server = row.getAttribute('data-server') || '';
+        const hasActive = row.getAttribute('data-has-active') === 'true';
+
+        // Check if email or server matches search term
+        const emailMatch = email.includes(searchTerm);
+        const serverMatch = server.includes(searchTerm);
+
+        if ((searchTerm === '' || emailMatch || serverMatch) && (!hideInactive || hasActive)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      // Show details rows that match search term
+      if (searchTerm !== '') {
+        detailsRows.forEach(row => {
+          const subscriptions = row.getAttribute('data-subscriptions') || '';
+          const server = row.getAttribute('data-server') || '';
+
+          // Check if any subscription name or server contains the search term
+          const subscriptionMatch = subscriptions.split(' ').some(name =>
+            name.includes(searchTerm)
+          );
+          const serverMatch = server.includes(searchTerm);
+
+          if (subscriptionMatch || serverMatch) {
+            const userId = row.id.split('-')[0];
+            const userRow = document.querySelector(`.user-row[data-email*="${userId}"]`);
+
+            if (userRow) userRow.style.display = '';
+          }
+        });
+      }
+    }
+
+    function sortUsers() {
+      const tableBody = document.getElementById('users-table-body');
+      const userRows = Array.from(tableBody.querySelectorAll('.user-row'));
+      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+      const hideInactive = document.getElementById('hide-inactive').checked;
+
+      // Filter visible user rows
+      const visibleUserRows = userRows.filter(row => {
+        const email = row.getAttribute('data-email');
+        const hasActive = row.getAttribute('data-has-active') === 'true';
+        const emailMatch = email.includes(searchTerm);
+        return (searchTerm === '' || emailMatch) && (!hideInactive || hasActive);
+      });
+
+      // Sort by email
+      visibleUserRows.sort((a, b) => {
+        const aEmail = a.getAttribute('data-email');
+        const bEmail = b.getAttribute('data-email');
+        return aEmail.localeCompare(bEmail);
+      });
+
+      // Clear and re-add rows
+      updateTable(visibleUserRows);
+    }
+
+    function sortUsersByServer() {
+      const tableBody = document.getElementById('users-table-body');
+      const userRows = Array.from(tableBody.querySelectorAll('.user-row'));
+      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+      const hideInactive = document.getElementById('hide-inactive').checked;
+
+      // Filter visible user rows
+      const visibleUserRows = userRows.filter(row => {
+        const email = row.getAttribute('data-email');
+        const hasActive = row.getAttribute('data-has-active') === 'true';
+        const emailMatch = email.includes(searchTerm);
+        return (searchTerm === '' || emailMatch) && (!hideInactive || hasActive);
+      });
+
+      // Sort by server name
+      visibleUserRows.sort((a, b) => {
+        const aServer = a.getAttribute('data-server') || '';
+        const bServer = b.getAttribute('data-server') || '';
+        return aServer.localeCompare(bServer);
+      });
+
+      // Clear and re-add rows
+      updateTable(visibleUserRows);
+    }
+
+    function updateTable(rows) {
+      const tableBody = document.getElementById('users-table-body');
+      const allRows = Array.from(tableBody.querySelectorAll('tr'));
+
+      // Clear all rows
+      allRows.forEach(row => row.remove());
+
+      // Add sorted user rows back
+      rows.forEach(userRow => {
+        tableBody.appendChild(userRow);
+
+        const userId = userRow.querySelector('.toggle-details')?.getAttribute('data-target')?.split('-')[0];
+        if (userId) {
+          const activeDetailsRow = document.getElementById(`${userId}-active`);
+          const expiredDetailsRow = document.getElementById(`${userId}-expired`);
+
+          if (activeDetailsRow && activeDetailsRow.getAttribute('aria-expanded') === 'true') {
+            tableBody.appendChild(activeDetailsRow);
+          }
+
+          if (expiredDetailsRow && expiredDetailsRow.getAttribute('aria-expanded') === 'true') {
+            tableBody.appendChild(expiredDetailsRow);
+          }
+        }
+      });
+    }
+
+    // Plan Management Functionality (unchanged)
+    document.getElementById('add-plan-btn').addEventListener('click', function() {
+      document.getElementById('add-plan-modal').style.display = 'block';
+    });
+
+    // Close modal
+    document.querySelectorAll('.close-modal').forEach(button => {
+      button.addEventListener('click', function() {
+        document.getElementById('add-plan-modal').style.display = 'none';
+      });
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+      if (event.target === document.getElementById('add-plan-modal')) {
+        document.getElementById('add-plan-modal').style.display = 'none';
+      }
+    });
+
+    // Add new plan form submission (unchanged)
+    document.getElementById('add-plan-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-plan-name').value;
+      const price = document.getElementById('new-plan-price').value;
+      const interval = document.getElementById('new-plan-interval').value;
+      const features = document.getElementById('new-plan-features').value;
+      const active = document.getElementById('new-plan-active').checked;
+
+      fetch('/admin/plans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          plan: {
+            name: name,
+            price: price,
+            interval: interval,
+            description: features,
+            active: active
+          }
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Error creating plan: ' + (data.error || 'Unknown error'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while creating the plan');
+      });
+    });
+
+    // Edit plan functionality (unchanged)
+    document.querySelectorAll('.edit-plan-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const planId = this.getAttribute('data-plan-id');
+        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
+
+        // Show save and cancel buttons
+        row.querySelector('.edit-plan-btn').style.display = 'none';
+        row.querySelector('.save-plan-btn').style.display = 'inline-block';
+        row.querySelector('.cancel-plan-btn').style.display = 'inline-block';
+
+        // Make fields editable
+        row.querySelectorAll('.editable').forEach(cell => {
+          const field = cell.getAttribute('data-field');
+          const value = cell.textContent.replace('$', '');
+
+          if (field === 'description') {
+            const textarea = document.createElement('textarea');
+            textarea.value = value;
+            textarea.className = 'edit-textarea';
+            cell.innerHTML = '';
+            cell.appendChild(textarea);
+          } else {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = value;
+            input.className = 'edit-input';
+            cell.innerHTML = '';
+            cell.appendChild(input);
+          }
+        });
+      });
+    });
+
+    // Save plan changes (unchanged)
+    document.querySelectorAll('.save-plan-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const planId = this.getAttribute('data-plan-id');
+        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
+        const updatedData = {};
+
+        row.querySelectorAll('.editable').forEach(cell => {
+          const field = cell.getAttribute('data-field');
+          const input = cell.querySelector('input, textarea');
+
+          if (field === 'price') {
+            updatedData[field] = parseFloat(input.value.replace('$', ''));
+          } else {
+            updatedData[field] = input.value;
+          }
+        });
+
+        // Get active status
+        updatedData.active = row.querySelector('.plan-active-toggle').checked;
+
+        fetch(`/admin/plans/${planId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ plan: updatedData })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Error updating plan: ' + (data.error || 'Unknown error'));
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while updating the plan');
+        });
+      });
+    });
+
+    // Cancel plan editing (unchanged)
+    document.querySelectorAll('.cancel-plan-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        location.reload();
+      });
+    });
+
+    // Toggle plan active status (unchanged)
+    document.querySelectorAll('.plan-active-toggle').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const planId = this.getAttribute('data-plan-id');
+        const active = this.checked;
+
+        fetch(`/admin/plans/${planId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ plan: { active: active } })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success) {
+            alert('Error updating plan status: ' + (data.error || 'Unknown error'));
+            this.checked = !this.checked;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while updating the plan status');
+          this.checked = !this.checked;
+        });
+      });
+    });
+  });
+</script>
