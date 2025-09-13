@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_09_07_130312) do
+ActiveRecord::Schema[7.2].define(version: 2025_09_13_171632) do
   create_table "plans", force: :cascade do |t|
     t.string "name", null: false
     t.decimal "price", precision: 8, scale: 2, null: false
@@ -33,6 +33,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_07_130312) do
     t.datetime "updated_at", null: false
     t.string "ssh_user"
     t.string "ssh_password"
+    t.text "ssh_public_key"
+    t.text "ssh_private_key"
   end
 
   create_table "settings", force: :cascade do |t|

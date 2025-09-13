@@ -48,6 +48,22 @@
         <%= form.text_field :ssh_user, class: "form-input", placeholder: "e.g., root" %>
       </div>
 
+      <div class="form-group form-group--full-width">
+        <%= form.label :ssh_public_key, class: "form-label" %>
+        <%= form.text_area :ssh_public_key, class: "form-textarea", placeholder: "Paste SSH public key here (optional)", rows: 2 %>
+        <div class="form-hint">Public key for SSH authentication (optional, but recommended).</div>
+      </div>
+      <div class="form-group form-group--full-width">
+        <%= form.label :ssh_private_key, class: "form-label" do %>
+          SSH Private Key <%= @server.persisted? ? "(leave blank to keep current)" : "" %>
+        <% end %>
+        <%= form.text_area :ssh_private_key, class: "form-textarea", placeholder: "Private key will be generated here...", rows: 1 %>
+        <div class="form-hint">
+          Private key for SSH authentication. If provided, password will not be used.
+          <%= link_to "Generate new key pair", "#", id: "generate-ssh-key", class: "generate-key-button" %>
+        </div>
+      </div>
+
       <div class="form-group">
         <%= form.label :ssh_password, class: "form-label" do %>
           SSH Password <%= @server.persisted? ? "(leave blank to keep current)" : "<span class='required-indicator'>*</span>".html_safe %>
@@ -57,7 +73,7 @@
 
       <div class="form-group form-group--full-width">
         <%= form.label :wireguard_public_key, class: "form-label" %>
-        <%= form.text_area :wireguard_public_key, class: "form-textarea", placeholder: "Paste WireGuard public key here", rows: 4 %>
+        <%= form.text_area :wireguard_public_key, class: "form-textarea", placeholder: "Paste WireGuard public key here", rows: 1 %>
         <div class="form-hint">Public key used for WireGuard authentication</div>
       </div>
 
@@ -143,7 +159,7 @@
 
   /* Textarea Specific */
   .form-textarea {
-    min-height: 100px;
+    /* min-height: 100px; */
     resize: vertical;
     font-family: inherit;
     line-height: 1.5;
@@ -300,4 +316,37 @@
       color: #f6ad55;
     }
   }
+
+  .generate-key-button {
+    color: #3498db;
+    text-decoration: none;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: 5px;
+  }
+  .generate-key-button:hover {
+    text-decoration: underline;
+  }
 </style>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('generate-ssh-key').addEventListener('click', async function(e) {
+      e.preventDefault();
+      const response = await fetch('<%= generate_ssh_key_admin_servers_path %>', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        }
+      });
+      const { private_key, public_key } = await response.json();
+      document.querySelector('#server_ssh_private_key').value = private_key;
+      document.querySelector('#server_ssh_public_key').value = public_key;
+      alert('New SSH key pair generated! Copy the public key to your Raspberry Pi.');
+    });
+  });
+</script>

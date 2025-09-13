@@ -14,7 +14,11 @@ Rails.application.routes.draw do
     resources :wireguard_clients, only: [:index, :show]
     resources :plans, only: [:create, :update]
     resource :setting, only: [:edit, :update], controller: 'setting'
-    resources :servers, only: [:index, :new, :create, :edit, :update]
+    resources :servers, only: [:index, :new, :create, :edit, :update] do
+      collection do
+        post :generate_ssh_key
+      end
+    end
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

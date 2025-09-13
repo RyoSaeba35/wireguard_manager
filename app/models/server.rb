@@ -1,6 +1,6 @@
 # app/models/server.rb
 class Server < ApplicationRecord
-  encrypts :ssh_user, :ssh_password, deterministic: true
+  encrypts :ssh_user, :ssh_password, :ssh_private_key, deterministic: true
   has_many :subscriptions
 
   validates :name, presence: true
