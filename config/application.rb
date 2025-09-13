@@ -25,5 +25,10 @@ module WireguardManager
     # config.eager_load_paths << Rails.root.join("extras")
     # config/application.rb
     config.autoload_paths += %W(#{config.root}/app/services)
+
+    # config/application.rb
+    config.active_record.encryption.primary_key = Rails.application.credentials.secret_key_base
+    config.active_record.encryption.deterministic_key = Rails.application.credentials.secret_key_base
+    config.active_record.encryption.key_derivation_salt = Rails.application.credentials.secret_key_base
   end
 end

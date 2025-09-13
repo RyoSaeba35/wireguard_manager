@@ -1,74 +1,35 @@
-# app/controllers/wireguard_clients_controller.rb
-# class WireguardClientsController < ApplicationController
-#   before_action :authenticate_user!
-
-#   def new
-#     @wireguard_client = current_user.wireguard_clients.new
-#   end
-
-#   # def create
-#   #   # Use the service to create the WireGuard client and subscription
-#   #   creator = WireguardClientCreator.new(current_user, wireguard_client_params[:name])
-#   #   @wireguard_client = creator.call
-
-#   #   if @wireguard_client.persisted?
-#   #     redirect_to user_wireguard_client_path(current_user, @wireguard_client), notice: "WireGuard client created successfully."
-#   #   else
-#   #     render :new
-#   #   end
-#   # end
-
-#   def create
-#     # Generate a unique 6-character alphanumeric token
-#     client_name = loop do
-#       random_name = SecureRandom.alphanumeric(6).upcase
-#       break random_name unless WireguardClient.exists?(name: random_name)
-#     end
-
-#     Rails.logger.info "Creating WireGuard client: #{client_name}"
-
-#     # Use the service to create the WireGuard client and subscription
-#     creator = WireguardClientCreator.new(current_user, client_name)
-#     @wireguard_client = creator.call
-
-#     if @wireguard_client.persisted?
-#       redirect_to user_wireguard_client_path(current_user, @wireguard_client),
-#                   notice: "WireGuard client created successfully."
-#     else
-#       render :new
-#     end
-#   end
-
-#   # def show
-#   #   @wireguard_client = current_user.wireguard_clients.find(params[:id])
-#   # end
-
-#   def show
-#     @wireguard_client = WireguardClient.find(params[:id])
-#   end
-
-
-#   private
-
-#   # def wireguard_client_params
-#   #   params.require(:wireguard_client).permit(:name)
-#   # end
-
-#   def wireguard_client_params
-#     params.require(:wireguard_client).permit(:other_attributes) # exclude :name
-#   end
-# end
-
-# app/controllers/subscriptions_controller.rb
-# app/controllers/subscriptions_controller.rb
 class SubscriptionsController < ApplicationController
   before_action :authenticate_user!
 
   def new
+    if current_user.subscriptions.where(status: 'active').exists?
+      @existing_subscription = current_user.subscriptions.find_by(status: 'active')
+      redirect_to user_subscription_path(current_user, @existing_subscription),
+                  alert: "You already have an active subscription to #{@existing_subscription.plan.name}."
+      return
+    end
+    @plans = Plan.all
     @subscription = current_user.subscriptions.new
   end
 
   def create
+    selected_plan = Plan.find(subscription_params[:plan_id])
+    max_limit = Setting.max_active_subscriptions
+
+    # Check global subscription limit
+    if Subscription.where(status: 'active').count >= max_limit
+      redirect_to new_user_subscription_path(current_user),
+                  alert: "We limit the number of active subscriptions to ensure the best quality of service. Please try again later."
+      return
+    end
+
+    # Check if there are available servers
+    unless Server.where(active: true).where("current_subscriptions < max_subscriptions").exists?
+      redirect_to new_user_subscription_path(current_user),
+                  alert: "No servers are available at the moment. Please try again later."
+      return
+    end
+
     # Generate a unique 6-character alphanumeric token for the subscription
     subscription_name = loop do
       random_name = SecureRandom.alphanumeric(6).upcase
@@ -77,15 +38,44 @@ class SubscriptionsController < ApplicationController
 
     Rails.logger.info "Creating subscription: #{subscription_name}"
 
-    # Use the service to create the subscription and wireguard client
-    creator = SubscriptionCreator.new(current_user, subscription_name, subscription_params)
-    @subscription = creator.call
+    # Select a server
+    server = Server.where(active: true)
+                  .where("current_subscriptions < max_subscriptions")
+                  .order(:current_subscriptions)
+                  .first
 
-    if @subscription.persisted?
+    # Calculate expires_at
+    expires_at = case selected_plan.interval
+                 when 'week'  then 1.week.from_now
+                 when 'month' then 1.month.from_now
+                 when 'year'  then 1.year.from_now
+                 else 1.month.from_now
+    end
+
+    # Create the subscription record immediately
+    @subscription = current_user.subscriptions.new(
+      subscription_params.merge(
+        name: subscription_name,
+        status: 'pending',
+        server: server,
+        expires_at: expires_at,
+        plan: selected_plan
+      )
+    )
+
+    if @subscription.save
+      # Increment the server's current_subscriptions counter
+      server.increment!(:current_subscriptions)
+
+      # Enqueue the background job to create WireGuard clients
+      WireguardClientCreationJob.perform_later(@subscription.id)
+
       redirect_to user_subscription_path(current_user, @subscription),
-                  notice: "Subscription and WireGuard client created successfully."
+                  notice: "Subscription created! Your VPN config will be ready in a few minutes. You'll receive an email with your config files."
     else
-      render :new
+      Rails.logger.error "Failed to create subscription: #{@subscription.errors.full_messages.join(', ')}"
+      @plans = Plan.all
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -98,6 +88,6 @@ class SubscriptionsController < ApplicationController
   private
 
   def subscription_params
-    params.require(:subscription).permit(:plan, :price)
+    params.require(:subscription).permit(:plan_id, :price)
   end
 end
