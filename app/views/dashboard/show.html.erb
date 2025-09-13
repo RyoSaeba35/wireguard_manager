@@ -40,7 +40,6 @@
   .alert p {
     margin: 0.5rem 0;
   }
-
   .subscription-alert {
     display: flex;
     align-items: flex-start;
@@ -52,30 +51,25 @@
     margin-bottom: 20px;
     max-width: 600px;
   }
-
   .alert-icon {
     font-size: 1.5em;
     margin-right: 15px;
     margin-top: 2px;
   }
-
   .alert-content h3 {
     margin-top: 0;
     margin-bottom: 10px;
     font-size: 1.1em;
     color: #155724;
   }
-
   .alert-content p {
     margin: 5px 0;
     line-height: 1.4;
   }
-
   .alert-content strong {
     font-weight: 600;
     color: #155724;
   }
-
   .local-time-container {
     position: relative;
     display: inline-block;
@@ -83,7 +77,6 @@
     color: #155724;
     cursor: help;
   }
-
   .utc-tooltip {
     display: none;
     position: absolute;
@@ -98,32 +91,15 @@
     top: 100%;
     margin-top: 5px;
   }
-
   .local-time-container:hover .utc-tooltip {
     display: block;
   }
-
   .countdown {
     font-weight: 600;
     color: #155724;
     margin-bottom: 0;
   }
-
-
-
-  /* .btn {
-    padding: 0.5rem 1rem;
-    background-color: #27ae60;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: inline-block;
-  } */
-
- .btn {
+  .btn {
     display: block;
     width: 100%;
     max-width: 300px;
@@ -141,12 +117,10 @@
     transition: background-color 0.2s;
     box-sizing: border-box;
   }
-
   .btn:hover {
     background-color: #218838;
     text-decoration: none;
   }
-
   ul {
     list-style-type: none;
     padding: 0;
@@ -158,38 +132,12 @@
   ul li:last-child {
     border-bottom: none;
   }
-
-  /* CSS for local time display with tooltip */
-  /* .local-time-container {
-    position: relative;
-    display: inline-block;
-    cursor: help;
-  }
-  .utc-tooltip {
-    display: none;
-    position: absolute;
-    background: #333;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    white-space: nowrap;
-    z-index: 100;
-    left: 0;
-    top: 100%;
-  }
-  .local-time-container:hover .utc-tooltip {
-    display: block;
-  } */
-
-  /* CSS for divider line */
   .section-divider {
     height: 1px;
     background-color: #dee2e6;
     margin: 30px 0;
     width: 100%;
   }
-
   .subscription-card {
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -198,17 +146,13 @@
     background-color: #f9f9f9;
     max-width: 400px;
   }
-
   .subscription-card h3 {
     margin-top: 0;
     color: #333;
   }
-
   .subscription-card p {
     margin: 5px 0;
   }
-
-  /* CSS for setup guide section */
   .setup-guide-section {
     background-color: #f9f9f9;
     padding: 1.5rem;
@@ -216,45 +160,34 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 2rem;
   }
-
   .setup-guide-section h2 {
     color: #2c3e50;
     margin-bottom: 1rem;
   }
-
-  .setup-steps {
-    margin-top: 1rem;
-  }
-
-  .step {
+  .collapsible-step {
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #eee;
   }
-
-  .step:last-child {
-    border-bottom: none;
-  }
-
-  .step h3 {
+  .step-header {
     color: #27ae60;
     margin-bottom: 0.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
   }
-
-  .step p {
-    margin: 0.5rem 0;
+  .step-toggle {
+    margin-left: 10px;
+    font-size: 1.2em;
+    font-weight: normal;
   }
-
-  .step ol {
-    margin: 0.5rem 0 0 1.5rem;
-    padding: 0;
+  .step-content {
+    display: none;
+    padding-left: 10px;
   }
-
-  .step li {
-    margin: 0.3rem 0;
+  .step-content.active {
+    display: block;
   }
-
-  /* CSS for troubleshooting section */
   .troubleshooting-section {
     background-color: #f9f9f9;
     padding: 1.5rem;
@@ -262,18 +195,15 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 2rem;
   }
-
   .troubleshooting-section h2 {
     color: #2c3e50;
     margin-bottom: 1rem;
   }
-
   .faq-item {
     margin-bottom: 1rem;
     border-bottom: 1px solid #eee;
     padding-bottom: 1rem;
   }
-
   .faq-question {
     width: 100%;
     text-align: left;
@@ -288,86 +218,296 @@
     align-items: center;
     font-weight: bold;
   }
-
   .faq-question:hover {
     background-color: rgba(44, 62, 80, 0.1);
     border-radius: 4px;
   }
-
   .faq-icon {
     font-size: 1.2rem;
     transition: transform 0.2s;
   }
-
   .faq-answer {
     display: none;
     padding: 0 1rem 1rem;
     line-height: 1.6;
   }
-
   .faq-answer ul {
     margin: 0.5rem 0 0 1.5rem;
     padding: 0;
   }
-
   .faq-answer li {
     margin: 0.3rem 0;
   }
-
   .faq-answer a {
     color: #3498db;
     text-decoration: none;
   }
-
   .faq-answer a:hover {
     text-decoration: underline;
   }
-
   .faq-answer.active {
     display: block;
   }
 
-  /* Mobile-specific adjustments */
+  .alert-warning-custom {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 4px solid #ffeeba;
+  }
+
+  .list-custom {
+    margin-bottom: 0;
+    padding-left: 1.2rem;
+  }
   @media (max-width: 600px) {
+    /* General Layout */
     .dashboard-container {
-      padding: 0 0.75rem;
+      padding: 1rem;
+      margin: 0 auto;
+      max-width: 100%;
     }
-    .subscription-section, .setup-guide-section, .troubleshooting-section {
-      padding: 1rem 0;
-      margin-top: 0rem;
-      H2 {
-        margin-top: 0;
-      }
+
+    /* Header */
+    .dashboard-header {
+      text-align: center;
+      margin-bottom: 1rem;
     }
+
+    .dashboard-header h1 {
+      font-size: 1.25rem;
+      margin: 0;
+      color: #2c3e50;
+    }
+
+    /* Subscription Section */
+    .subscription-section {
+      padding: 0;
+      margin-top: 1rem;
+      background-color: transparent;
+    }
+
+    .subscription-section h2 {
+      font-size: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    /* Subscription Alert */
     .subscription-alert {
+      display: flex;
       flex-direction: column;
+      align-items: center;
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 0.5rem;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
       text-align: center;
     }
+
     .alert-icon {
-      margin-bottom: 8px;
+      font-size: 2rem;
+      color: #28a745;
+      margin-bottom: 0.75rem;
     }
+
     .alert-content {
-      text-align: center;
+      width: 100%;
     }
+
+    .alert-content h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+      color: #2c3e50;
+    }
+
+    .alert-content p {
+      font-size: 0.9rem;
+      margin: 0.3rem 0;
+      line-height: 1.4;
+    }
+
+    .alert-content strong {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .local-time-container {
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 0.5rem 0;
+      display: block;
+    }
+
+    .countdown {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #dc3545;
+      margin: 0.5rem 0;
+    }
+
+    /* Button */
     .btn {
       max-width: 100%;
-      padding: 8px;
+      padding: 0.75rem;
+      font-size: 1rem;
+      margin: 0.75rem auto;
+      border-radius: 0.5rem;
+      background-color: #28a745;
+      border: none;
     }
-    .step ol, .faq-answer ul {
-      margin-left: 1rem;
+
+    /* Subscription Card */
+    .subscription-card {
+      max-width: 100%;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #e9ecef;
+      border-radius: 0.5rem;
+      background-color: #ffffff;
+    }
+
+    .subscription-card h3 {
+      font-size: 1.1rem;
+      margin-top: 0;
+      color: #2c3e50;
+    }
+
+    .subscription-card p {
+      font-size: 0.9rem;
+      margin: 0.3rem 0;
+    }
+
+    /* Setup Guide Section */
+    .list-custom {
+      margin-bottom: 0;
+      padding-left: 0;
+    }
+    .setup-guide-section {
+      padding: 1rem 0;
+      margin-top: 1.5rem;
+      background-color: transparent;
+    }
+
+    .setup-guide-section h2 {
+      font-size: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    /* Collapsible Steps */
+    .collapsible-step {
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .step-header {
+      font-size: 1.1rem;
+      color: #28a745;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .step-toggle {
+      font-size: 1.2rem;
+    }
+
+    .step-content {
+      padding-left: 0;
+    }
+
+    .step-content ul,
+    .step-content ol {
+      padding-left: 1.25rem;
+      margin: 0.5rem 0;
+    }
+
+    .step-content li {
+      font-size: 0.9rem;
+      padding: 0.3rem 0;
+    }
+
+    /* Troubleshooting Section */
+    .troubleshooting-section {
+      padding: 1rem;
+      margin-top: 1.5rem;
+      background-color: transparent;
+    }
+
+    .troubleshooting-section h2 {
+      font-size: 1.25rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    /* FAQ Items */
+    .faq-item {
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .faq-question {
+      width: 100%;
+      padding: 0.75rem 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #2c3e50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .faq-icon {
+      font-size: 1.2rem;
+    }
+
+    .faq-answer {
+      padding: 0 0 1rem;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .faq-answer ul {
+      margin: 0.5rem 0 0 1.25rem;
+      padding: 0;
+    }
+
+    .faq-answer li {
+      margin: 0.3rem 0;
+    }
+
+    /* Section Divider */
+    .section-divider {
+      height: 1px;
+      background-color: #dee2e6;
+      margin: 1.25rem 0;
+    }
+
+    .alert-content p:nth-child(4) {
+      display: none;
     }
   }
 </style>
-
 <div class="dashboard-container">
   <header class="dashboard-header">
     <h1>Welcome, <%= current_user.email %></h1>
   </header>
-
   <section class="subscription-section">
     <h2>Your VPN Subscription</h2>
     <% if @has_subscription %>
-
       <div class="subscription-alert">
         <div class="alert-icon">✅</div>
         <div class="alert-content">
@@ -392,37 +532,27 @@
         </div>
       </div>
       <%= link_to "View Subscription", user_subscription_path(current_user, @active_subscription), class: "btn" %>
-
     <% else %>
       <div class="alert alert-warning">
         <p>❌ You don't have an active subscription.</p>
         <%= link_to "Subscribe Now", new_user_subscription_path(current_user), class: "btn" %>
       </div>
     <% end %>
-
-    <!-- Divider Line -->
     <div class="section-divider"></div>
-
     <h2>Expired Subscriptions</h2>
     <% if @expired_subscriptions.any? %>
       <% last_expired = @expired_subscriptions.last %>
-      <p>
-        <%# <%= last_expired.wireguard_clients.name %>
-        <%# (Expired: <%= last_expired.expires_at) %>
-
-        <div class="subscription-card">
-          <h3>Subscription #<%= last_expired.name %></h3>
-          <p><strong>Plan:</strong> <%= last_expired.plan.name %></p>
-          <p><strong>Started:</strong> <%= last_expired.created_at.strftime("%d/%m/%Y") %></p>
-          <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%d/%m/%Y") %></p>
-          <p><strong>Price:</strong> <%= number_to_currency(last_expired.price) %>/month</p>
-          <p><strong>Duration:</strong>
-            <% days = (last_expired.expires_at.to_date - last_expired.created_at.to_date).to_i %>
-            <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
-          </p>
-        </div>
-
-      </p>
+      <div class="subscription-card">
+        <h3>Subscription #<%= last_expired.name %></h3>
+        <p><strong>Plan:</strong> <%= last_expired.plan.name %></p>
+        <p><strong>Started:</strong> <%= last_expired.created_at.strftime("%d/%m/%Y") %></p>
+        <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%d/%m/%Y") %></p>
+        <p><strong>Price:</strong> <%= number_to_currency(last_expired.price) %>/month</p>
+        <p><strong>Duration:</strong>
+          <% days = (last_expired.expires_at.to_date - last_expired.created_at.to_date).to_i %>
+          <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
+        </p>
+      </div>
       <% if @expired_subscriptions.size > 1 %>
         <%= link_to "View Full History", expired_subscriptions_path, class: "history-button" %>
       <% end %>
@@ -430,121 +560,168 @@
       <p>No expired subscriptions.</p>
     <% end %>
   </section>
-
   <section class="setup-guide-section">
     <h2>Get Started with Your VPN</h2>
-    <div class="alert alert-warning" style="margin-bottom: 1.5rem; padding: 1rem; background-color: #fff3cd; color: #856404; border-left: 4px solid #ffeeba;">
+    <div class="alert alert-warning alert-warning-custom">
       <strong>Important Device Information:</strong>
-      <ul style="margin-bottom: 0; padding-left: 1.2rem;">
+      <ul class="list-custom">
         <li>Use <strong>only one client per device</strong> (one config file or QR code per device).</li>
         <li>Your subscription allows VPN connections on <strong>up to 3 different devices</strong> simultaneously.</li>
         <li>Each device must use its own unique configuration.</li>
       </ul>
     </div>
     <div class="setup-steps">
-      <div class="step">
-        <h3>1. Download WireGuard</h3>
-        <ul>
-          <li><a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank">iOS</a></li>
-          <li><a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank">Android</a></li>
-          <li><a href="https://www.wireguard.com/install/" target="_blank">Windows/macOS/Linux</a></li>
-        </ul>
+      <div class="collapsible-step">
+        <h3 class="step-header" onclick="toggleStep(this)">
+          1. Download WireGuard <span class="step-toggle">+</span>
+        </h3>
+        <div class="step-content">
+          <ul>
+            <li><a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank">iOS</a></li>
+            <li><a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank">Android</a></li>
+            <li><a href="https://www.wireguard.com/install/" target="_blank">Windows/macOS/Linux</a></li>
+          </ul>
+        </div>
       </div>
-      <div class="step">
-        <h3>2. Get Your Configuration</h3>
-        <% if @has_subscription && @active_subscription %>
-          <p><%= link_to "Download Config File", user_subscription_path(current_user, @active_subscription), class: "btn" %></p>
-        <% else %>
-          <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">🔒 Subscribe to download your config file.</p>
-        <% end %>
+      <div class="collapsible-step">
+        <h3 class="step-header" onclick="toggleStep(this)">
+          2. Get Your Configuration <span class="step-toggle">+</span>
+        </h3>
+        <div class="step-content">
+          <% if @has_subscription && @active_subscription %>
+            <p><%= link_to "Download Config File", user_subscription_path(current_user, @active_subscription), class: "btn" %></p>
+          <% else %>
+            <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">🔒 Subscribe to download your config file.</p>
+          <% end %>
+        </div>
       </div>
-      <div class="step">
-        <h3>3. Need More Help?</h3>
-        <p><%= link_to "View Full Setup Guide", setup_guide_path, class: "btn", style: "background-color: #3498db;" %></p>
+      <div class="collapsible-step">
+        <h3 class="step-header" onclick="toggleStep(this)">
+          3. Set Up the VPN <span class="step-toggle">+</span>
+        </h3>
+        <div class="step-content">
+          <p><strong>Option A: QR Code (Mobile)</strong></p>
+          <ol>
+            <li>Open the WireGuard app.</li>
+            <li>Tap <strong>"Add Tunnel" → "Scan QR Code"</strong>.</li>
+            <li>Scan the QR code from your dashboard.</li>
+          </ol>
+          <p><strong>Option B: Config File (All Devices)</strong></p>
+          <ol>
+            <li>Open the WireGuard app.</li>
+            <li>Tap <strong>"Add Tunnel" → "Import from file"</strong>.</li>
+            <li>Select the downloaded config file.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="collapsible-step">
+        <h3 class="step-header" onclick="toggleStep(this)">
+          4. Connect to the VPN <span class="step-toggle">+</span>
+        </h3>
+        <div class="step-content">
+          <p>Toggle the switch next to your tunnel to <strong>activate</strong> the connection.</p>
+          <p>Verify your connection at <a href="https://whatismyip.com" target="_blank">whatismyip.com</a>.</p>
+        </div>
+      </div>
+      <div>
+        <h3 class="step-header">
+          5. Need More Help?
+        </h3>
+        <div class="step">
+          <p><%= link_to "View Full Setup Guide", setup_guide_path, class: "btn", style: "background-color: #3498db;" %></p>
+        </div>
       </div>
     </div>
   </section>
-
-<section class="troubleshooting-section">
-  <h2>Troubleshooting</h2>
-
-  <div class="faq-item">
-    <button class="faq-question">
-      Connection Issues <span class="faq-icon">+</span>
-    </button>
-    <div class="faq-answer">
-      <p><strong>Symptoms:</strong> The VPN fails to connect or has connection problems.</p>
-      <ul>
-        <li><strong>Check for duplicate configurations:</strong> Ensure each config file/QR code is used on only one device. If the same configuration is installed on multiple devices, remove it from all but one device.</li>
-        <li>Check your internet connection.</li>
-        <li>Restart the VPN client.</li>
-        <li>Restart your device.</li>
-        <li>Check for firewall/antivirus interference.</li>
-        <li>Reinstall the VPN configuration.</li>
-        <li>Update the VPN app.</li>
-      </ul>
+  <section class="troubleshooting-section">
+    <h2>Troubleshooting</h2>
+    <div class="faq-item">
+      <button class="faq-question">
+        Connection Issues <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Symptoms:</strong> The VPN fails to connect or has connection problems.</p>
+        <ul>
+          <li><strong>Check for duplicate configurations:</strong> Ensure each config file/QR code is used on only one device. If the same configuration is installed on multiple devices, remove it from all but one device.</li>
+          <li>Check your internet connection.</li>
+          <li>Restart the VPN client.</li>
+          <li>Restart your device.</li>
+          <li>Check for firewall/antivirus interference.</li>
+          <li>Reinstall the VPN configuration.</li>
+          <li>Update the VPN app.</li>
+        </ul>
+      </div>
     </div>
-  </div>
-
-  <div class="faq-item">
-    <button class="faq-question">
-      Connection Drops <span class="faq-icon">+</span>
-    </button>
-    <div class="faq-answer">
-      <p><strong>Symptoms:</strong> The VPN disconnects frequently or fails to connect.</p>
-      <ul>
-        <li>Check your internet connection.</li>
-        <li>Restart the VPN client.</li>
-        <li>Restart your device.</li>
-        <li>Check for firewall/antivirus interference.</li>
-        <li>Reinstall the VPN configuration.</li>
-        <li>Update the VPN app.</li>
-      </ul>
+    <div class="faq-item">
+      <button class="faq-question">
+        Connection Drops <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Symptoms:</strong> The VPN disconnects frequently or fails to connect.</p>
+        <ul>
+          <li>Check your internet connection.</li>
+          <li>Restart the VPN client.</li>
+          <li>Restart your device.</li>
+          <li>Check for firewall/antivirus interference.</li>
+          <li>Reinstall the VPN configuration.</li>
+          <li>Update the VPN app.</li>
+        </ul>
+      </div>
     </div>
-  </div>
-
-  <div class="faq-item">
-    <button class="faq-question">
-      Slow Speeds <span class="faq-icon">+</span>
-    </button>
-    <div class="faq-answer">
-      <p><strong>Symptoms:</strong> The VPN connection is active, but browsing/downloads are slower than usual.</p>
-      <ul>
-        <li>Test your base internet speed.</li>
-        <li>Close background applications.</li>
-        <li>Check for network congestion.</li>
-        <li>Restart your router.</li>
-      </ul>
+    <div class="faq-item">
+      <button class="faq-question">
+        Slow Speeds <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Symptoms:</strong> The VPN connection is active, but browsing/downloads are slower than usual.</p>
+        <ul>
+          <li>Test your base internet speed.</li>
+          <li>Close background applications.</li>
+          <li>Check for network congestion.</li>
+          <li>Restart your router.</li>
+        </ul>
+      </div>
     </div>
-  </div>
-
-  <div class="faq-item">
-    <button class="faq-question">
-      Unable to Access Certain Websites <span class="faq-icon">+</span>
-    </button>
-    <div class="faq-answer">
-      <p><strong>Symptoms:</strong> Some websites or services are blocked or unavailable while connected to the VPN.</p>
-      <ul>
-        <li>Clear your browser cache.</li>
-        <li>Disable IPv6.</li>
-        <li>Check for DNS leaks.</li>
-        <li>Contact support.</li>
-      </ul>
+    <div class="faq-item">
+      <button class="faq-question">
+        Unable to Access Certain Websites <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Symptoms:</strong> Some websites or services are blocked or unavailable while connected to the VPN.</p>
+        <ul>
+          <li>Clear your browser cache.</li>
+          <li>Disable IPv6.</li>
+          <li>Check for DNS leaks.</li>
+          <li>Contact support.</li>
+        </ul>
+      </div>
     </div>
-  </div>
-
-  <div class="faq-item">
-    <button class="faq-question">
-      General Tips <span class="faq-icon">+</span>
-    </button>
-    <div class="faq-answer">
-      <p>Keep your app updated and check for announcements. If issues persist, contact support at <a href="mailto:support@FenguardVPN.com">support@fenguardvpn.com</a>.</p>
+    <div class="faq-item">
+      <button class="faq-question">
+        General Tips <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Keep your app updated and check for announcements. If issues persist, contact support at <a href="mailto:support@FenguardVPN.com">support@fenguardvpn.com</a>.</p>
+      </div>
     </div>
-  </div>
-</section>
-
-
+  </section>
   <script>
+    function toggleStep(header) {
+      const step = header.parentElement;
+      const content = step.querySelector('.step-content');
+      const toggle = header.querySelector('.step-toggle');
+
+      if (content.classList.contains('active')) {
+        content.classList.remove('active');
+        toggle.textContent = '+';
+      } else {
+        document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.step-toggle').forEach(t => t.textContent = '+');
+        content.classList.add('active');
+        toggle.textContent = '-';
+      }
+    }
+
     document.addEventListener("turbo:load", function() {
       // FAQ toggle logic
       document.querySelectorAll('.faq-question').forEach(button => {
@@ -556,10 +733,8 @@
             answer.classList.remove('active');
             icon.textContent = '+';
           } else {
-            // Close all other answers
             document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
             document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
-            // Open this answer
             answer.classList.add('active');
             icon.textContent = '-';
           }
@@ -571,41 +746,31 @@
         const utcTime = "<%= @active_subscription.expires_at.iso8601 %>";
         const expiresAt = new Date(utcTime);
         const localTimeElement = document.getElementById("local-time-text");
-
-        // Format local time as DD/MM/YYYY at HH:MM
         const day = String(expiresAt.getDate()).padStart(2, '0');
-        const month = String(expiresAt.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+        const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
         const year = expiresAt.getFullYear();
         const hours = String(expiresAt.getHours()).padStart(2, '0');
         const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
-
         const localTime = `${day}/${month}/${year} at ${hours}:${minutes}`;
         localTimeElement.textContent = localTime;
-
-        // Update countdown
         function updateCountdown() {
           const now = new Date();
           const diff = expiresAt - now;
-
           if (diff <= 0) {
             document.getElementById("countdown").textContent = "Subscription expired";
             return;
           }
-
           const days = Math.floor(diff / (1000 * 60 * 60 * 24));
           const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
           let countdownText = [];
           if (days > 0) countdownText.push(`${days} day${days !== 1 ? 's' : ''}`);
           if (hours > 0 || days > 0) countdownText.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
           countdownText.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
-
           document.getElementById("countdown").textContent = `${countdownText.join(', ')} remaining`;
         }
-
         updateCountdown();
-        setInterval(updateCountdown, 60000); // Update every minute
+        setInterval(updateCountdown, 60000);
       <% end %>
     });
   </script>
