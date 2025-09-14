@@ -2,4 +2,8 @@
 import "@hotwired/turbo-rails"
 import "bootstrap"
 import "bootstrap/dist/css/bootstrap";
-import "controllers"
+// app/javascript/packs/application.js
+import "@splidejs/splide/dist/css/splide.min.css";
+import Splide from "@splidejs/splide";
+window.Splide = Splide; // Make Splide globally available
+

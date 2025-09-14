@@ -184,6 +184,7 @@
   /* Plan Title and Subtitle */
   .plan h3 {
     color: #2c3e50;
+    margin-top: 0.8rem;
     margin-bottom: 0.5rem;
   }
   .plan-subtitle {
@@ -275,8 +276,11 @@
     }
     .plan {
       max-width: 90%;
-      padding: 1.5rem;
+      padding: 1rem;
       margin: 0 auto;
+    }
+    .plan h3 {
+      margin-top: 2rem;
     }
     .plan-price {
       font-size: 2rem;
@@ -336,13 +340,13 @@
 </style>
 
 <script>
-  document.addEventListener('turbo:load', function() {
+  document.addEventListener('DOMContentLoaded', function() {
     if (window.innerWidth <= 768) {
       new Splide('#plan-slider', {
         type: 'slide',
         perPage: 1,
         gap: '1rem',
-        padding: '1rem',
+        padding: '0',
         arrows: true,
         pagination: false,
       }).mount();
