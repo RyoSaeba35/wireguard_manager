@@ -16,6 +16,7 @@ gem "dartsass-rails" # For Dart Sass
 gem "turbo-rails"
 gem "stimulus-rails"
 gem "jbuilder"
+gem 'terser'
 
 # Background Jobs
 gem "sidekiq", ">= 6.0"
