@@ -4,6 +4,7 @@ class Subscription < ApplicationRecord
   belongs_to :server
   has_many :wireguard_clients, dependent: :destroy
   validates :name, :price, :plan, :expires_at, presence: true
+  validates :name, uniqueness: { scope: :user_id } # Ensure names are unique per user
   validates :price, numericality: { greater_than: 0 }
   before_validation :set_plan_interval, on: :create
 
@@ -22,6 +23,11 @@ class Subscription < ApplicationRecord
   scope :pending, -> {
     where(status: "pending")
   }
+
+  # Use name in URLs instead of ID
+  def to_param
+    name
+  end
 
   # Status predicate methods
   def active?

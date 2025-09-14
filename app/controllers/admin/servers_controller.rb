@@ -38,13 +38,9 @@ module Admin
 
     def generate_ssh_key
       require 'openssl'
-      key = OpenSSL::PKey::EC.new('prime256v1').generate_key
-
-      # Private key in PEM format
+      key = OpenSSL::PKey::RSA.new(2048)
       private_key_pem = key.to_pem
-
-      # Public key in OpenSSH format
-      public_key_ssh = "ecdsa-sha2-nistp256 #{Base64.strict_encode64(key.public_key.to_bn.to_s(2))}"
+      public_key_ssh = "#{key.ssh_type} #{[key.to_blob].pack('m0')}".strip
 
       render json: {
         private_key: private_key_pem,
