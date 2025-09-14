@@ -1,9 +1,12 @@
 class SubscriptionsController < ApplicationController
   before_action :authenticate_user!
+  before_action :set_subscription, only: [:show]
+  before_action :authorize_subscription, only: [:show]
 
   def new
-    if current_user.subscriptions.where(status: 'active').exists?
-      @existing_subscription = current_user.subscriptions.find_by(status: 'active')
+    # Only block if the user has a truly active (non-expired) or pending subscription
+    if current_user.subscriptions.where("status IN (?) AND expires_at > ?", ['active', 'pending'], Time.current).exists?
+      @existing_subscription = current_user.subscriptions.where("status IN (?) AND expires_at > ?", ['active', 'pending'], Time.current).first
       redirect_to user_subscription_path(current_user, @existing_subscription),
                   alert: "You already have an active subscription to #{@existing_subscription.plan.name}."
       return
@@ -16,21 +19,19 @@ class SubscriptionsController < ApplicationController
     selected_plan = Plan.find(subscription_params[:plan_id])
     max_limit = Setting.max_active_subscriptions
 
-    # Check global subscription limit
-    if Subscription.where(status: 'active').count >= max_limit
+    # Only count truly active (non-expired) subscriptions toward the limit
+    if Subscription.where("status = ? AND expires_at > ?", 'active', Time.current).count >= max_limit
       redirect_to new_user_subscription_path(current_user),
                   alert: "We limit the number of active subscriptions to ensure the best quality of service. Please try again later."
       return
     end
 
-    # Check if there are available servers
     unless Server.where(active: true).where("current_subscriptions < max_subscriptions").exists?
       redirect_to new_user_subscription_path(current_user),
                   alert: "No servers are available at the moment. Please try again later."
       return
     end
 
-    # Generate a unique 6-character alphanumeric token for the subscription
     subscription_name = loop do
       random_name = SecureRandom.alphanumeric(6).upcase
       break random_name unless Subscription.exists?(name: random_name)
@@ -38,21 +39,18 @@ class SubscriptionsController < ApplicationController
 
     Rails.logger.info "Creating subscription: #{subscription_name}"
 
-    # Select a server
     server = Server.where(active: true)
                   .where("current_subscriptions < max_subscriptions")
                   .order(:current_subscriptions)
                   .first
 
-    # Calculate expires_at
     expires_at = case selected_plan.interval
-                 when 'week'  then 1.week.from_now
-                 when 'month' then 1.month.from_now
-                 when 'year'  then 1.year.from_now
-                 else 1.month.from_now
+                when 'week'  then 1.week.from_now
+                when 'month' then 1.month.from_now
+                when 'year'  then 1.year.from_now
+                else 1.month.from_now
     end
 
-    # Create the subscription record immediately
     @subscription = current_user.subscriptions.new(
       subscription_params.merge(
         name: subscription_name,
@@ -64,12 +62,8 @@ class SubscriptionsController < ApplicationController
     )
 
     if @subscription.save
-      # Increment the server's current_subscriptions counter
       server.increment!(:current_subscriptions)
-
-      # Enqueue the background job to create WireGuard clients
       WireguardClientCreationJob.perform_later(@subscription.id)
-
       redirect_to user_subscription_path(current_user, @subscription),
                   notice: "Subscription created! Your VPN config will be ready in a few minutes. You'll receive an email with your config files."
     else
@@ -80,7 +74,7 @@ class SubscriptionsController < ApplicationController
   end
 
   def show
-    @subscription = current_user.subscriptions.find(params[:id])
+    @subscription = current_user.subscriptions.find_by!(name: params[:id]) # params[:id] will be the name
     @wireguard_clients = @subscription.wireguard_clients
     @wireguard_client = @wireguard_clients.first if @wireguard_clients.any?
   end
@@ -89,5 +83,15 @@ class SubscriptionsController < ApplicationController
 
   def subscription_params
     params.require(:subscription).permit(:plan_id, :price)
+  end
+
+  def set_subscription
+    @subscription = Subscription.find_by!(name: params[:id])
+  end
+
+  def authorize_subscription
+    unless @subscription.user == current_user && (@subscription.active? || @subscription.pending?)
+      redirect_to root_path, alert: "You do not have access to this subscription. Either it does not belong to you or it is not active."
+    end
   end
 end

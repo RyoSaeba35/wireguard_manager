@@ -1,5 +1,7 @@
 # app/mailers/user_mailer.rb
 class UserMailer < ApplicationMailer
+  default from: 'Fenguard VPN'
+
   def vpn_config_ready(user, subscription)
     @user = user
     @subscription = subscription
@@ -10,6 +12,8 @@ class UserMailer < ApplicationMailer
     else
       Rails.logger.error "PDF not found at #{pdf_path}"
     end
+    # Use `attachments.inline` instead of `attachments`
+    attachments.inline['logo.png'] = File.read(Rails.root.join('app/assets/images/logo.png'))
     mail(to: @user.email, subject: "Your Fenguard VPN Configuration is Ready!")
   end
 end
