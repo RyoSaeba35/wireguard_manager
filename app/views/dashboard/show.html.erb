@@ -507,7 +507,8 @@
   </header>
   <section class="subscription-section">
     <h2>Your VPN Subscription</h2>
-    <% if @has_subscription %>
+    <% if @has_subscription && @active_subscription.expires_at > Time.now %>
+      <!-- Show active subscription -->
       <div class="subscription-alert">
         <div class="alert-icon">✅</div>
         <div class="alert-content">
@@ -533,11 +534,13 @@
       </div>
       <%= link_to "View Subscription", user_subscription_path(current_user, @active_subscription), class: "btn" %>
     <% else %>
+      <!-- Show "Subscribe Now" if no truly active (non-expired) or pending subscription exists -->
       <div class="alert alert-warning">
         <p>❌ You don't have an active subscription.</p>
         <%= link_to "Subscribe Now", new_user_subscription_path(current_user), class: "btn" %>
       </div>
     <% end %>
+
     <div class="section-divider"></div>
     <h2>Expired Subscriptions</h2>
     <% if @expired_subscriptions.any? %>

@@ -57,7 +57,7 @@
         <%= form.label :ssh_private_key, class: "form-label" do %>
           SSH Private Key <%= @server.persisted? ? "(leave blank to keep current)" : "" %>
         <% end %>
-        <%= form.text_area :ssh_private_key, class: "form-textarea", placeholder: "Private key will be generated here...", rows: 1 %>
+        <%= form.text_area :ssh_private_key, class: "form-textarea", placeholder: "Private key will be generated here...", rows: 5 %>
         <div class="form-hint">
           Private key for SSH authentication. If provided, password will not be used.
           <%= link_to "Generate new key pair", "#", id: "generate-ssh-key", class: "generate-key-button" %>

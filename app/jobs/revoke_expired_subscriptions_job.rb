@@ -1,7 +1,6 @@
 # app/jobs/revoke_expired_subscriptions_job.rb
 class RevokeExpiredSubscriptionsJob < ApplicationJob
   queue_as :default
-
   # Maximum number of subscriptions to process in one job run
   BATCH_SIZE = 100
   # Maximum retries for SSH operations
@@ -10,10 +9,8 @@ class RevokeExpiredSubscriptionsJob < ApplicationJob
   def perform
     start_time = Time.current
     Rails.logger.info "Starting RevokeExpiredSubscriptionsJob at #{start_time}"
-
     # Process subscriptions in batches
     process_batch
-
     duration = Time.current - start_time
     Rails.logger.info "Completed RevokeExpiredSubscriptionsJob in #{duration.round(2)} seconds"
   end
@@ -31,47 +28,52 @@ class RevokeExpiredSubscriptionsJob < ApplicationJob
 
   def process_subscription(subscription)
     Rails.logger.info "Processing subscription #{subscription.name} (ID: #{subscription.id})"
-
     begin
       # Update subscription status first
       subscription.update!(status: "expired")
-
       # Get the server associated with this subscription
       server = subscription.server
-
       # Skip if no server is associated
       unless server
         Rails.logger.warn "Subscription #{subscription.name} has no associated server"
         return
       end
+      # Generate a unique temporary file path for the private key
+      private_key_path = "/tmp/server_#{server.id}_private_key_#{SecureRandom.hex(8)}"
+      # Write the private key to the temporary file
+      File.write(private_key_path, server.ssh_private_key)
+      File.chmod(0600, private_key_path)
 
       # Update server's current_subscriptions count
       update_server_subscription_count(server, -1)
 
       # Revoke each WireGuard client
       subscription.wireguard_clients.each do |wireguard_client|
-        revoke_client_with_retries(server, wireguard_client)
+        revoke_client_with_retries(server, wireguard_client, private_key_path)
         wireguard_client.update!(status: "revoked")
       end
 
+      # Delete local config and QR code files
+      delete_client_files(subscription)
+
       # Notify user
       notify_user(subscription)
-
       Rails.logger.info "Successfully processed subscription #{subscription.name}"
     rescue StandardError => e
       Rails.logger.error "Error processing subscription #{subscription.name}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-
       # Try to update the subscription status even if other operations fail
       subscription.update!(status: "expired") rescue nil
+    ensure
+      # Ensure the temporary file is deleted, even if an error occurs
+      File.delete(private_key_path) if File.exist?(private_key_path)
     end
   end
 
-  def revoke_client_with_retries(server, wireguard_client, retries = 0)
-    return unless server.ssh_user.present? && server.ssh_password.present?
-
+  def revoke_client_with_retries(server, wireguard_client, private_key_path, retries = 0)
+    return unless server.ssh_user.present?
     begin
-      revoke_client_on_server(server, wireguard_client)
+      revoke_client_on_server(server, wireguard_client, private_key_path)
     rescue StandardError => e
       if retries < MAX_RETRIES
         sleep(2 ** retries) # Exponential backoff
@@ -83,14 +85,11 @@ class RevokeExpiredSubscriptionsJob < ApplicationJob
     end
   end
 
-  def revoke_client_on_server(server, wireguard_client)
+  def revoke_client_on_server(server, wireguard_client, private_key_path)
     ssh_user = server.ssh_user
-    ssh_password = server.ssh_password
     ip_address = server.ip_address
-
     Rails.logger.info "Attempting to revoke client #{wireguard_client.name} on server #{server.name} (#{ip_address})"
-
-    Net::SSH.start(ip_address, ssh_user, password: ssh_password) do |ssh|
+    Net::SSH.start(ip_address, ssh_user, keys: [private_key_path]) do |ssh|
       # Automatically answer "y" to the confirmation prompt
       output = ssh.exec!("LC_ALL=C echo 'y' | LC_ALL=C pivpn -r #{wireguard_client.name}")
       Rails.logger.info "Removed client #{wireguard_client.name}: #{output}"
@@ -112,7 +111,6 @@ class RevokeExpiredSubscriptionsJob < ApplicationJob
   def update_server_subscription_count(server, change)
     new_count = server.current_subscriptions + change
     new_count = [new_count, 0].max # Don't go below zero
-
     if new_count != server.current_subscriptions
       server.update!(current_subscriptions: new_count)
       Rails.logger.info "Updated server #{server.name} subscription count to #{new_count}"
@@ -122,10 +120,33 @@ class RevokeExpiredSubscriptionsJob < ApplicationJob
     # Continue even if server update fails
   end
 
+  def delete_client_files(subscription)
+    subscription.wireguard_clients.each do |wireguard_client|
+      sanitized_name = wireguard_client.name.gsub(/[@.]/, '_')
+      config_path = Rails.root.join('storage', 'configs', "#{sanitized_name}.conf")
+      qr_path = Rails.root.join('storage', 'qr_codes', "#{sanitized_name}.png")
+
+      # Delete config file
+      if File.exist?(config_path)
+        File.delete(config_path)
+        Rails.logger.info "Deleted config file for #{wireguard_client.name}"
+      else
+        Rails.logger.warn "Config file not found for #{wireguard_client.name}"
+      end
+
+      # Delete QR code file
+      if File.exist?(qr_path)
+        File.delete(qr_path)
+        Rails.logger.info "Deleted QR code file for #{wireguard_client.name}"
+      else
+        Rails.logger.warn "QR code file not found for #{wireguard_client.name}"
+      end
+    end
+  end
+
   def notify_user(subscription)
     # Send email notification
     SubscriptionMailer.subscription_expired(subscription).deliver_later
-
     # You could also add other notification methods here
     # (e.g., push notifications, SMS, etc.)
   rescue StandardError => e
