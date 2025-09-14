@@ -6,8 +6,13 @@ class WireguardClientCreationJob < ApplicationJob
   def perform(subscription_id)
     subscription = Subscription.find(subscription_id)
     server = subscription.server
-
     Rails.logger.info "Creating WireGuard clients for subscription: #{subscription.name}"
+
+    # Generate a unique temporary file path for the private key
+    private_key_path = "/tmp/server_#{server.id}_private_key_#{SecureRandom.hex(8)}"
+    # Write the private key to the temporary file
+    File.write(private_key_path, server.ssh_private_key)
+    File.chmod(0600, private_key_path)
 
     clients_created = 0
 
@@ -15,7 +20,6 @@ class WireguardClientCreationJob < ApplicationJob
       client_number = i + 1
       client_name = "#{subscription.name}_#{client_number}"
 
-      # Skip if client already exists in the database
       if subscription.wireguard_clients.exists?(name: client_name)
         Rails.logger.info "Skipping existing client: #{client_name}"
         clients_created += 1
@@ -23,8 +27,8 @@ class WireguardClientCreationJob < ApplicationJob
       end
 
       begin
-        Net::SSH.start(server.ip_address, server.ssh_user, password: server.ssh_password) do |ssh|
-          create_client_on_server(ssh, client_name, subscription, server)
+        Net::SSH.start(server.ip_address, server.ssh_user, keys: [private_key_path], verify_host_key: :never) do |ssh|
+          create_client_on_server(ssh, client_name, subscription, server, private_key_path)
           clients_created += 1
         end
       rescue Net::SSH::Exception => e
@@ -41,5 +45,8 @@ class WireguardClientCreationJob < ApplicationJob
       subscription.update!(status: "failed")
       raise "No WireGuard clients were created"
     end
+  ensure
+    # Ensure the temporary file is deleted, even if an error occurs
+    File.delete(private_key_path) if File.exist?(private_key_path)
   end
 end
