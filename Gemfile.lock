@@ -349,6 +349,14 @@ GEM
     sass-embedded (1.90.0)
       google-protobuf (~> 4.31)
       rake (>= 13)
+    sassc (2.4.0)
+      ffi (~> 1.9)
+    sassc-rails (2.1.2)
+      railties (>= 4.0.0)
+      sassc (>= 2.0)
+      sprockets (> 3.0)
+      sprockets-rails
+      tilt
     securerandom (0.4.1)
     selenium-webdriver (4.32.0)
       base64 (~> 0.2)
@@ -384,17 +392,8 @@ GEM
     stimulus-rails (1.3.4)
       railties (>= 6.0.0)
     stringio (3.1.7)
-    tailwindcss-rails (4.3.0)
-      railties (>= 7.0.0)
-      tailwindcss-ruby (~> 4.0)
-    tailwindcss-ruby (4.1.12)
-    tailwindcss-ruby (4.1.12-aarch64-linux-gnu)
-    tailwindcss-ruby (4.1.12-aarch64-linux-musl)
-    tailwindcss-ruby (4.1.12-arm64-darwin)
-    tailwindcss-ruby (4.1.12-x86_64-darwin)
-    tailwindcss-ruby (4.1.12-x86_64-linux-gnu)
-    tailwindcss-ruby (4.1.12-x86_64-linux-musl)
     thor (1.4.0)
+    tilt (2.6.1)
     timeout (0.4.3)
     turbo-rails (2.0.16)
       actionpack (>= 7.1.0)
@@ -461,13 +460,14 @@ DEPENDENCIES
   redis (>= 4.0.1)
   rqrcode
   rubocop-rails-omakase
+  sassc (~> 2.4)
+  sassc-rails
   selenium-webdriver
   sidekiq (>= 6.0)
   simple_form
   sprockets-rails
   sqlite3 (>= 1.4)
   stimulus-rails
-  tailwindcss-rails
   turbo-rails
   tzinfo-data
   web-console

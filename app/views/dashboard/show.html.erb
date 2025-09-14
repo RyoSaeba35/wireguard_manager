@@ -175,6 +175,7 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    font-size: 1.3em;
   }
   .step-toggle {
     margin-left: 10px;
@@ -709,11 +710,11 @@
     </div>
   </section>
   <script>
+    // Function to toggle collapsible steps
     function toggleStep(header) {
       const step = header.parentElement;
       const content = step.querySelector('.step-content');
       const toggle = header.querySelector('.step-toggle');
-
       if (content.classList.contains('active')) {
         content.classList.remove('active');
         toggle.textContent = '+';
@@ -725,28 +726,58 @@
       }
     }
 
-    document.addEventListener("turbo:load", function() {
-      // FAQ toggle logic
-      document.querySelectorAll('.faq-question').forEach(button => {
-        button.addEventListener('click', () => {
-          const faqItem = button.parentElement;
-          const answer = faqItem.querySelector('.faq-answer');
-          const icon = button.querySelector('.faq-icon');
-          if (answer.classList.contains('active')) {
-            answer.classList.remove('active');
-            icon.textContent = '+';
-          } else {
-            document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
-            document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
-            answer.classList.add('active');
-            icon.textContent = '-';
-          }
-        });
+    // Function to toggle FAQ answers
+    function toggleFAQ(button) {
+      const faqItem = button.parentElement;
+      const answer = faqItem.querySelector('.faq-answer');
+      const icon = button.querySelector('.faq-icon');
+      if (answer.classList.contains('active')) {
+        answer.classList.remove('active');
+        icon.textContent = '+';
+      } else {
+        document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
+        document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
+        answer.classList.add('active');
+        icon.textContent = '-';
+      }
+    }
+
+    // Function to update countdown
+    function updateCountdown(expiresAt) {
+      const now = new Date();
+      const diff = expiresAt - now;
+      if (diff <= 0) {
+        document.getElementById("countdown").textContent = "Subscription expired";
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      let countdownText = [];
+      if (days > 0) countdownText.push(`${days} day${days !== 1 ? 's' : ''}`);
+      if (hours > 0 || days > 0) countdownText.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+      countdownText.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+      document.getElementById("countdown").textContent = `${countdownText.join(', ')} remaining`;
+    }
+
+    // Initialize page on load and Turbo navigation
+    document.addEventListener("DOMContentLoaded", initPage);
+    document.addEventListener("turbo:load", initPage);
+
+    function initPage() {
+      // Add event listeners for collapsible steps
+      document.querySelectorAll('.step-header').forEach(header => {
+        header.onclick = () => toggleStep(header);
       });
 
-      // Subscription expiration logic
+      // Add event listeners for FAQ questions
+      document.querySelectorAll('.faq-question').forEach(button => {
+        button.onclick = () => toggleFAQ(button);
+      });
+
+      // Initialize subscription countdown
       <% if @active_subscription %>
-        const utcTime = "<%= @active_subscription.expires_at.iso8601 %>";
+        const utcTime = "<%= j @active_subscription.expires_at.iso8601 %>";
         const expiresAt = new Date(utcTime);
         const localTimeElement = document.getElementById("local-time-text");
         const day = String(expiresAt.getDate()).padStart(2, '0');
@@ -755,26 +786,11 @@
         const hours = String(expiresAt.getHours()).padStart(2, '0');
         const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
         const localTime = `${day}/${month}/${year} at ${hours}:${minutes}`;
-        localTimeElement.textContent = localTime;
-        function updateCountdown() {
-          const now = new Date();
-          const diff = expiresAt - now;
-          if (diff <= 0) {
-            document.getElementById("countdown").textContent = "Subscription expired";
-            return;
-          }
-          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          let countdownText = [];
-          if (days > 0) countdownText.push(`${days} day${days !== 1 ? 's' : ''}`);
-          if (hours > 0 || days > 0) countdownText.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
-          countdownText.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
-          document.getElementById("countdown").textContent = `${countdownText.join(', ')} remaining`;
-        }
-        updateCountdown();
-        setInterval(updateCountdown, 60000);
+        if (localTimeElement) localTimeElement.textContent = localTime;
+
+        updateCountdown(expiresAt);
+        setInterval(() => updateCountdown(expiresAt), 60000);
       <% end %>
-    });
+    }
   </script>
 </div>
