@@ -82,5 +82,5 @@ Rails.application.configure do
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
 
   # Store uploaded files (use S3 or another cloud storage in production).
-  config.active_storage.service = :amazon # or :google, etc.
+  config.active_storage.service = :local # or :google, etc.
 end
