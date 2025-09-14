@@ -79,8 +79,13 @@ Rails.application.configure do
   config.force_ssl = true
 
   # Use Heroku's database connection pooling.
-  config.active_record.database_selector = { delay: 2.seconds }
+  # config.active_record.database_selector = { delay: 2.seconds }
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
+
+  # Disable database selector context
+  config.active_record.database_selector = nil
+  config.active_record.database_resolver = nil
+  config.active_record.database_resolver_context = nil
 
   # Store uploaded files (use S3 or another cloud storage in production).
   config.active_storage.service = :local # or :google, etc.
