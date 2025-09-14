@@ -202,6 +202,7 @@
   /* Plan Title and Subtitle */
   .plan h3 {
     color: #2c3e50;
+    margin-top: 0.8rem;
     margin-bottom: 0.5rem;
   }
   .plan-subtitle {
@@ -303,6 +304,9 @@
     .plan-grid {
       display: none;
     }
+    .plan h3 {
+      margin-top: 1.8rem;
+    }
     #plan-slider {
       display: block;
     }
@@ -335,16 +339,21 @@
 </style>
 
 <script>
-  document.addEventListener('turbo:load', function() {
+  document.addEventListener('DOMContentLoaded', function() {
     if (window.innerWidth <= 768) {
-      new Splide('#plan-slider', {
-        type: 'slide',
-        perPage: 1,
-        gap: '1rem',
-        padding: '1rem',
-        arrows: true,
-        pagination: false,
-      }).mount();
+      const sliderElement = document.getElementById('plan-slider');
+      if (sliderElement && !sliderElement.classList.contains('isinitialized')) {
+        sliderElement.classList.add('isinitialized');
+        const splide = new Splide('#plan-slider', {
+          type: 'slide',
+          perPage: 1,
+          gap: '1rem',
+          padding: '1rem',
+          arrows: true,
+          pagination: false,
+        });
+        splide.mount();
+      }
     }
   });
 </script>
