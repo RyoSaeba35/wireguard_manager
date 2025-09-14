@@ -28,7 +28,7 @@ gem "bcrypt", "~> 3.1.7" # Required for Devise
 # Forms and Styling
 gem "simple_form"
 gem "bootstrap", "~> 5.3"
-gem "tailwindcss-rails"
+# gem "tailwindcss-rails"
 
 # Utilities
 gem "bootsnap", require: false
@@ -36,6 +36,9 @@ gem "tzinfo-data", platforms: %i[windows jruby]
 gem "image_processing", "~> 1.2"
 gem "rqrcode"
 gem "lockbox"
+gem 'sassc', '~> 2.4'
+gem 'sassc-rails'
+
 
 # SSH and File Transfer
 gem "net-ssh", ">= 6.0"

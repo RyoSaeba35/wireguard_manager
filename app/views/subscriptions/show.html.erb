@@ -232,36 +232,38 @@
 </div>
 
 <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    initPage();
+  });
+
   document.addEventListener("turbo:load", function() {
+    initPage();
+  });
+
+  function initPage() {
     // Tab switching logic
     const tabButtons = document.querySelectorAll('.tab-button');
     if (tabButtons.length > 0) {
       tabButtons.forEach(button => {
         button.addEventListener('click', () => {
           const tabId = button.getAttribute('data-tab');
-          // Hide all tab contents
           document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.remove('active');
           });
-          // Deactivate all tab buttons
           document.querySelectorAll('.tab-button').forEach(btn => {
             btn.classList.remove('active');
           });
-          // Show the selected tab content
           document.getElementById(tabId).classList.add('active');
-          // Activate the clicked tab button
           button.classList.add('active');
         });
       });
     }
 
     // Subscription expiration logic
-    const utcTime = "<%= @subscription.expires_at.iso8601 %>";
+    const utcTime = "<%= j @subscription.expires_at.iso8601 %>";
     const expiresAt = new Date(utcTime);
     const localTimeElement = document.getElementById("local-time-text");
-
     if (localTimeElement) {
-      // Format local time as DD/MM/YYYY, HHhMM
       const day = String(expiresAt.getDate()).padStart(2, '0');
       const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
       const year = expiresAt.getFullYear();
@@ -269,7 +271,6 @@
       const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
       localTimeElement.textContent = `${day}/${month}/${year}, ${hours}h${minutes}`;
 
-      // Update countdown every second
       function updateCountdown() {
         const now = new Date();
         const diff = expiresAt - now;
@@ -284,7 +285,15 @@
           `${days}d ${hoursRemaining}h ${minutesRemaining}m remaining`;
       }
       updateCountdown();
-      setInterval(updateCountdown, 60000); // Update every minute
+      setInterval(updateCountdown, 60000); // Pass the function directly
     }
-  });
+
+    // Auto-reload script for pending subscriptions
+    <% if @subscription.pending? %>
+      setTimeout(() => { // Use arrow function instead of string
+        window.location.reload();
+      }, 10000);
+    <% end %>
+  }
 </script>
+

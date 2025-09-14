@@ -684,200 +684,179 @@
 </style>
 
 <script>
-  document.addEventListener('turbo:load', function() {
-    // Toggle details functionality with ARIA
-    document.querySelectorAll('.toggle-details').forEach(button => {
-      button.addEventListener('click', function() {
-        const targetId = this.getAttribute('data-target');
-        const detailsRow = document.getElementById(targetId);
-        const isExpanded = detailsRow.getAttribute('aria-expanded') === 'true';
+  // Function to toggle details rows
+  function toggleDetails(button) {
+    const targetId = button.getAttribute('data-target');
+    const detailsRow = document.getElementById(targetId);
+    const isExpanded = detailsRow.getAttribute('aria-expanded') === 'true';
+    button.setAttribute('aria-expanded', !isExpanded);
+    detailsRow.setAttribute('aria-expanded', !isExpanded);
+    detailsRow.style.display = isExpanded ? 'none' : 'table-row';
+    const span = button.querySelector('.toggle-span');
+    span.textContent = isExpanded ? '(Show)' : '(Hide)';
+  }
 
-        // Update ARIA attributes
-        this.setAttribute('aria-expanded', !isExpanded);
-        detailsRow.setAttribute('aria-expanded', !isExpanded);
+  // Function to filter users
+  function filterUsers() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+    const hideInactive = document.getElementById('hide-inactive').checked;
+    const rows = document.querySelectorAll('.user-row');
+    const detailsRows = document.querySelectorAll('.details-row');
 
-        // Toggle visibility
-        detailsRow.style.display = isExpanded ? 'none' : 'table-row';
+    detailsRows.forEach(row => {
+      row.style.display = 'none';
+      row.setAttribute('aria-expanded', 'false');
+    });
 
-        // Update button text
-        const span = this.querySelector('.toggle-span');
-        span.textContent = isExpanded ? '(Show)' : '(Hide)';
+    rows.forEach(row => {
+      const email = row.getAttribute('data-email');
+      const server = row.getAttribute('data-server') || '';
+      const hasActive = row.getAttribute('data-has-active') === 'true';
+      const emailMatch = email.includes(searchTerm);
+      const serverMatch = server.includes(searchTerm);
+
+      if ((searchTerm === '' || emailMatch || serverMatch) && (!hideInactive || hasActive)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    if (searchTerm !== '') {
+      detailsRows.forEach(row => {
+        const subscriptions = row.getAttribute('data-subscriptions') || '';
+        const server = row.getAttribute('data-server') || '';
+        const subscriptionMatch = subscriptions.split(' ').some(name => name.includes(searchTerm));
+        const serverMatch = server.includes(searchTerm);
+
+        if (subscriptionMatch || serverMatch) {
+          const userId = row.id.split('-')[0];
+          const userRow = document.querySelector(`.user-row[data-email*="${userId}"]`);
+          if (userRow) userRow.style.display = '';
+        }
       });
+    }
+  }
+
+  // Function to sort users by email
+  function sortUsers() {
+    const tableBody = document.getElementById('users-table-body');
+    const userRows = Array.from(tableBody.querySelectorAll('.user-row'));
+    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+    const hideInactive = document.getElementById('hide-inactive').checked;
+
+    const visibleUserRows = userRows.filter(row => {
+      const email = row.getAttribute('data-email');
+      const hasActive = row.getAttribute('data-has-active') === 'true';
+      const emailMatch = email.includes(searchTerm);
+      return (searchTerm === '' || emailMatch) && (!hideInactive || hasActive);
     });
 
-    // Enhanced search functionality to include server names
-    document.getElementById('search-input').addEventListener('keyup', function() {
-      filterUsers();
+    visibleUserRows.sort((a, b) => {
+      const aEmail = a.getAttribute('data-email');
+      const bEmail = b.getAttribute('data-email');
+      return aEmail.localeCompare(bEmail);
     });
 
-    // Hide inactive users toggle
-    document.getElementById('hide-inactive').addEventListener('change', function() {
-      filterUsers();
+    updateTable(visibleUserRows);
+  }
+
+  // Function to sort users by server
+  function sortUsersByServer() {
+    const tableBody = document.getElementById('users-table-body');
+    const userRows = Array.from(tableBody.querySelectorAll('.user-row'));
+    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+    const hideInactive = document.getElementById('hide-inactive').checked;
+
+    const visibleUserRows = userRows.filter(row => {
+      const email = row.getAttribute('data-email');
+      const hasActive = row.getAttribute('data-has-active') === 'true';
+      const emailMatch = email.includes(searchTerm);
+      return (searchTerm === '' || emailMatch) && (!hideInactive || hasActive);
     });
 
-    // Sort by server functionality
-    document.getElementById('sort-server').addEventListener('click', function() {
-      document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
-      this.classList.add('active');
-      sortUsersByServer();
+    visibleUserRows.sort((a, b) => {
+      const aServer = a.getAttribute('data-server') || '';
+      const bServer = b.getAttribute('data-server') || '';
+      return aServer.localeCompare(bServer);
     });
 
-    // Sort by email functionality
-    document.getElementById('sort-email').addEventListener('click', function() {
+    updateTable(visibleUserRows);
+  }
+
+  // Function to update the table with sorted/filtered rows
+  function updateTable(rows) {
+    const tableBody = document.getElementById('users-table-body');
+    const allRows = Array.from(tableBody.querySelectorAll('tr'));
+
+    allRows.forEach(row => row.remove());
+
+    rows.forEach(userRow => {
+      tableBody.appendChild(userRow);
+      const userId = userRow.querySelector('.toggle-details')?.getAttribute('data-target')?.split('-')[0];
+      if (userId) {
+        const activeDetailsRow = document.getElementById(`${userId}-active`);
+        const expiredDetailsRow = document.getElementById(`${userId}-expired`);
+        if (activeDetailsRow && activeDetailsRow.getAttribute('aria-expanded') === 'true') {
+          tableBody.appendChild(activeDetailsRow);
+        }
+        if (expiredDetailsRow && expiredDetailsRow.getAttribute('aria-expanded') === 'true') {
+          tableBody.appendChild(expiredDetailsRow);
+        }
+      }
+    });
+  }
+
+  // Initialize page on load and Turbo navigation
+  document.addEventListener('DOMContentLoaded', initPage);
+  document.addEventListener('turbo:load', initPage);
+
+  function initPage() {
+    // Toggle details functionality
+    document.querySelectorAll('.toggle-details').forEach(button => {
+      button.onclick = () => toggleDetails(button);
+    });
+
+    // Search input
+    document.getElementById('search-input').onkeyup = filterUsers;
+
+    // Hide inactive toggle
+    document.getElementById('hide-inactive').onchange = filterUsers;
+
+    // Sort buttons
+    document.getElementById('sort-email').onclick = function() {
       document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
       this.classList.add('active');
       sortUsers();
-    });
+    };
 
-    function filterUsers() {
-      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-      const hideInactive = document.getElementById('hide-inactive').checked;
-      const rows = document.querySelectorAll('.user-row');
-      const detailsRows = document.querySelectorAll('.details-row');
+    document.getElementById('sort-server').onclick = function() {
+      document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+      sortUsersByServer();
+    };
 
-      // Hide all details rows first
-      detailsRows.forEach(row => {
-        row.style.display = 'none';
-        row.setAttribute('aria-expanded', 'false');
-      });
-
-      // Filter user rows
-      rows.forEach(row => {
-        const email = row.getAttribute('data-email');
-        const server = row.getAttribute('data-server') || '';
-        const hasActive = row.getAttribute('data-has-active') === 'true';
-
-        // Check if email or server matches search term
-        const emailMatch = email.includes(searchTerm);
-        const serverMatch = server.includes(searchTerm);
-
-        if ((searchTerm === '' || emailMatch || serverMatch) && (!hideInactive || hasActive)) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
-      });
-
-      // Show details rows that match search term
-      if (searchTerm !== '') {
-        detailsRows.forEach(row => {
-          const subscriptions = row.getAttribute('data-subscriptions') || '';
-          const server = row.getAttribute('data-server') || '';
-
-          // Check if any subscription name or server contains the search term
-          const subscriptionMatch = subscriptions.split(' ').some(name =>
-            name.includes(searchTerm)
-          );
-          const serverMatch = server.includes(searchTerm);
-
-          if (subscriptionMatch || serverMatch) {
-            const userId = row.id.split('-')[0];
-            const userRow = document.querySelector(`.user-row[data-email*="${userId}"]`);
-
-            if (userRow) userRow.style.display = '';
-          }
-        });
-      }
-    }
-
-    function sortUsers() {
-      const tableBody = document.getElementById('users-table-body');
-      const userRows = Array.from(tableBody.querySelectorAll('.user-row'));
-      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-      const hideInactive = document.getElementById('hide-inactive').checked;
-
-      // Filter visible user rows
-      const visibleUserRows = userRows.filter(row => {
-        const email = row.getAttribute('data-email');
-        const hasActive = row.getAttribute('data-has-active') === 'true';
-        const emailMatch = email.includes(searchTerm);
-        return (searchTerm === '' || emailMatch) && (!hideInactive || hasActive);
-      });
-
-      // Sort by email
-      visibleUserRows.sort((a, b) => {
-        const aEmail = a.getAttribute('data-email');
-        const bEmail = b.getAttribute('data-email');
-        return aEmail.localeCompare(bEmail);
-      });
-
-      // Clear and re-add rows
-      updateTable(visibleUserRows);
-    }
-
-    function sortUsersByServer() {
-      const tableBody = document.getElementById('users-table-body');
-      const userRows = Array.from(tableBody.querySelectorAll('.user-row'));
-      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-      const hideInactive = document.getElementById('hide-inactive').checked;
-
-      // Filter visible user rows
-      const visibleUserRows = userRows.filter(row => {
-        const email = row.getAttribute('data-email');
-        const hasActive = row.getAttribute('data-has-active') === 'true';
-        const emailMatch = email.includes(searchTerm);
-        return (searchTerm === '' || emailMatch) && (!hideInactive || hasActive);
-      });
-
-      // Sort by server name
-      visibleUserRows.sort((a, b) => {
-        const aServer = a.getAttribute('data-server') || '';
-        const bServer = b.getAttribute('data-server') || '';
-        return aServer.localeCompare(bServer);
-      });
-
-      // Clear and re-add rows
-      updateTable(visibleUserRows);
-    }
-
-    function updateTable(rows) {
-      const tableBody = document.getElementById('users-table-body');
-      const allRows = Array.from(tableBody.querySelectorAll('tr'));
-
-      // Clear all rows
-      allRows.forEach(row => row.remove());
-
-      // Add sorted user rows back
-      rows.forEach(userRow => {
-        tableBody.appendChild(userRow);
-
-        const userId = userRow.querySelector('.toggle-details')?.getAttribute('data-target')?.split('-')[0];
-        if (userId) {
-          const activeDetailsRow = document.getElementById(`${userId}-active`);
-          const expiredDetailsRow = document.getElementById(`${userId}-expired`);
-
-          if (activeDetailsRow && activeDetailsRow.getAttribute('aria-expanded') === 'true') {
-            tableBody.appendChild(activeDetailsRow);
-          }
-
-          if (expiredDetailsRow && expiredDetailsRow.getAttribute('aria-expanded') === 'true') {
-            tableBody.appendChild(expiredDetailsRow);
-          }
-        }
-      });
-    }
-
-    // Plan Management Functionality (unchanged)
-    document.getElementById('add-plan-btn').addEventListener('click', function() {
+    // Plan management
+    document.getElementById('add-plan-btn').onclick = function() {
       document.getElementById('add-plan-modal').style.display = 'block';
-    });
+    };
 
     // Close modal
     document.querySelectorAll('.close-modal').forEach(button => {
-      button.addEventListener('click', function() {
+      button.onclick = function() {
         document.getElementById('add-plan-modal').style.display = 'none';
-      });
+      };
     });
 
     // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
+    window.onclick = function(event) {
       if (event.target === document.getElementById('add-plan-modal')) {
         document.getElementById('add-plan-modal').style.display = 'none';
       }
-    });
+    };
 
-    // Add new plan form submission (unchanged)
-    document.getElementById('add-plan-form').addEventListener('submit', function(e) {
+    // Add new plan form
+    document.getElementById('add-plan-form').onsubmit = function(e) {
       e.preventDefault();
       const name = document.getElementById('new-plan-name').value;
       const price = document.getElementById('new-plan-price').value;
@@ -913,24 +892,20 @@
         console.error('Error:', error);
         alert('An error occurred while creating the plan');
       });
-    });
+    };
 
-    // Edit plan functionality (unchanged)
+    // Edit plan functionality
     document.querySelectorAll('.edit-plan-btn').forEach(button => {
-      button.addEventListener('click', function() {
+      button.onclick = function() {
         const planId = this.getAttribute('data-plan-id');
         const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
-
-        // Show save and cancel buttons
         row.querySelector('.edit-plan-btn').style.display = 'none';
         row.querySelector('.save-plan-btn').style.display = 'inline-block';
         row.querySelector('.cancel-plan-btn').style.display = 'inline-block';
 
-        // Make fields editable
         row.querySelectorAll('.editable').forEach(cell => {
           const field = cell.getAttribute('data-field');
           const value = cell.textContent.replace('$', '');
-
           if (field === 'description') {
             const textarea = document.createElement('textarea');
             textarea.value = value;
@@ -946,12 +921,12 @@
             cell.appendChild(input);
           }
         });
-      });
+      };
     });
 
-    // Save plan changes (unchanged)
+    // Save plan changes
     document.querySelectorAll('.save-plan-btn').forEach(button => {
-      button.addEventListener('click', function() {
+      button.onclick = function() {
         const planId = this.getAttribute('data-plan-id');
         const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
         const updatedData = {};
@@ -959,7 +934,6 @@
         row.querySelectorAll('.editable').forEach(cell => {
           const field = cell.getAttribute('data-field');
           const input = cell.querySelector('input, textarea');
-
           if (field === 'price') {
             updatedData[field] = parseFloat(input.value.replace('$', ''));
           } else {
@@ -967,7 +941,6 @@
           }
         });
 
-        // Get active status
         updatedData.active = row.querySelector('.plan-active-toggle').checked;
 
         fetch(`/admin/plans/${planId}`, {
@@ -990,19 +963,19 @@
           console.error('Error:', error);
           alert('An error occurred while updating the plan');
         });
-      });
+      };
     });
 
-    // Cancel plan editing (unchanged)
+    // Cancel plan editing
     document.querySelectorAll('.cancel-plan-btn').forEach(button => {
-      button.addEventListener('click', function() {
+      button.onclick = function() {
         location.reload();
-      });
+      };
     });
 
-    // Toggle plan active status (unchanged)
+    // Toggle plan active status
     document.querySelectorAll('.plan-active-toggle').forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
+      checkbox.onchange = function() {
         const planId = this.getAttribute('data-plan-id');
         const active = this.checked;
 
@@ -1026,7 +999,8 @@
           alert('An error occurred while updating the plan status');
           this.checked = !this.checked;
         });
-      });
+      };
     });
-  });
+  }
 </script>
+
