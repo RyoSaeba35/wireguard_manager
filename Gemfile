@@ -19,7 +19,7 @@ gem "jbuilder"
 gem 'terser'
 
 # Background Jobs
-gem "sidekiq", ">= 6.0"
+gem "sidekiq", ">= 7.0"
 gem "redis", ">= 4.0.1" # Required for Sidekiq and caching
 
 # Authentication
