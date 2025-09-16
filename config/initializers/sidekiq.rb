@@ -12,12 +12,15 @@ Sidekiq.configure_server do |config|
 
   # Explicit scheduler setup
   config.on(:startup) do
-    if defined?(Sidekiq::Scheduler)
-      Sidekiq.schedule = YAML.load_file(Rails.root.join('config', 'sidekiq.yml'))
+    schedule_file = "config/sidekiq.yml"
+
+    if File.exist?(schedule_file)
+      Sidekiq.schedule = YAML.load_file(schedule_file)
       Sidekiq::Scheduler.reload_schedule!
-      Rails.logger.info("Sidekiq-Scheduler: Loaded schedule from config/sidekiq.yml")
+      Rails.logger.info "Sidekiq-Scheduler: Loaded schedule from #{schedule_file}"
+      Rails.logger.info "Current schedule: #{Sidekiq.schedule.inspect}"
     else
-      Rails.logger.error("Sidekiq-Scheduler: Gem not loaded! Check bundle.")
+      Rails.logger.error "Sidekiq-Scheduler: Could not find #{schedule_file}"
     end
   end
 end
@@ -28,4 +31,3 @@ Sidekiq.configure_client do |config|
     ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_NONE }
   }
 end
-
