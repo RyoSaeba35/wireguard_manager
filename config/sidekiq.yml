@@ -1,0 +1,7 @@
+:concurrency: 5
+:scheduled:
+  revoke_expired_subscriptions_job:
+    cron: "0 */6 * * *"   # Runs at minute 0 of every 6th hour (e.g., 00:00, 06:00, 12:00, 18:00 UTC)
+    class: "RevokeExpiredSubscriptionsJob"
+    queue: default
+    description: "Revoke expired WireGuard subscriptions"
