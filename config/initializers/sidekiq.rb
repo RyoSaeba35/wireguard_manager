@@ -1,6 +1,6 @@
 # config/initializers/sidekiq.rb
 require 'sidekiq'
-require 'sidekiq-scheduler'  # Force-load the scheduler
+require 'sidekiq/scheduler'
 
 redis_url = ENV['REDIS_URL']
 
@@ -12,15 +12,19 @@ Sidekiq.configure_server do |config|
 
   # Explicit scheduler setup
   config.on(:startup) do
-    schedule_file = "config/sidekiq.yml"
+    schedule_file = Rails.root.join('config', 'sidekiq.yml')
 
     if File.exist?(schedule_file)
-      Sidekiq.schedule = YAML.load_file(schedule_file)
-      Sidekiq::Scheduler.reload_schedule!
-      Rails.logger.info "Sidekiq-Scheduler: Loaded schedule from #{schedule_file}"
-      Rails.logger.info "Current schedule: #{Sidekiq.schedule.inspect}"
+      loaded_schedule = YAML.load_file(schedule_file)
+      if loaded_schedule.key?(:scheduled)
+        Sidekiq.schedule = loaded_schedule[:scheduled]
+        Sidekiq::Scheduler.reload_schedule!
+        Rails.logger.info "Sidekiq-Scheduler: Loaded schedule: #{Sidekiq.schedule.inspect}"
+      else
+        Rails.logger.error "Sidekiq-Scheduler: No :scheduled key found in YAML"
+      end
     else
-      Rails.logger.error "Sidekiq-Scheduler: Could not find #{schedule_file}"
+      Rails.logger.error "Sidekiq-Scheduler: YAML file not found at #{schedule_file}"
     end
   end
 end
