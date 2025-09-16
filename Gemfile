@@ -20,7 +20,7 @@ gem 'terser'
 
 # Background Jobs
 gem "sidekiq", ">= 7.0"
-gem 'sidekiq-scheduler', require: false  # Add this line if missing
+gem 'sidekiq-cron'
 gem "redis", ">= 4.0.1" # Required for Sidekiq and caching
 
 # Authentication
