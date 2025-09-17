@@ -1,4 +1,5 @@
-# app/services/wireguard_client_creator.rb
+require 'tempfile'
+
 module WireguardClientCreator
   def create_client_on_server(ssh, client_name, subscription, server, private_key_path)
     Rails.logger.info "Creating client #{client_name} on #{server.name}..."
@@ -20,14 +21,12 @@ module WireguardClientCreator
       Rails.logger.error "Invalid IP address for #{client_name}: #{ip_address.inspect}"
       raise "Failed to fetch a valid IP address for #{client_name}"
     end
-
     # Check if there's an existing active client with the same IP address
     existing_client = WireguardClient.where(ip_address: ip_address, status: "active").first
     if existing_client
       Rails.logger.warn "IP address #{ip_address} is already taken by client #{existing_client.name}. Skipping creation of #{client_name}."
       return
     end
-
     # Create the WireguardClient record
     wireguard_client = subscription.wireguard_clients.create!(
       name: client_name,
@@ -37,10 +36,10 @@ module WireguardClientCreator
       expires_at: subscription.expires_at,
       status: "active"
     )
-    # Download the config file
-    download_config_file(ssh, wireguard_client, server, private_key_path)
-    # Generate and download the QR code
-    generate_qr_code(ssh, wireguard_client, server, private_key_path)
+    # Download and attach the config file
+    download_and_attach_config_file(ssh, wireguard_client, server, private_key_path)
+    # Generate and attach the QR code
+    generate_and_attach_qr_code(ssh, wireguard_client, server, private_key_path)
   end
 
   def fetch_client_details(ssh, client_name)
@@ -60,30 +59,32 @@ module WireguardClientCreator
     [private_key, public_key, ip_address]
   end
 
-  def download_config_file(ssh, wireguard_client, server, private_key_path)
-    config_dir = Rails.root.join('storage', 'configs')
-    Dir.mkdir(config_dir) unless Dir.exist?(config_dir)
-    sanitized_name = wireguard_client.name.gsub(/[@.]/, '_')
+  def download_and_attach_config_file(ssh, wireguard_client, server, private_key_path)
     remote_path = "/home/pi/configs/#{wireguard_client.name}.conf"
-    local_path = config_dir.join("#{sanitized_name}.conf")
-    Rails.logger.info "Downloading config file from #{remote_path} to #{local_path}"
+    temp_file = Tempfile.new(["#{wireguard_client.name}", '.conf'])
+
     Net::SCP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |scp|
-      scp.download!(remote_path, local_path)
-      Rails.logger.info "Successfully downloaded config file for #{wireguard_client.name}"
+      scp.download!(remote_path, temp_file.path)
     end
+
+    wireguard_client.config_file.attach(io: File.open(temp_file.path), filename: "#{wireguard_client.name}.conf", content_type: 'application/octet-stream')
+    temp_file.close
+    temp_file.unlink
+    Rails.logger.info "Successfully attached config file for #{wireguard_client.name}"
   end
 
-  def generate_qr_code(ssh, wireguard_client, server, private_key_path)
-    qr_dir = Rails.root.join('storage', 'qr_codes')
-    Dir.mkdir(qr_dir) unless Dir.exist?(qr_dir)
-    qr_file_path = qr_dir.join("#{wireguard_client.name}.png")
-    Rails.logger.info "Generating QR code for #{wireguard_client.name}"
+  def generate_and_attach_qr_code(ssh, wireguard_client, server, private_key_path)
     ssh.exec!("qrencode -t PNG -o /home/pi/configs/#{wireguard_client.name}.png < /home/pi/configs/#{wireguard_client.name}.conf")
+    remote_path = "/home/pi/configs/#{wireguard_client.name}.png"
+    temp_file = Tempfile.new(["#{wireguard_client.name}", '.png'])
+
     Net::SFTP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |sftp|
-      File.open(qr_file_path, 'wb') do |file|
-        sftp.download!("/home/pi/configs/#{wireguard_client.name}.png", file)
-        Rails.logger.info "Successfully downloaded QR code for #{wireguard_client.name}"
-      end
+      sftp.download!(remote_path, temp_file.path)
     end
+
+    wireguard_client.qr_code.attach(io: File.open(temp_file.path), filename: "#{wireguard_client.name}.png", content_type: 'image/png')
+    temp_file.close
+    temp_file.unlink
+    Rails.logger.info "Successfully attached QR code for #{wireguard_client.name}"
   end
 end
