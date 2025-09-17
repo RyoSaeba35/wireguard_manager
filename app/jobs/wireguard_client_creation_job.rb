@@ -15,8 +15,9 @@ class WireguardClientCreationJob < ApplicationJob
     File.chmod(0600, private_key_path)
 
     clients_created = 0
+    total_clients_to_create = 3
 
-    3.times do |i|
+    total_clients_to_create.times do |i|
       client_number = i + 1
       client_name = "#{subscription.name}_#{client_number}"
 
@@ -37,9 +38,10 @@ class WireguardClientCreationJob < ApplicationJob
       end
     end
 
-    if clients_created >= 1
+    if clients_created == total_clients_to_create
       subscription.update!(status: "active")
       UserMailer.vpn_config_ready(subscription.user, subscription).deliver_later
+      Rails.logger.info "All #{total_clients_to_create} WireGuard clients were created successfully"
     else
       Rails.logger.error "No WireGuard clients were created for subscription #{subscription_id}"
       subscription.update!(status: "failed")
