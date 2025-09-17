@@ -1,5 +1,7 @@
 class WireguardClient < ApplicationRecord
   belongs_to :subscription
+  has_one_attached :config_file
+  has_one_attached :qr_code
   validates :name, uniqueness: true
   validates :public_key, presence: true
   validates :private_key, presence: true

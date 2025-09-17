@@ -90,5 +90,5 @@ Rails.application.configure do
   config.active_record.database_resolver_context = nil
 
   # Store uploaded files (use S3 or another cloud storage in production).
-  config.active_storage.service = :local # or :google, etc.
+  config.active_storage.service = :wasabi # or :google, etc.
 end

@@ -1,6 +1,0 @@
-:scheduled:
-  revoke_expired_subscriptions:
-    cron: "0 */6 * * *"
-    class: "RevokeExpiredSubscriptionsJob"
-    queue: default
-    description: "Revoke expired WireGuard subscriptions"
