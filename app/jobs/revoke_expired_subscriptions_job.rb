@@ -1,4 +1,3 @@
-# app/jobs/revoke_expired_subscriptions_job.rb
 class RevokeExpiredSubscriptionsJob < ApplicationJob
   queue_as :default
   # Maximum number of subscriptions to process in one job run
@@ -43,19 +42,15 @@ class RevokeExpiredSubscriptionsJob < ApplicationJob
       # Write the private key to the temporary file
       File.write(private_key_path, server.ssh_private_key)
       File.chmod(0600, private_key_path)
-
       # Update server's current_subscriptions count
       update_server_subscription_count(server, -1)
-
       # Revoke each WireGuard client
       subscription.wireguard_clients.each do |wireguard_client|
         revoke_client_with_retries(server, wireguard_client, private_key_path)
         wireguard_client.update!(status: "revoked")
       end
-
-      # Delete local config and QR code files
-      delete_client_files(subscription)
-
+      # Delete files from Wasabi
+      delete_client_files_from_wasabi(subscription)
       # Notify user
       notify_user(subscription)
       Rails.logger.info "Successfully processed subscription #{subscription.name}"
@@ -120,26 +115,24 @@ class RevokeExpiredSubscriptionsJob < ApplicationJob
     # Continue even if server update fails
   end
 
-  def delete_client_files(subscription)
+  def delete_client_files_from_wasabi(subscription)
     subscription.wireguard_clients.each do |wireguard_client|
       sanitized_name = wireguard_client.name.gsub(/[@.]/, '_')
-      config_path = Rails.root.join('storage', 'configs', "#{sanitized_name}.conf")
-      qr_path = Rails.root.join('storage', 'qr_codes', "#{sanitized_name}.png")
 
-      # Delete config file
-      if File.exist?(config_path)
-        File.delete(config_path)
-        Rails.logger.info "Deleted config file for #{wireguard_client.name}"
+      # Delete config file from Wasabi
+      if wireguard_client.config_file.attached?
+        wireguard_client.config_file.purge
+        Rails.logger.info "Deleted config file for #{wireguard_client.name} from Wasabi"
       else
-        Rails.logger.warn "Config file not found for #{wireguard_client.name}"
+        Rails.logger.warn "Config file not found for #{wireguard_client.name} in Wasabi"
       end
 
-      # Delete QR code file
-      if File.exist?(qr_path)
-        File.delete(qr_path)
-        Rails.logger.info "Deleted QR code file for #{wireguard_client.name}"
+      # Delete QR code file from Wasabi
+      if wireguard_client.qr_code.attached?
+        wireguard_client.qr_code.purge
+        Rails.logger.info "Deleted QR code file for #{wireguard_client.name} from Wasabi"
       else
-        Rails.logger.warn "QR code file not found for #{wireguard_client.name}"
+        Rails.logger.warn "QR code file not found for #{wireguard_client.name} in Wasabi"
       end
     end
   end
