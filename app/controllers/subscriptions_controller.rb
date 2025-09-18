@@ -32,6 +32,14 @@ class SubscriptionsController < ApplicationController
       return
     end
 
+    # Calculate expires_at based on the selected plan
+    expires_at = case selected_plan.interval
+                  when 'week'  then 1.week.from_now
+                  when 'month' then 1.month.from_now
+                  when 'year'  then 1.year.from_now
+                  else 1.month.from_now
+    end
+
     # Try to find a pre-allocated subscription
     server = Server.where(active: true)
                   .where("current_subscriptions < max_subscriptions")
@@ -42,20 +50,13 @@ class SubscriptionsController < ApplicationController
 
     if preallocated_subscription
       # Update the pre-allocated subscription with user details
-      expires_at = case selected_plan.interval
-                  when 'week'  then 1.week.from_now
-                  when 'month' then 1.month.from_now
-                  when 'year'  then 1.year.from_now
-                  else 1.month.from_now
-      end
-
       begin
         preallocated_subscription.update!(
           user_id: current_user.id,
           status: 'active',
           plan_id: selected_plan.id,
           price: selected_plan.price,
-          expires_at: expires_at
+          expires_at: expires_at  # Use the calculated expires_at
         )
 
         # Update wireguard clients' expiry
@@ -85,7 +86,7 @@ class SubscriptionsController < ApplicationController
           name: subscription_name,
           status: 'pending',
           server: server,
-          expires_at: expires_at,
+          expires_at: expires_at,  # Set expires_at here
           plan: selected_plan
         )
       )
