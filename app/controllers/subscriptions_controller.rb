@@ -75,7 +75,7 @@ class SubscriptionsController < ApplicationController
 
   def show
     @subscription = current_user.subscriptions.find_by!(name: params[:id]) # params[:id] will be the name
-    @wireguard_clients = @subscription.wireguard_clients
+    @wireguard_clients = @subscription.wireguard_clients.order(:name)
     @wireguard_client = @wireguard_clients.first if @wireguard_clients.any?
   end
 
