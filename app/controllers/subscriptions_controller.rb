@@ -32,44 +32,74 @@ class SubscriptionsController < ApplicationController
       return
     end
 
-    subscription_name = loop do
-      random_name = SecureRandom.alphanumeric(6).upcase
-      break random_name unless Subscription.exists?(name: random_name)
-    end
-
-    Rails.logger.info "Creating subscription: #{subscription_name}"
-
+    # Try to find a pre-allocated subscription
     server = Server.where(active: true)
                   .where("current_subscriptions < max_subscriptions")
                   .order(:current_subscriptions)
                   .first
 
-    expires_at = case selected_plan.interval
-                when 'week'  then 1.week.from_now
-                when 'month' then 1.month.from_now
-                when 'year'  then 1.year.from_now
-                else 1.month.from_now
-    end
+    preallocated_subscription = server.subscriptions.preallocated.first
 
-    @subscription = current_user.subscriptions.new(
-      subscription_params.merge(
-        name: subscription_name,
-        status: 'pending',
-        server: server,
-        expires_at: expires_at,
-        plan: selected_plan
-      )
-    )
+    if preallocated_subscription
+      # Update the pre-allocated subscription with user details
+      expires_at = case selected_plan.interval
+                  when 'week'  then 1.week.from_now
+                  when 'month' then 1.month.from_now
+                  when 'year'  then 1.year.from_now
+                  else 1.month.from_now
+      end
 
-    if @subscription.save
-      server.increment!(:current_subscriptions)
-      WireguardClientCreationJob.perform_later(@subscription.id)
-      redirect_to user_subscription_path(current_user, @subscription),
-                  notice: "Subscription created! Your VPN config will be ready in a few minutes. You'll receive an email with your config files."
+      begin
+        preallocated_subscription.update!(
+          user_id: current_user.id,
+          status: 'active',
+          plan_id: selected_plan.id,
+          price: selected_plan.price,
+          expires_at: expires_at
+        )
+
+        # Update wireguard clients' expiry
+        preallocated_subscription.wireguard_clients.update_all(expires_at: expires_at)
+
+        @subscription = preallocated_subscription
+        server.increment!(:current_subscriptions)
+        UserMailer.vpn_config_ready(current_user, @subscription).deliver_later
+        redirect_to user_subscription_path(current_user, @subscription),
+                    notice: "Subscription created! Your VPN config is ready."
+      rescue => e
+        Rails.logger.error "Failed to update pre-allocated subscription: #{e.message}"
+        @plans = Plan.all
+        render :new, status: :unprocessable_entity
+      end
     else
-      Rails.logger.error "Failed to create subscription: #{@subscription.errors.full_messages.join(', ')}"
-      @plans = Plan.all
-      render :new, status: :unprocessable_entity
+      # Fallback to on-demand creation
+      subscription_name = loop do
+        random_name = SecureRandom.alphanumeric(6).upcase
+        break random_name unless Subscription.exists?(name: random_name)
+      end
+
+      Rails.logger.info "Creating subscription: #{subscription_name}"
+
+      @subscription = current_user.subscriptions.new(
+        subscription_params.merge(
+          name: subscription_name,
+          status: 'pending',
+          server: server,
+          expires_at: expires_at,
+          plan: selected_plan
+        )
+      )
+
+      if @subscription.save
+        server.increment!(:current_subscriptions)
+        WireguardClientCreationJob.perform_later(@subscription.id)
+        redirect_to user_subscription_path(current_user, @subscription),
+                    notice: "Subscription created! Your VPN config will be ready in a few minutes. You'll receive an email with your config files."
+      else
+        Rails.logger.error "Failed to create subscription: #{@subscription.errors.full_messages.join(', ')}"
+        @plans = Plan.all
+        render :new, status: :unprocessable_entity
+      end
     end
   end
 

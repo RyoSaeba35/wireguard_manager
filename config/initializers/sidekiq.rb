@@ -12,10 +12,17 @@ Sidekiq.configure_server do |config|
 
   config.on(:startup) do
     Sidekiq::Cron::Job.load_from_hash(
-      'revoke_expired_subscriptions' => {
-        'cron'  => '0 */6 * * *',  # Every 6 hours
-        'class' => 'RevokeExpiredSubscriptionsJob',
-        'queue' => 'default'
+      {
+        'revoke_expired_subscriptions' => {
+          'cron'  => '0 */6 * * *',   # Every 6 hours
+          'class' => 'RevokeExpiredSubscriptionsJob',
+          'queue' => 'default'
+        },
+        'preallocate_subscriptions' => {
+          'cron'  => '0 3 * * *',     # Every day at 3 AM
+          'class' => 'PreallocateSubscriptionsJob',
+          'queue' => 'default'
+        }
       }
     )
   end

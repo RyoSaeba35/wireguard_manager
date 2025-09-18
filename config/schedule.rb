@@ -5,3 +5,7 @@ set :job_template, "PATH=/home/pierre/.rbenv/shims:/home/pierre/.rbenv/bin:/usr/
 every :hour do
   runner "RevokeExpiredSubscriptionsJob.perform_now"
 end
+
+every :day, at: '3:00am' do
+  runner "PreallocateSubscriptionsJob.perform_now"
+end
