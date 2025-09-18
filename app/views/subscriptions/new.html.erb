@@ -32,8 +32,26 @@
               </div>
               <%= form.submit "Subscribe Now", class: "plan-btn", data: { turbo: true, disable_with: "Processing..." } %>
             <% end %>
+            <!-- Desktop Success Message -->
             <div id="subscribe-success-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
-              Success! Your subscription is active. We’re setting up your VPN—you’ll get an email with your config in a few minutes.
+              <% if server = Server.where(active: true).where("current_subscriptions < max_subscriptions").order(:current_subscriptions).first %>
+                <% if server.subscriptions.preallocated.exists? %>
+                  Success! Your subscription is active and your VPN config is ready to use.
+                <% else %>
+                  Success! Your subscription is active. We’re setting up your VPN—you’ll receive an email with your config in a few minutes.
+                <% end %>
+              <% end %>
+            </div>
+
+            <!-- Mobile Success Message -->
+            <div id="subscribe-success-mobile-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
+              <% if server = Server.where(active: true).where("current_subscriptions < max_subscriptions").order(:current_subscriptions).first %>
+                <% if server.subscriptions.preallocated.exists? %>
+                  Success! Your subscription is active and your VPN config is ready to use.
+                <% else %>
+                  Success! Your subscription is active. We’re setting up your VPN—you’ll receive an email with your config in a few minutes.
+                <% end %>
+              <% end %>
             </div>
           <% else %>
             <div class="plan-unavailable">
@@ -341,6 +359,33 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Handle desktop form submissions
+    <% @plans.each do |plan| %>
+      document.getElementById('subscribe-form-<%= plan.id %>')?.addEventListener('ajax:success', function(event) {
+        const [data, status, xhr] = event.detail;
+        const successDiv = document.getElementById('subscribe-success-<%= plan.id %>');
+        successDiv.style.display = 'block';
+
+        // Disable the form
+        this.querySelector('.plan-btn').disabled = true;
+        this.querySelector('.plan-btn').textContent = 'Subscribed!';
+      });
+    <% end %>
+
+    // Handle mobile form submissions
+    <% @plans.each do |plan| %>
+      document.getElementById('subscribe-form-mobile-<%= plan.id %>')?.addEventListener('ajax:success', function(event) {
+        const [data, status, xhr] = event.detail;
+        const successDiv = document.getElementById('subscribe-success-mobile-<%= plan.id %>');
+        successDiv.style.display = 'block';
+
+        // Disable the form
+        this.querySelector('.plan-btn').disabled = true;
+        this.querySelector('.plan-btn').textContent = 'Subscribed!';
+      });
+    <% end %>
+
+    // Initialize mobile carousel if needed
     if (window.innerWidth <= 768) {
       new Splide('#plan-slider', {
         type: 'slide',
