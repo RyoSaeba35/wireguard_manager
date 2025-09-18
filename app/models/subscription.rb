@@ -1,30 +1,34 @@
 class Subscription < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, optional: true  # Allow user_id to be nil
   belongs_to :plan
   belongs_to :server
   has_many :wireguard_clients, dependent: :destroy
+
   validates :name, :price, :plan, :expires_at, presence: true
-  validates :name, uniqueness: { scope: :user_id } # Ensure names are unique per user
+  validates :name, uniqueness: true  # Globally unique names
   validates :price, numericality: { greater_than: 0 }
+
   before_validation :set_plan_interval, on: :create
 
-  # Scope to find active subscriptions
+  # Scopes
   scope :active, -> {
     where(status: "active")
       .where("expires_at > ?", Time.current)
   }
 
-  # Scope to find expired subscriptions
   scope :expired, -> {
     where("expires_at < ?", Time.current)
   }
 
-  # Scope to find pending subscriptions
   scope :pending, -> {
     where(status: "pending")
   }
 
-  # Use name in URLs instead of ID
+  scope :preallocated, -> {
+    where(user_id: nil, status: "preallocated")
+  }
+
+  # URL-friendly parameter
   def to_param
     name
   end
@@ -44,6 +48,10 @@ class Subscription < ApplicationRecord
 
   def expired?
     expires_at < Time.current
+  end
+
+  def preallocated?
+    status == "preallocated"
   end
 
   def set_plan_interval
