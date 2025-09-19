@@ -2,8 +2,8 @@
 class PreallocateSubscriptionsJob < ApplicationJob
   queue_as :default
 
-  # Number of pre-allocated subscriptions to maintain per server
-  TARGET_POOL_SIZE = 20
+  # # Number of pre-allocated subscriptions to maintain per server
+  # TARGET_POOL_SIZE = 10
 
   def perform(server_id = nil)
     if server_id
@@ -16,12 +16,25 @@ class PreallocateSubscriptionsJob < ApplicationJob
     end
 
     servers.each do |server|
+      # Calculate available capacity
+      available_capacity = server.max_subscriptions - server.current_subscriptions
+
+      # Base pool size on server capacity (20%) and demand (2x yesterday's usage)
+      capacity_based = [server.max_subscriptions * 0.2, 5].max.to_i
+      demand_based = [Subscription.where(server: server, status: "active", created_at: 1.day.ago.all_day).count * 2, 5].max
+
+      # Take the greater of capacity-based or demand-based, but never exceed available capacity
+      target_pool_size = [
+        [capacity_based, demand_based].max,  # Take the greater of the two
+        available_capacity                   # But never exceed available capacity
+      ].min
+
       current_preallocated = server.subscriptions.preallocated.count
-      next if current_preallocated >= TARGET_POOL_SIZE
+      next if current_preallocated >= target_pool_size
 
-      Rails.logger.info "Pre-allocating subscriptions for server #{server.name} (ID: #{server.id})"
+      Rails.logger.info "Pre-allocating for #{server.name}. Target: #{target_pool_size} (capacity: #{capacity_based}, demand: #{demand_based})"
 
-      (current_preallocated...TARGET_POOL_SIZE).each do |i|
+      (current_preallocated...target_pool_size).each do |i|
         begin
           # Generate a unique subscription name
           subscription_name = loop do
