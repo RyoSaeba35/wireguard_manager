@@ -17,7 +17,7 @@ class BackupDatabaseJob < ApplicationJob
     # Dump the database to a temporary file
     `PGPASSWORD="#{db_password}" pg_dump -h #{db_host} -p #{db_port} -U #{db_user} -d #{db_name} -F c -f #{local_path}`
 
-    # Upload to Wasabi using the AWS SDK
+    # Upload to Wasabi using the recommended method
     s3 = Aws::S3::Resource.new(
       region: ENV['AWS_REGION'],
       endpoint: ENV['AWS_ENDPOINT'],
@@ -26,8 +26,8 @@ class BackupDatabaseJob < ApplicationJob
       force_path_style: true
     )
 
-    obj = s3.bucket(ENV['AWS_BUCKET']).object(backup_file)
-    obj.upload_file(local_path)
+    transfer_manager = Aws::S3::TransferManager.new(client: s3.client)
+    transfer_manager.upload(local_path, ENV['AWS_BUCKET'], backup_file)
 
     # Remove the temporary file
     File.delete(local_path)
