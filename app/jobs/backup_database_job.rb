@@ -14,10 +14,15 @@ class BackupDatabaseJob < ApplicationJob
     backup_file = "railway_backup_#{Time.now.strftime('%Y%m%d_%H%M%S')}.sql"
     local_path = "/tmp/#{backup_file}"
 
-    # Dump the database to a temporary file
-    `PGPASSWORD="#{db_password}" pg_dump -h #{db_host} -p #{db_port} -U #{db_user} -d #{db_name} -F c -f #{local_path}`
+    # Dump the database to a temporary file in custom format
+    `PGPASSWORD="#{db_password}" pg_dump -F c -h #{db_host} -p #{db_port} -U #{db_user} -d #{db_name} -f #{local_path}`
 
-    # Upload to Wasabi using the recommended method
+    # Check if the backup file was created and is not empty
+    unless File.exist?(local_path) && File.size(local_path) > 0
+      raise "Backup failed: #{local_path} is empty or does not exist"
+    end
+
+    # Upload to Wasabi using the AWS SDK
     s3 = Aws::S3::Resource.new(
       region: ENV['AWS_REGION'],
       endpoint: ENV['AWS_ENDPOINT'],
