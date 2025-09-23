@@ -12,14 +12,24 @@ class BackupDatabaseJob < ApplicationJob
 
     # Define the backup filename with a timestamp
     backup_file = "railway_backup_#{Time.now.strftime('%Y%m%d_%H%M%S')}.sql"
+    local_path = "/tmp/#{backup_file}"
 
     # Dump the database to a temporary file
-    `PGPASSWORD="#{db_password}" pg_dump -h #{db_host} -p #{db_port} -U #{db_user} -d #{db_name} -F c -f /tmp/#{backup_file}`
+    `PGPASSWORD="#{db_password}" pg_dump -h #{db_host} -p #{db_port} -U #{db_user} -d #{db_name} -F c -f #{local_path}`
 
-    # Upload the backup to Wasabi using existing AWS config vars
-    `aws s3 cp "/tmp/#{backup_file}" "s3://#{ENV['AWS_BUCKET']}/#{backup_file}" --endpoint=#{ENV['AWS_ENDPOINT']} --region=#{ENV['AWS_REGION']}`
+    # Upload to Wasabi using the AWS SDK
+    s3 = Aws::S3::Resource.new(
+      region: ENV['AWS_REGION'],
+      endpoint: ENV['AWS_ENDPOINT'],
+      access_key_id: ENV['AWS_ACCESS_KEY_ID'],
+      secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'],
+      force_path_style: true
+    )
+
+    obj = s3.bucket(ENV['AWS_BUCKET']).object(backup_file)
+    obj.upload_file(local_path)
 
     # Remove the temporary file
-    `rm "/tmp/#{backup_file}"`
+    File.delete(local_path)
   end
 end
