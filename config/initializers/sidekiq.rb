@@ -22,6 +22,11 @@ Sidekiq.configure_server do |config|
           'cron'  => '0 3 * * *',     # Every day at 3 AM
           'class' => 'PreallocateSubscriptionsJob',
           'queue' => 'default'
+        },
+        'backup_database' => {
+          'cron'  => '0 2 * * *',     # Every day at 2 AM
+          'class' => 'BackupDatabaseJob',
+          'queue' => 'default'
         }
       }
     )
