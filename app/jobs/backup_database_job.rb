@@ -27,7 +27,7 @@ class BackupDatabaseJob < ApplicationJob
     )
 
     transfer_manager = Aws::S3::TransferManager.new(client: s3.client)
-    transfer_manager.upload(local_path, ENV['AWS_BUCKET'], backup_file)
+    transfer_manager.upload_file(local_path, ENV['AWS_BUCKET'], backup_file)
 
     # Remove the temporary file
     File.delete(local_path)
