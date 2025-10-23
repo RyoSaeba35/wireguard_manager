@@ -73,7 +73,7 @@ class PreallocateSubscriptionsJob < ApplicationJob
               Rails.logger.info "Created WireGuard client #{client_name}: #{output}"
 
               # Fetch client details
-              private_key, public_key, ip_address = fetch_client_details(ssh, client_name)
+              private_key, public_key, ip_address = fetch_client_details(ssh, client_name, server)
 
               # Create WireguardClient record
               subscription.wireguard_clients.create!(
