@@ -16,7 +16,7 @@ module WireguardClientCreator
     ssh.exec!("sudo chown #{server.ssh_user}:#{server.ssh_user} /home/#{server.ssh_user}/configs/#{client_name}.conf")
     ssh.exec!("chmod 644 /home/#{server.ssh_user}/configs/#{client_name}.conf")
     # Fetch client details
-    private_key, public_key, ip_address = fetch_client_details(ssh, client_name)
+    private_key, public_key, ip_address = fetch_client_details(ssh, client_name, server)
     unless ip_address && ip_address.match?(/\A(\d{1,3}\.){3}\d{1,3}\z/)
       Rails.logger.error "Invalid IP address for #{client_name}: #{ip_address.inspect}"
       raise "Failed to fetch a valid IP address for #{client_name}"
