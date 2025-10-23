@@ -86,12 +86,12 @@ class PreallocateSubscriptionsJob < ApplicationJob
               )
 
               # Copy the config file to a temporary location
-              ssh.exec!("sudo cp /etc/wireguard/configs/#{client_name}.conf /home/pi/configs/")
-              ssh.exec!("sudo chown pi:pi /home/pi/configs/#{client_name}.conf")
-              ssh.exec!("chmod 644 /home/pi/configs/#{client_name}.conf")
+              ssh.exec!("sudo cp /etc/wireguard/configs/#{client_name}.conf /home/#{server.ssh_user}/configs/")
+              ssh.exec!("sudo chown #{server.ssh_user}:#{server.ssh_user} /home/#{server.ssh_user}/configs/#{client_name}.conf")
+              ssh.exec!("chmod 644 /home/#{server.ssh_user}/configs/#{client_name}.conf")
 
               # Generate and upload config file
-              config_file_path = "/home/pi/configs/#{client_name}.conf"
+              config_file_path = "/home/#{server.ssh_user}/configs/#{client_name}.conf"
               temp_file = Tempfile.new(["#{client_name}", '.conf'])
               Net::SCP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |scp|
                 scp.download!(config_file_path, temp_file.path)
@@ -107,8 +107,8 @@ class PreallocateSubscriptionsJob < ApplicationJob
               temp_file.unlink
 
               # Generate and upload QR code
-              ssh.exec!("qrencode -t PNG -o /home/pi/configs/#{client_name}.png < /home/pi/configs/#{client_name}.conf")
-              qr_code_path = "/home/pi/configs/#{client_name}.png"
+              ssh.exec!("qrencode -t PNG -o /home/#{server.ssh_user}/configs/#{client_name}.png < /home/#{server.ssh_user}/configs/#{client_name}.conf")
+              qr_code_path = "/home/#{server.ssh_user}/configs/#{client_name}.png"
               qr_temp_file = Tempfile.new(["#{client_name}", '.png'])
               Net::SFTP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |sftp|
                 sftp.download!(qr_code_path, qr_temp_file.path)
@@ -142,17 +142,17 @@ class PreallocateSubscriptionsJob < ApplicationJob
 
   def fetch_client_details(ssh, client_name)
     # Fetch the private key
-    private_key_cmd = "cat /home/pi/configs/#{client_name}.conf | grep 'PrivateKey'"
+    private_key_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'PrivateKey'"
     private_key_output = ssh.exec!(private_key_cmd)
     private_key = private_key_output.chomp.split(' = ').last.strip
 
     # Fetch the public key
-    public_key_cmd = "cat /home/pi/configs/#{client_name}.conf | grep -A 5 '[Peer]' | grep 'PublicKey' | head -n 1"
+    public_key_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep -A 5 '[Peer]' | grep 'PublicKey' | head -n 1"
     public_key_output = ssh.exec!(public_key_cmd)
     public_key = public_key_output.chomp.split(' = ').last.strip
 
     # Fetch the IP address
-    ip_address_cmd = "cat /home/pi/configs/#{client_name}.conf | grep 'Address' | cut -d'=' -f2 | cut -d',' -f1 | cut -d'/' -f1 | tr -d ' '"
+    ip_address_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'Address' | cut -d'=' -f2 | cut -d',' -f1 | cut -d'/' -f1 | tr -d ' '"
     ip_address_output = ssh.exec!(ip_address_cmd)
     ip_address = ip_address_output.chomp.strip
 
