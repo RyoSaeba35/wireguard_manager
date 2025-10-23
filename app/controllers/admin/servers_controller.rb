@@ -36,27 +36,11 @@ module Admin
       end
     end
 
-    # def generate_ssh_key
-    #   require 'openssl'
-    #   key = OpenSSL::PKey::RSA.new(2048)
-    #   private_key_pem = key.to_pem
-    #   public_key_ssh = "#{key.ssh_type} #{[key.to_blob].pack('m0')}".strip
-
-    #   render json: {
-    #     private_key: private_key_pem,
-    #     public_key: public_key_ssh
-    #   }
-    # end
-
     def generate_ssh_key
-      require 'ed25519'
-
-      private_key = Ed25519::SigningKey.generate
-      public_key = private_key.verify_key
-
-      # Format the private key in a PEM-like format for consistency
-      private_key_pem = "-----BEGIN ED25519 PRIVATE KEY-----\n#{private_key}\n-----END ED25519 PRIVATE KEY-----"
-      public_key_ssh = "ssh-ed25519 #{public_key}"
+      require 'openssl'
+      key = OpenSSL::PKey::RSA.new(4096)
+      private_key_pem = key.to_pem
+      public_key_ssh = "#{key.ssh_type} #{[key.to_blob].pack('m0')}".strip
 
       render json: {
         private_key: private_key_pem,
