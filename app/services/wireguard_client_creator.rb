@@ -42,7 +42,7 @@ module WireguardClientCreator
     generate_and_attach_qr_code(ssh, wireguard_client, server, private_key_path)
   end
 
-  def fetch_client_details(ssh, client_name)
+  def fetch_client_details(ssh, client_name, server)
     # Fetch the private key
     private_key_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'PrivateKey'"
     private_key_output = ssh.exec!(private_key_cmd)
