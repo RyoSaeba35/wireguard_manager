@@ -2,7 +2,7 @@ require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
   # Code is not reloaded between requests.
-  config.hosts << "fenguardvpn-5e34de44f30e.herokuapp.com"
+  config.hosts << "vulcainvpn-83313b910708.herokuapp.com"
   config.enable_reloading = false
 
   # Eager load code on boot.
