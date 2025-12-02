@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_09_18_200721) do
+ActiveRecord::Schema[7.2].define(version: 2025_11_23_132143) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -47,6 +47,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_18_200721) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "stripe_price_id"
+    t.integer "position"
   end
 
   create_table "servers", force: :cascade do |t|
@@ -83,8 +85,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_09_18_200721) do
     t.integer "plan_id"
     t.string "plan_interval"
     t.integer "server_id"
+    t.string "stripe_session_id"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
     t.index ["server_id"], name: "index_subscriptions_on_server_id"
+    t.index ["stripe_session_id"], name: "index_subscriptions_on_stripe_session_id", unique: true
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
   end
 

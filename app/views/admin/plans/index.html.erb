@@ -1,0 +1,496 @@
+<div class="admin-container">
+  <!-- Sidebar Navigation -->
+  <%= render 'admin/sidebar' %>
+
+  <!-- Main Content: Plans Page -->
+  <div class="admin-content">
+    <h1>Subscription Plans</h1>
+
+    <!-- Success/Error Messages -->
+    <% if flash[:notice] %>
+      <div class="alert alert-success">
+        <%= flash[:notice] %>
+      </div>
+    <% end %>
+    <% if flash[:alert] %>
+      <div class="alert alert-warning">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
+
+    <!-- Add New Plan Button -->
+    <div class="admin-actions">
+      <button id="add-plan-btn" class="admin-btn admin-btn--plans">Add New Plan</button>
+    </div>
+
+    <!-- Plans Table -->
+    <div class="admin-section">
+      <h2>Available Plans (<%= @plans.count %>)</h2>
+      <% if @plans.any? %>
+        <div class="table-responsive">
+          <table class="plans-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Interval</th>
+                <th>Active</th>
+                <th>Features</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="plans-table-body">
+              <% @plans.each do |plan| %>
+                <tr class="plan-row" data-plan-id="<%= plan.id %>">
+                  <td class="editable" data-field="name" data-plan-id="<%= plan.id %>"><%= plan.name %></td>
+                  <td class="editable" data-field="price" data-plan-id="<%= plan.id %>">$<%= plan.price %></td>
+                  <td><%= plan.interval.capitalize %></td>
+                  <td>
+                    <input type="checkbox" class="plan-active-toggle" data-plan-id="<%= plan.id %>" <%= plan.active ? 'checked' : '' %>>
+                  </td>
+                  <td class="editable" data-field="description" data-plan-id="<%= plan.id %>">
+                    <%= plan.description %>
+                  </td>
+                  <td>
+                    <button class="edit-plan-btn admin-btn admin-btn--users" data-plan-id="<%= plan.id %>">Edit</button>
+                    <button class="save-plan-btn admin-btn admin-btn--servers" data-plan-id="<%= plan.id %>" style="display: none;">Save</button>
+                    <button class="cancel-plan-btn admin-btn" data-plan-id="<%= plan.id %>" style="display: none;">Cancel</button>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <p>No plans found.</p>
+          <button id="add-plan-btn" class="admin-btn admin-btn--plans">Add Your First Plan</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Add Plan Modal -->
+  <div id="add-plan-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3>Add New Plan</h3>
+      <%= form_with(model: [:admin, Plan.new], id: 'add-plan-form') do |form| %>
+        <div class="form-group">
+          <%= form.label :name, "Plan Name:" %>
+          <%= form.text_field :name, id: 'new-plan-name', required: true, class: 'form-control' %>
+        </div>
+        <div class="form-group">
+          <%= form.label :price, "Price:" %>
+          <%= form.number_field :price, id: 'new-plan-price', step: 0.01, required: true, class: 'form-control' %>
+        </div>
+        <div class="form-group">
+          <%= form.label :interval, "Interval:" %>
+          <%= form.select :interval, options_for_select([['Week', 'week'], ['Month', 'month'], ['Year', 'year']], 'month'), {}, id: 'new-plan-interval', required: true, class: 'form-control' %>
+        </div>
+        <div class="form-group">
+          <%= form.label :description, "Features (comma-separated):" %>
+          <%= form.text_area :description, id: 'new-plan-features', rows: 3, required: true, class: 'form-control' %>
+        </div>
+        <div class="form-group">
+          <%= form.label :active, class: 'checkbox-label' do %>
+            <%= form.check_box :active, id: 'new-plan-active', checked: true %>
+            Active
+          <% end %>
+        </div>
+        <%= form.submit 'Create Plan', class: 'admin-btn admin-btn--plans' %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- CSS for Plans Page -->
+<style>
+  .header {
+    position: fixed;
+    width: 100vw;
+  }
+  /* Admin Container */
+  .admin-container {
+    padding-top: 80px;
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  /* Main Content */
+  .admin-content {
+    margin-left: 200px;
+    padding: 20px;
+    width: calc(100% - 250px);
+  }
+  .admin-content h1 {
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ecf0f1;
+  }
+
+  /* Admin Section */
+  .admin-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin-bottom: 2rem;
+  }
+
+  /* Table Responsive Container */
+  .table-responsive {
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+
+  /* Plans Table */
+  .plans-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0;
+  }
+
+  .plans-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    color: #2c3e50;
+  }
+
+  .plans-table td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .plans-table tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  /* Editable Cells */
+  .editable:hover {
+    background-color: #f0f8ff;
+    cursor: pointer;
+  }
+
+  .edit-input, .edit-textarea {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .edit-textarea {
+    min-height: 60px;
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  /* Plan Active Toggle */
+  .plan-active-toggle {
+    cursor: pointer;
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: #7f8c8d;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 20px;
+  }
+
+  .empty-state .admin-btn {
+    margin-top: 15px;
+    width: auto;
+    padding: 8px 20px;
+  }
+
+  /* Admin Actions */
+  .admin-actions {
+    margin-bottom: 20px;
+  }
+
+  /* Admin Button */
+  .admin-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: white;
+    margin: 5px 0;
+  }
+
+  /* Plan Management Button */
+  .admin-btn--plans {
+    background-color: #9b59b6;
+  }
+
+  .admin-btn--plans:hover {
+    background-color: #8e44ad;
+  }
+
+  /* Users Management Button */
+  .admin-btn--users {
+    background-color: #ff6e08;
+  }
+
+  .admin-btn--users:hover {
+    background-color: #e67e22;
+  }
+
+  /* Server Management Button */
+  .admin-btn--servers {
+    background-color: #e74c3c;
+  }
+
+  .admin-btn--servers:hover {
+    background-color: #d62c1a;
+  }
+
+  /* Form Group */
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-control:focus {
+    border-color: #ff6e08;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+    cursor: pointer;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+  }
+
+  .modal-content {
+    background: white;
+    margin: 5% auto;
+    padding: 24px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  }
+
+  .close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .close-modal:hover {
+    color: #333;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .admin-btn {
+      font-size: 14px;
+      padding: 10px 16px;
+    }
+
+    .plans-table th,
+    .plans-table td {
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+  }
+</style>
+
+<!-- JavaScript for Plans Page -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Open Add Plan Modal
+    document.getElementById('add-plan-btn').addEventListener('click', () => {
+      document.getElementById('add-plan-modal').style.display = 'block';
+    });
+
+    // Close Modal
+    document.querySelectorAll('.close-modal').forEach(button => {
+      button.addEventListener('click', () => {
+        document.getElementById('add-plan-modal').style.display = 'none';
+      });
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (event) => {
+      const modal = document.getElementById('add-plan-modal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // Edit Plan
+    document.querySelectorAll('.edit-plan-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const planId = this.getAttribute('data-plan-id');
+        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
+
+        // Hide Edit button, show Save and Cancel buttons
+        row.querySelector('.edit-plan-btn').style.display = 'none';
+        row.querySelector('.save-plan-btn').style.display = 'inline-block';
+        row.querySelector('.cancel-plan-btn').style.display = 'inline-block';
+
+        // Replace text with input fields
+        row.querySelectorAll('.editable').forEach(cell => {
+          const field = cell.getAttribute('data-field');
+          const value = cell.textContent.replace('$', '');
+
+          if (field === 'description') {
+            const textarea = document.createElement('textarea');
+            textarea.value = value;
+            textarea.className = 'edit-textarea';
+            cell.innerHTML = '';
+            cell.appendChild(textarea);
+          } else {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = value;
+            input.className = 'edit-input';
+            cell.innerHTML = '';
+            cell.appendChild(input);
+          }
+        });
+      });
+    });
+
+    // Cancel Plan Editing
+    document.querySelectorAll('.cancel-plan-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        window.location.reload();
+      });
+    });
+
+    // Save Plan Changes
+    document.querySelectorAll('.save-plan-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const planId = this.getAttribute('data-plan-id');
+        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
+        const updatedData = {};
+
+        // Collect updated data
+        row.querySelectorAll('.editable').forEach(cell => {
+          const field = cell.getAttribute('data-field');
+          const input = cell.querySelector('input, textarea');
+
+          if (field === 'price') {
+            updatedData[field] = parseFloat(input.value.replace('$', ''));
+          } else {
+            updatedData[field] = input.value;
+          }
+        });
+
+        // Include active status
+        updatedData.active = row.querySelector('.plan-active-toggle').checked;
+
+        // Send data to server
+        fetch(`/admin/plans/${planId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ plan: updatedData })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            window.location.reload();
+          } else {
+            alert('Error updating plan: ' + (data.error || 'Unknown error'));
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while updating the plan');
+        });
+      });
+    });
+
+    // Toggle Plan Active Status
+    document.querySelectorAll('.plan-active-toggle').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const planId = this.getAttribute('data-plan-id');
+        const active = this.checked;
+
+        fetch(`/admin/plans/${planId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          },
+          body: JSON.stringify({ plan: { active: active } })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success) {
+            alert('Error updating plan status: ' + (data.error || 'Unknown error'));
+            this.checked = !this.checked;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while updating the plan status');
+          this.checked = !this.checked;
+        });
+      });
+    });
+  });
+</script>
