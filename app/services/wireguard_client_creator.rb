@@ -12,11 +12,11 @@ module WireguardClientCreator
     output = ssh.exec!("echo '#{client_name}' | pivpn -a")
     Rails.logger.info "pivpn -a output for #{client_name}: #{output}"
     # Copy the config file
-    ssh.exec!("sudo cp /etc/wireguard/configs/#{client_name}.conf /home/pi/configs/")
-    ssh.exec!("sudo chown pi:pi /home/pi/configs/#{client_name}.conf")
-    ssh.exec!("chmod 644 /home/pi/configs/#{client_name}.conf")
+    ssh.exec!("sudo cp /etc/wireguard/configs/#{client_name}.conf /home/#{server.ssh_user}/configs/")
+    ssh.exec!("sudo chown #{server.ssh_user}:#{server.ssh_user} /home/#{server.ssh_user}/configs/#{client_name}.conf")
+    ssh.exec!("chmod 644 /home/#{server.ssh_user}/configs/#{client_name}.conf")
     # Fetch client details
-    private_key, public_key, ip_address = fetch_client_details(ssh, client_name)
+    private_key, public_key, ip_address = fetch_client_details(ssh, client_name, server)
     unless ip_address && ip_address.match?(/\A(\d{1,3}\.){3}\d{1,3}\z/)
       Rails.logger.error "Invalid IP address for #{client_name}: #{ip_address.inspect}"
       raise "Failed to fetch a valid IP address for #{client_name}"
@@ -42,17 +42,17 @@ module WireguardClientCreator
     generate_and_attach_qr_code(ssh, wireguard_client, server, private_key_path)
   end
 
-  def fetch_client_details(ssh, client_name)
+  def fetch_client_details(ssh, client_name, server)
     # Fetch the private key
-    private_key_cmd = "cat /home/pi/configs/#{client_name}.conf | grep 'PrivateKey'"
+    private_key_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'PrivateKey'"
     private_key_output = ssh.exec!(private_key_cmd)
     private_key = private_key_output.chomp.split(' = ').last.strip
     # Fetch the public key
-    public_key_cmd = "cat /home/pi/configs/#{client_name}.conf | grep -A 5 '[Peer]' | grep 'PublicKey' | head -n 1"
+    public_key_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep -A 5 '[Peer]' | grep 'PublicKey' | head -n 1"
     public_key_output = ssh.exec!(public_key_cmd)
     public_key = public_key_output.chomp.split(' = ').last.strip
     # Fetch the IP address
-    ip_address_cmd = "cat /home/pi/configs/#{client_name}.conf | grep 'Address' | cut -d'=' -f2 | cut -d',' -f1 | cut -d'/' -f1 | tr -d ' '"
+    ip_address_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'Address' | cut -d'=' -f2 | cut -d',' -f1 | cut -d'/' -f1 | tr -d ' '"
     ip_address_output = ssh.exec!(ip_address_cmd)
     ip_address = ip_address_output.chomp.strip
     Rails.logger.info "Private Key: #{private_key}, Public Key: #{public_key}, IP Address: #{ip_address}"
@@ -60,7 +60,7 @@ module WireguardClientCreator
   end
 
   def download_and_attach_config_file(ssh, wireguard_client, server, private_key_path)
-    remote_path = "/home/pi/configs/#{wireguard_client.name}.conf"
+    remote_path = "/home/#{server.ssh_user}/configs/#{wireguard_client.name}.conf"
     temp_file = Tempfile.new(["#{wireguard_client.name}", '.conf'])
 
     Net::SCP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |scp|
@@ -74,8 +74,8 @@ module WireguardClientCreator
   end
 
   def generate_and_attach_qr_code(ssh, wireguard_client, server, private_key_path)
-    ssh.exec!("qrencode -t PNG -o /home/pi/configs/#{wireguard_client.name}.png < /home/pi/configs/#{wireguard_client.name}.conf")
-    remote_path = "/home/pi/configs/#{wireguard_client.name}.png"
+    ssh.exec!("qrencode -t PNG -o /home/#{server.ssh_user}/configs/#{wireguard_client.name}.png < /home/#{server.ssh_user}/configs/#{wireguard_client.name}.conf")
+    remote_path = "/home/#{server.ssh_user}/configs/#{wireguard_client.name}.png"
     temp_file = Tempfile.new(["#{wireguard_client.name}", '.png'])
 
     Net::SFTP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |sftp|

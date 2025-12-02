@@ -53,8 +53,8 @@
     transition: all 0.3s ease;
   }
   .tab-button.active {
-    color: #27ae60;
-    border-bottom: 3px solid #27ae60;
+    color: #ff6e08;
+    border-bottom: 3px solid #ff6e08;
   }
   .tab-content {
     display: none;
@@ -80,7 +80,7 @@
   .download-link {
     display: inline-block;
     padding: 0.5rem 1rem;
-    background-color: #27ae60;
+    background-color: #ff6e08;
     color: white;
     text-decoration: none;
     border-radius: 4px;
@@ -88,7 +88,7 @@
     margin-top: 0.5rem;
   }
   .download-link:hover {
-    background-color: #219653;
+    background-color: #ffc33c;
   }
   .alert {
     padding: 1rem;
@@ -112,7 +112,7 @@
     height: 40px;
     border: 3px solid rgba(0,0,0,.1);
     border-radius: 50%;
-    border-top-color: #27ae60;
+    border-top-color: #ff6e08;
     animation: spin 1s ease-in-out infinite;
     margin: 1rem 0;
   }
@@ -132,7 +132,7 @@
   }
   .progress {
     height: 100%;
-    background-color: #27ae60;
+    background-color: #ff6e08;
     width: 0%;
     transition: width 0.3s ease;
   }
@@ -166,7 +166,16 @@
     </p>
   </div>
 
-  <% if @subscription.pending? %>
+  <% if @subscription.payment_pending? && @pending_payment %>
+    <div class="info-box">
+      <h3>Your payment is pending!</h3>
+      <p>You have not completed your payment yet.</p>
+      <div style="margin: 1.5rem 0; text-align: center;">
+        <%= link_to "Pay Now", @stripe_session_url, class: "download-link", style: "margin-right: 1rem;" %>
+        <%= button_to "Cancel Subscription", cancel_user_subscription_path(current_user, @subscription), method: :patch, class: "download-link", style: "background-color: #e74c3c;", data: { confirm: "Are you sure you want to cancel this subscription?" } %>
+      </div>
+    </div>
+  <% elsif @subscription.pending? %>
     <div class="info-box">
       <h3>Your VPN is being set up!</h3>
       <div class="loading-spinner"></div>
@@ -296,4 +305,3 @@
     <% end %>
   }
 </script>
-

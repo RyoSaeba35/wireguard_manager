@@ -38,7 +38,7 @@ module Admin
 
     def generate_ssh_key
       require 'openssl'
-      key = OpenSSL::PKey::RSA.new(2048)
+      key = OpenSSL::PKey::RSA.new(4096)
       private_key_pem = key.to_pem
       public_key_ssh = "#{key.ssh_type} #{[key.to_blob].pack('m0')}".strip
 

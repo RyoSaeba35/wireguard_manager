@@ -5,3 +5,4 @@
 //= link application.scss
 //= link splide.min.js
 //= link splide.min.css
+//= link rails-ujs.js

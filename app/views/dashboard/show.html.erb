@@ -1,16 +1,29 @@
 <style>
-  .dashboard-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
+  /* Animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
   }
+
+  /* Dashboard Container */
+  .dashboard-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 5rem;
+  }
+
+  /* Dashboard Header */
   .dashboard-header {
     margin-bottom: 2rem;
   }
+
   .dashboard-header h1 {
     color: #2c3e50;
-    font-size: 1.8rem;
+    font-size: 2rem;
+    text-align: center;
   }
+
+  /* Subscription Section */
   .subscription-section {
     background-color: #f9f9f9;
     padding: 1.5rem;
@@ -18,65 +31,67 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 1rem;
   }
+
   .subscription-section h2 {
     color: #2c3e50;
+    font-size: 1.8rem;
     margin-bottom: 1rem;
   }
-  .alert {
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-  }
-  .alert-success {
-    background-color: #d4edda;
-    color: #27ae60;
-    border-left: 4px solid #27ae60;
-  }
-  .alert-warning {
-    background-color: #f8d7da;
-    color: #e74c3c;
-    border-left: 4px solid #e74c3c;
-  }
-  .alert p {
-    margin: 0.5rem 0;
-  }
+
+  /* Subscription Alert (Modern Design) */
   .subscription-alert {
     display: flex;
     align-items: flex-start;
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-    border-radius: 6px;
-    padding: 15px;
+    background-color: #fff3cd;
+    color: #2c3e50;
+    border-left: 4px solid #ff6e08;
+    border-radius: 8px;
+    padding: 16px;
     margin-bottom: 20px;
     max-width: 600px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.3s ease-in-out;
   }
+
   .alert-icon {
-    font-size: 1.5em;
-    margin-right: 15px;
+    margin-right: 12px;
     margin-top: 2px;
+    flex-shrink: 0;
   }
+
+  .alert-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: #ff6e08;
+  }
+
   .alert-content h3 {
     margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.1em;
-    color: #155724;
-  }
-  .alert-content p {
-    margin: 5px 0;
-    line-height: 1.4;
-  }
-  .alert-content strong {
+    margin-bottom: 8px;
+    font-size: 1.2em;
+    color: #2c3e50;
     font-weight: 600;
-    color: #155724;
   }
+
+  .alert-content p {
+    margin: 4px 0;
+    line-height: 1.5;
+    color: #555;
+  }
+
+  .alert-content strong {
+    color: #2c3e50;
+    font-weight: 600;
+  }
+
   .local-time-container {
     position: relative;
     display: inline-block;
     font-weight: 600;
-    color: #155724;
+    color: #2c3e50;
     cursor: help;
   }
+
   .utc-tooltip {
     display: none;
     position: absolute;
@@ -91,19 +106,51 @@
     top: 100%;
     margin-top: 5px;
   }
+
   .local-time-container:hover .utc-tooltip {
     display: block;
   }
+
   .countdown {
     font-weight: 600;
-    color: #155724;
-    margin-bottom: 0;
+    color: red !important;
+    margin: 8px 0 0;
+    font-size: 1.1em;
+    /* background-color: rgba(255, 110, 8, 0.1); */
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
   }
+
+  /* Alerts */
+  .alert {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+  }
+
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+  }
+
+  .alert-warning {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #e74c3c;
+  }
+
+  .alert p {
+    margin: 0.5rem 0;
+  }
+
+  /* Buttons */
   .btn {
     display: block;
     width: 100%;
     max-width: 300px;
-    background-color: #28a745;
+    background-color: #ff6e08;
     color: white;
     padding: 10px;
     border: none;
@@ -117,27 +164,37 @@
     transition: background-color 0.2s;
     box-sizing: border-box;
   }
+
   .btn:hover {
-    background-color: #218838;
+    background-color: #ffc33c;
+    color: white;
     text-decoration: none;
   }
+
+  /* Lists */
   ul {
     list-style-type: none;
     padding: 0;
   }
+
   ul li {
     padding: 0.5rem;
     border-bottom: 1px solid #eee;
   }
+
   ul li:last-child {
     border-bottom: none;
   }
+
+  /* Section Divider */
   .section-divider {
     height: 1px;
     background-color: #dee2e6;
     margin: 30px 0;
     width: 100%;
   }
+
+  /* Subscription Card */
   .subscription-card {
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -146,13 +203,17 @@
     background-color: #f9f9f9;
     max-width: 400px;
   }
+
   .subscription-card h3 {
     margin-top: 0;
     color: #333;
   }
+
   .subscription-card p {
     margin: 5px 0;
   }
+
+  /* Setup Guide Section */
   .setup-guide-section {
     background-color: #f9f9f9;
     padding: 1.5rem;
@@ -160,35 +221,49 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 2rem;
   }
+
   .setup-guide-section h2 {
     color: #2c3e50;
     margin-bottom: 1rem;
   }
+
+  /* Collapsible Steps */
   .collapsible-step {
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid #eee;
   }
+
   .step-header {
-    color: #27ae60;
+    color: #ff6e08;
     margin-bottom: 0.5rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     font-size: 1.3em;
   }
+
   .step-toggle {
     margin-left: 10px;
     font-size: 1.2em;
     font-weight: normal;
   }
+
   .step-content {
     display: none;
     padding-left: 10px;
   }
+
+  .step-content a {
+    color: #856404;
+    padding-left: 10px;
+  }
+
   .step-content.active {
     display: block;
   }
+
+  /* Troubleshooting Section */
   .troubleshooting-section {
     background-color: #f9f9f9;
     padding: 1.5rem;
@@ -196,15 +271,19 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 2rem;
   }
+
   .troubleshooting-section h2 {
     color: #2c3e50;
     margin-bottom: 1rem;
   }
+
+  /* FAQ Items */
   .faq-item {
     margin-bottom: 1rem;
     border-bottom: 1px solid #eee;
     padding-bottom: 1rem;
   }
+
   .faq-question {
     width: 100%;
     text-align: left;
@@ -219,37 +298,46 @@
     align-items: center;
     font-weight: bold;
   }
+
   .faq-question:hover {
     background-color: rgba(44, 62, 80, 0.1);
     border-radius: 4px;
   }
+
   .faq-icon {
     font-size: 1.2rem;
     transition: transform 0.2s;
   }
+
   .faq-answer {
     display: none;
     padding: 0 1rem 1rem;
     line-height: 1.6;
   }
+
   .faq-answer ul {
     margin: 0.5rem 0 0 1.5rem;
     padding: 0;
   }
+
   .faq-answer li {
     margin: 0.3rem 0;
   }
+
   .faq-answer a {
-    color: #3498db;
+    color: #ff6e08;
     text-decoration: none;
   }
+
   .faq-answer a:hover {
     text-decoration: underline;
   }
+
   .faq-answer.active {
     display: block;
   }
 
+  /* Custom Alert */
   .alert-warning-custom {
     margin-bottom: 1.5rem;
     padding: 1rem;
@@ -262,15 +350,34 @@
     margin-bottom: 0;
     padding-left: 1.2rem;
   }
+
+  /* History Button */
+  .history-button {
+    display: block;
+    padding: 4px;
+    background-color: #ff6e08;
+    color: white;
+    text-align: center;
+    border-radius: 4px;
+    text-decoration: none;
+    margin: auto;
+    max-width: 200px;
+  }
+
+  .history-button:hover {
+    background-color: #ffc33c;
+    color: white;
+    text-decoration: none;
+  }
+
+  /* Mobile Styles */
   @media (max-width: 600px) {
-    /* General Layout */
     .dashboard-container {
       padding: 1rem;
       margin: 0 auto;
       max-width: 100%;
     }
 
-    /* Header */
     .dashboard-header {
       text-align: center;
       margin-bottom: 1rem;
@@ -282,7 +389,6 @@
       color: #2c3e50;
     }
 
-    /* Subscription Section */
     .subscription-section {
       padding: 0;
       margin-top: 1rem;
@@ -296,17 +402,15 @@
       color: #2c3e50;
     }
 
-    /* Subscription Alert */
     .subscription-alert {
-      display: flex;
       flex-direction: column;
       align-items: center;
+      text-align: center;
       background-color: #f8f9fa;
       border: 1px solid #e9ecef;
       border-radius: 0.5rem;
       padding: 1.25rem;
       margin-bottom: 1rem;
-      text-align: center;
     }
 
     .alert-icon {
@@ -350,18 +454,16 @@
       margin: 0.5rem 0;
     }
 
-    /* Button */
     .btn {
       max-width: 100%;
       padding: 0.75rem;
       font-size: 1rem;
       margin: 0.75rem auto;
       border-radius: 0.5rem;
-      background-color: #28a745;
+      background-color: #ff6e08;
       border: none;
     }
 
-    /* Subscription Card */
     .subscription-card {
       max-width: 100%;
       padding: 1rem;
@@ -382,11 +484,6 @@
       margin: 0.3rem 0;
     }
 
-    /* Setup Guide Section */
-    .list-custom {
-      margin-bottom: 0;
-      padding-left: 0;
-    }
     .setup-guide-section {
       padding: 1rem 0;
       margin-top: 1.5rem;
@@ -400,7 +497,6 @@
       color: #2c3e50;
     }
 
-    /* Collapsible Steps */
     .collapsible-step {
       margin-bottom: 1rem;
       padding-bottom: 1rem;
@@ -437,10 +533,8 @@
     .step-content li {
       font-size: 0.9rem;
       padding: 0.3rem 0;
-
     }
 
-    /* Troubleshooting Section */
     .troubleshooting-section {
       padding: 1rem;
       margin-top: 1.5rem;
@@ -454,7 +548,6 @@
       color: #2c3e50;
     }
 
-    /* FAQ Items */
     .faq-item {
       margin-bottom: 1rem;
       padding-bottom: 1rem;
@@ -494,7 +587,6 @@
       margin: 0.3rem 0;
     }
 
-    /* Section Divider */
     .section-divider {
       height: 1px;
       background-color: #dee2e6;
@@ -514,6 +606,20 @@
     }
   }
 </style>
+
+<div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
+  <% ip = request.remote_ip %>
+  <% begin %>
+    <% response = Net::HTTP.get(URI("http://ip-api.com/json/#{ip}")) %>
+    <% data = JSON.parse(response) %>
+    <% country = data['country'] %>
+    <strong>Your IP:</strong> <%= ip %> - <strong>Country:</strong> <%= country %>
+  <% rescue %>
+    <!-- Fallback if the API fails -->
+    <strong>Your IP:</strong> <%= ip %> - <strong>Country:</strong> Could not be determined
+  <% end %>
+</div>
+
 <div class="dashboard-container">
   <header class="dashboard-header">
     <h1>Welcome, <%= current_user.email %></h1>
@@ -523,7 +629,11 @@
     <% if @has_subscription && @active_subscription.expires_at > Time.now %>
       <!-- Show active subscription -->
       <div class="subscription-alert">
-        <div class="alert-icon">✅</div>
+        <div class="alert-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="#ff6e08">
+            <path d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zM8 15l-5-5 1.4-1.4L8 12.2 14.6 5.6 16 7z" />
+          </svg>
+        </div>
         <div class="alert-content">
           <h3>Active Subscription</h3>
           <p><strong>Client:</strong> #<%= @active_subscription.name %></p>
@@ -545,11 +655,12 @@
           </p>
         </div>
       </div>
+
       <%= link_to "View Subscription", user_subscription_path(current_user, @active_subscription), class: "btn" %>
     <% else %>
       <!-- Show "Subscribe Now" if no truly active (non-expired) or pending subscription exists -->
       <div class="alert alert-warning">
-        <p>❌ You don't have an active subscription.</p>
+        <p>You don't have an active subscription at the moment.</p>
         <%= link_to "Subscribe Now", new_user_subscription_path(current_user), class: "btn" %>
       </div>
     <% end %>
@@ -644,7 +755,7 @@
           5. Need More Help?
         </h3>
         <div class="step">
-          <p><%= link_to "View Full Setup Guide", setup_guide_path, class: "btn", style: "background-color: #3498db;" %></p>
+          <p><%= link_to "View Full Setup Guide", setup_guide_path, class: "btn" %></p>
         </div>
       </div>
     </div>
@@ -717,7 +828,7 @@
         General Tips <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Keep your app updated and check for announcements. If issues persist, contact support at <a href="mailto:support@FenguardVPN.com">support@fenguardvpn.com</a>.</p>
+        <p>Keep your app updated and check for announcements. If issues persist, contact support at <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a>.</p>
       </div>
     </div>
   </section>

@@ -2,8 +2,8 @@
 class PreallocateSubscriptionsJob < ApplicationJob
   queue_as :default
 
-  # Number of pre-allocated subscriptions to maintain per server
-  TARGET_POOL_SIZE = 20
+  # # Number of pre-allocated subscriptions to maintain per server
+  # TARGET_POOL_SIZE = 10
 
   def perform(server_id = nil)
     if server_id
@@ -16,12 +16,25 @@ class PreallocateSubscriptionsJob < ApplicationJob
     end
 
     servers.each do |server|
+      # Calculate available capacity
+      available_capacity = server.max_subscriptions - server.current_subscriptions
+
+      # Base pool size on server capacity (20%) and demand (2x yesterday's usage)
+      capacity_based = [server.max_subscriptions * 0.2, 5].max.to_i
+      demand_based = [Subscription.where(server: server, status: "active", created_at: 1.day.ago.all_day).count * 2, 5].max
+
+      # Take the greater of capacity-based or demand-based, but never exceed available capacity
+      target_pool_size = [
+        [capacity_based, demand_based].max,  # Take the greater of the two
+        available_capacity                   # But never exceed available capacity
+      ].min
+
       current_preallocated = server.subscriptions.preallocated.count
-      next if current_preallocated >= TARGET_POOL_SIZE
+      next if current_preallocated >= target_pool_size
 
-      Rails.logger.info "Pre-allocating subscriptions for server #{server.name} (ID: #{server.id})"
+      Rails.logger.info "Pre-allocating for #{server.name}. Target: #{target_pool_size} (capacity: #{capacity_based}, demand: #{demand_based})"
 
-      (current_preallocated...TARGET_POOL_SIZE).each do |i|
+      (current_preallocated...target_pool_size).each do |i|
         begin
           # Generate a unique subscription name
           subscription_name = loop do
@@ -60,7 +73,7 @@ class PreallocateSubscriptionsJob < ApplicationJob
               Rails.logger.info "Created WireGuard client #{client_name}: #{output}"
 
               # Fetch client details
-              private_key, public_key, ip_address = fetch_client_details(ssh, client_name)
+              private_key, public_key, ip_address = fetch_client_details(ssh, client_name, server)
 
               # Create WireguardClient record
               subscription.wireguard_clients.create!(
@@ -73,12 +86,12 @@ class PreallocateSubscriptionsJob < ApplicationJob
               )
 
               # Copy the config file to a temporary location
-              ssh.exec!("sudo cp /etc/wireguard/configs/#{client_name}.conf /home/pi/configs/")
-              ssh.exec!("sudo chown pi:pi /home/pi/configs/#{client_name}.conf")
-              ssh.exec!("chmod 644 /home/pi/configs/#{client_name}.conf")
+              ssh.exec!("sudo cp /etc/wireguard/configs/#{client_name}.conf /home/#{server.ssh_user}/configs/")
+              ssh.exec!("sudo chown #{server.ssh_user}:#{server.ssh_user} /home/#{server.ssh_user}/configs/#{client_name}.conf")
+              ssh.exec!("chmod 644 /home/#{server.ssh_user}/configs/#{client_name}.conf")
 
               # Generate and upload config file
-              config_file_path = "/home/pi/configs/#{client_name}.conf"
+              config_file_path = "/home/#{server.ssh_user}/configs/#{client_name}.conf"
               temp_file = Tempfile.new(["#{client_name}", '.conf'])
               Net::SCP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |scp|
                 scp.download!(config_file_path, temp_file.path)
@@ -94,8 +107,8 @@ class PreallocateSubscriptionsJob < ApplicationJob
               temp_file.unlink
 
               # Generate and upload QR code
-              ssh.exec!("qrencode -t PNG -o /home/pi/configs/#{client_name}.png < /home/pi/configs/#{client_name}.conf")
-              qr_code_path = "/home/pi/configs/#{client_name}.png"
+              ssh.exec!("qrencode -t PNG -o /home/#{server.ssh_user}/configs/#{client_name}.png < /home/#{server.ssh_user}/configs/#{client_name}.conf")
+              qr_code_path = "/home/#{server.ssh_user}/configs/#{client_name}.png"
               qr_temp_file = Tempfile.new(["#{client_name}", '.png'])
               Net::SFTP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |sftp|
                 sftp.download!(qr_code_path, qr_temp_file.path)
@@ -127,19 +140,19 @@ class PreallocateSubscriptionsJob < ApplicationJob
 
   private
 
-  def fetch_client_details(ssh, client_name)
+  def fetch_client_details(ssh, client_name, server)
     # Fetch the private key
-    private_key_cmd = "cat /home/pi/configs/#{client_name}.conf | grep 'PrivateKey'"
+    private_key_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'PrivateKey'"
     private_key_output = ssh.exec!(private_key_cmd)
     private_key = private_key_output.chomp.split(' = ').last.strip
 
     # Fetch the public key
-    public_key_cmd = "cat /home/pi/configs/#{client_name}.conf | grep -A 5 '[Peer]' | grep 'PublicKey' | head -n 1"
+    public_key_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep -A 5 '[Peer]' | grep 'PublicKey' | head -n 1"
     public_key_output = ssh.exec!(public_key_cmd)
     public_key = public_key_output.chomp.split(' = ').last.strip
 
     # Fetch the IP address
-    ip_address_cmd = "cat /home/pi/configs/#{client_name}.conf | grep 'Address' | cut -d'=' -f2 | cut -d',' -f1 | cut -d'/' -f1 | tr -d ' '"
+    ip_address_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'Address' | cut -d'=' -f2 | cut -d',' -f1 | cut -d'/' -f1 | tr -d ' '"
     ip_address_output = ssh.exec!(ip_address_cmd)
     ip_address = ip_address_output.chomp.strip
 

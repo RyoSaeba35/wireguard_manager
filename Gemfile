@@ -60,6 +60,11 @@ gem "whenever", require: false
 # Heroku-Specific
 gem "rails_12factor", group: :production
 
+# Paiment system
+gem 'stripe'
+
+gem 'net-http'
+
 group :development, :test do
   gem "sqlite3", ">= 1.4" # Only for development/test
   gem "debug", platforms: %i[mri windows]

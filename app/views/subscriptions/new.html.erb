@@ -16,24 +16,42 @@
             <% plan.description.split(', ').each do |feature| %>
               <% if feature.include?("Devices") %>
                 <p>
-                  ✅ <%= feature %>
+                  <span class="checkmark">➤</span> <%= feature %>
                   <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
                 </p>
               <% else %>
-                <p><strong>✅ <%= feature %></strong></p>
+                <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
               <% end %>
             <% end %>
           </div>
           <% if plan.active && Subscription.where(status: 'active').count < Setting.max_active_subscriptions %>
-            <%= form_with(model: [current_user, @subscription], local: false, id: "subscribe-form-#{plan.id}") do |form| %>
+            <%= form_with(model: [current_user, @subscription], id: "subscribe-form-#{plan.id}") do |form| %>
               <div class="form-group" style="margin: 0;">
                 <%= form.hidden_field :price, value: plan.price %>
                 <%= form.hidden_field :plan_id, value: plan.id %>
               </div>
-              <%= form.submit "Subscribe Now", class: "plan-btn", data: { turbo: true, disable_with: "Processing..." } %>
+              <%= form.submit "Subscribe Now", class: "plan-btn", data: { disable_with: "Processing..." } %>
             <% end %>
+            <!-- Desktop Success Message -->
             <div id="subscribe-success-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
-              Success! Your subscription is active. We’re setting up your VPN—you’ll get an email with your config in a few minutes.
+              <% if server = Server.where(active: true).where("current_subscriptions < max_subscriptions").order(:current_subscriptions).first %>
+                <% if server.subscriptions.preallocated.exists? %>
+                  Success! Your subscription is active and your VPN config is ready to use.
+                <% else %>
+                  Success! Your subscription is active. We’re setting up your VPN—you’ll receive an email with your config in a few minutes.
+                <% end %>
+              <% end %>
+            </div>
+
+            <!-- Mobile Success Message -->
+            <div id="subscribe-success-mobile-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
+              <% if server = Server.where(active: true).where("current_subscriptions < max_subscriptions").order(:current_subscriptions).first %>
+                <% if server.subscriptions.preallocated.exists? %>
+                  Success! Your subscription is active and your VPN config is ready to use.
+                <% else %>
+                  Success! Your subscription is active. We’re setting up your VPN—you’ll receive an email with your config in a few minutes.
+                <% end %>
+              <% end %>
             </div>
           <% else %>
             <div class="plan-unavailable">
@@ -66,11 +84,11 @@
                   <% plan.description.split(', ').each do |feature| %>
                     <% if feature.include?("Devices") %>
                       <p>
-                        ✅ <%= feature %>
+                        <span class="checkmark">➤</span> <%= feature %>
                         <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
                       </p>
                     <% else %>
-                      <p><strong>✅ <%= feature %></strong></p>
+                      <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
                     <% end %>
                   <% end %>
                 </div>
@@ -144,7 +162,7 @@
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-top: 4px solid #27ae60;
+    border-top: 4px solid #ff6e08;
     position: relative;
     transition: filter 0.3s ease;
   }
@@ -171,7 +189,7 @@
   }
   /* Popular Badge */
   .popular-badge {
-    background-color: #e74c3c;
+    background-color: #ff6e08;
     color: white;
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
@@ -216,7 +234,7 @@
   }
   /* Plan Button */
   .plan-btn {
-    background-color: #27ae60;
+    background-color: #ff6e08;
     color: white;
     padding: 0.8rem;
     border: none;
@@ -233,7 +251,7 @@
     box-sizing: border-box;
   }
   .plan-btn:hover:not(:disabled) {
-    background-color: #219653;
+    background-color: #ffc33c;
   }
   .plan-btn:disabled {
     background-color: #95a5a6;
@@ -268,6 +286,11 @@
     color: #4d4c4cff;
     max-width: 80%;
     margin-top: 0;
+  }
+  .checkmark {
+    color: #ff6e08; /* Match your accent color */
+    margin-right: 8px;
+    font-weight: bold; /* Optional: Make it stand out */
   }
   /* Mobile styles */
   @media (max-width: 768px) {
@@ -325,7 +348,7 @@
       opacity: 0.7;
     }
     .splide__pagination__page.is-active {
-      background: #27ae60 !important;
+      background: #ff6e08 !important;
       opacity: 1;
     }
   }
@@ -341,6 +364,42 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Handle desktop form submissions
+    <% @plans.each do |plan| %>
+      document.getElementById('subscribe-form-<%= plan.id %>')?.addEventListener('ajax:success', function(event) {
+        const [data, status, xhr] = event.detail;
+      // Rails UJS should already parse the JSON, but double-check
+        const response = data;
+        if (response.url) {
+          window.location.href = response.url;
+          return;
+        }
+        const successDiv = document.getElementById('subscribe-success-<%= plan.id %>');
+        successDiv.style.display = 'block';
+        this.querySelector('.plan-btn').disabled = true;
+        this.querySelector('.plan-btn').textContent = 'Subscribed!';
+      });
+    <% end %>
+
+    // Handle mobile form submissions
+    <% @plans.each do |plan| %>
+      document.getElementById('subscribe-form-mobile-<%= plan.id %>')?.addEventListener('ajax:success', function(event) {
+        const [data, status, xhr] = event.detail;
+        // Redirect to Stripe Checkout
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+        const successDiv = document.getElementById('subscribe-success-mobile-<%= plan.id %>');
+        successDiv.style.display = 'block';
+
+        // Disable the form
+        this.querySelector('.plan-btn').disabled = true;
+        this.querySelector('.plan-btn').textContent = 'Subscribed!';
+      });
+    <% end %>
+
+    // Initialize mobile carousel if needed
     if (window.innerWidth <= 768) {
       new Splide('#plan-slider', {
         type: 'slide',
