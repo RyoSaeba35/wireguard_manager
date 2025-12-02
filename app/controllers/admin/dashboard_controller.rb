@@ -7,15 +7,17 @@ module Admin
     def index
       @total_users = User.count
       @active_users = User.joins(:subscriptions).where(subscriptions: { status: 'active' }).distinct.count
-      @total_subscriptions = Subscription.count
+      @total_subscriptions = Subscription.where(status: ['active', 'expired']).count
       @active_subscriptions = Subscription.active.count
       # Weekly subscriptions (plans with 'week' interval)
       @weekly_subscriptions = Subscription.joins(:plan)
+                                          .where(status: ['active', 'expired']) 
                                           .where(plans: { interval: 'week' })
                                           .count
 
       # Monthly subscriptions (plans with 'month' interval)
       @monthly_subscriptions_total = Subscription.joins(:plan)
+                                                .where(status: ['active', 'expired'])
                                                 .where(plans: { interval: 'month' })
                                                 .count
       @expired_subscriptions = Subscription.expired.count
