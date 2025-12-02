@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Fenguard VPN" %></title>
+    <title><%= content_for(:title) || "Vulcain VPN" %></title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Fenguard VPN">
+    <meta name="apple-mobile-web-app-title" content="Vulcain VPN">
     <meta name="theme-color" content="#2c3e50">
 
     <!-- Favicon and Icons -->
@@ -16,19 +16,22 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
 
     <!-- Open Graph / Social Media Meta Tags -->
-    <meta property="og:title" content="Fenguard VPN">
-    <meta property="og:description" content="Fenguard VPN: Fast, secure France server with advanced encryption. Unlimited bandwidth for streaming, downloading, and browsing.">
-    <meta property="og:image" content="https://fenguardvpn-5e34de44f30e.herokuapp.com/apple-touch-icon.png">
-    <meta property="og:url" content="https://fenguardvpn-5e34de44f30e.herokuapp.com">
+    <meta property="og:title" content="Vulcain VPN">
+    <meta property="og:description" content="Vulcain VPN: Fast, secure France server with advanced encryption. Unlimited bandwidth for streaming, downloading, and browsing.">
+    <meta property="og:image" content="https://vulcainvpn-83313b910708.herokuapp.com/apple-touch-icon.png">
+    <meta property="og:url" content="https://vulcainvpn-83313b910708.herokuapp.com">
     <meta property="og:type" content="website">
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
 
-    <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <%= csrf_meta_tags %>
+    <%= javascript_include_tag 'rails-ujs' %>
+    <%= javascript_include_tag 'application' %>
     <%= yield :head %>
 
     <!-- Stylesheets -->
@@ -43,21 +46,21 @@
   <body>
     <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
     <%= render "shared/header" %>
-    <div>
+    <div style="position: relative;">
       <% if notice %>
-        <div class="flash flash-notice" id="notice-flash">
+        <div class="flash flash-notice" id="notice-flash" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 1000;">
           <%= notice %>
           <button class="flash-close" onclick="this.parentElement.style.display='none'">&times;</button>
         </div>
       <% end %>
       <% if alert %>
-        <div class="flash flash-alert" id="alert-flash">
+        <div class="flash flash-alert" id="alert-flash" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 1000;">
           <%= alert %>
           <button class="flash-close" onclick="this.parentElement.style.display='none'">&times;</button>
         </div>
       <% end %>
+      <%= yield %>
     </div>
-    <%= yield %>
     <%= render "shared/footer" %>
 
     <script>
@@ -102,27 +105,37 @@
         border-radius: 4px;
         font-size: 14px;
         text-align: center;
-        max-width: 500px;
+        width: 100%;
+        /* max-width: 500px; */
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 0.3s ease-in-out;
-        transition: opacity 0.3s ease-in-out;
+        /* animation: fadeIn 0.3s ease-in-out; */
+        /* transition: opacity 0.3s ease-in-out;  */
+        position: absolute;
+        z-index: 1000;
       }
+
       .flash-notice {
         background-color: #d4edda;
         color: #155724;
         border: 1px solid #c3e6cb;
       }
+
       .flash-alert {
         background-color: #f8d7da;
         color: #721c24;
         border: 1px solid #f5c6cb;
       }
+
       @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
       }
+
       .flash-close {
-        float: right;
+        position: absolute;
+        top: 12px;
+        right: 6px;
+        transform: translateY(-50%);
         background: none;
         border: none;
         font-size: 18px;

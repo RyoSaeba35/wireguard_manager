@@ -1,6 +1,6 @@
 {
-  "name": "Fenguard VPN",
-  "short_name": "Fenguard VPN",
+  "name": "Vulcain VPN",
+  "short_name": "Vulcain VPN",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -15,7 +15,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#2c3e50",
-  "background_color": "#2c3e50",
+  "theme_color": "#432923",
+  "background_color": "#904318",
   "display": "standalone"
 }

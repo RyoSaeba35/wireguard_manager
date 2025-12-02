@@ -3,6 +3,10 @@ class Admin::PlansController < ApplicationController
   before_action :authenticate_user!
   before_action :verify_admin
 
+  def index
+    @plans = Plan.all.order(:price)
+  end
+
   def create
     @plan = Plan.new(plan_params)
 

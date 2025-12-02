@@ -18,9 +18,19 @@ Sidekiq.configure_server do |config|
           'class' => 'RevokeExpiredSubscriptionsJob',
           'queue' => 'default'
         },
+        'expire_abandoned_subscriptions' => {
+          'cron'  => '0 */1 * * *',   # Every 1 hours
+          'class' => 'ExpireAbandonedSubscriptionsJob',
+          'queue' => 'default'
+        },
         'preallocate_subscriptions' => {
-          'cron'  => '0 3 * * *',     # Every day at 3 AM
+          'cron'  => '0 2 * * *',     # Every day at 2 AM
           'class' => 'PreallocateSubscriptionsJob',
+          'queue' => 'default'
+        },
+        'backup_database' => {
+          'cron'  => '0 3 * * *',     # Every day at 3 AM
+          'class' => 'BackupDatabaseJob',
           'queue' => 'default'
         }
       }

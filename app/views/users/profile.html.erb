@@ -1,7 +1,7 @@
 <style>
   .profile-container {
     max-width: 600px;
-    margin: 3rem auto;
+    margin: 0 auto;
     padding: 2rem;
     background-color: #fff;
     border-radius: 12px;
@@ -76,13 +76,13 @@
 
   .form-group input[type="email"]:focus,
   .form-group input[type="password"]:focus {
-    border-color: #3498db;
+    border-color: #ff6e08;
     outline: none;
     box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
   }
 
   .form-group input[type="submit"] {
-    background-color: #2ecc71;
+    background-color: #ff6e08;
     color: white;
     padding: 0.9rem 1.5rem;
     border: none;
@@ -95,7 +95,7 @@
   }
 
   .form-group input[type="submit"]:hover {
-    background-color: #27ae60;
+    background-color: #ffc33c;
   }
 
   .form-group input[type="submit"]:disabled {
@@ -115,7 +115,7 @@
   }
 
   .edit-link {
-    color: #3498db;
+    color: #ff6e08;
     text-decoration: none;
     font-size: 0.9rem;
     cursor: pointer;
@@ -138,7 +138,7 @@
 
   .success-message {
     text-align: center;
-    color: #27ae60;
+    color: #ff6e08;
     margin-top: 1rem;
     font-weight: 500;
     display: none;
@@ -180,7 +180,7 @@
   }
 
   .btn-save {
-    background-color: #2ecc71;
+    background-color: #ff6e08;
     color: white;
     padding: 0.9rem 1.5rem;
     border: none;
@@ -193,7 +193,7 @@
   }
 
   .btn-save:hover {
-    background-color: #27ae60;
+    background-color: #ffc33c;
   }
 
   .password-strength {
@@ -216,121 +216,123 @@
     }  }
 </style>
 
-<div class="profile-container">
-  <h1>Your Profile</h1>
+<div style="padding-top: 3rem; padding-bottom: 3rem;">
+  <div class="profile-container">
+    <h1>Your Profile</h1>
 
-  <% if flash[:notice] %>
-    <div class="success-message">
-      <%= flash[:notice] %>
-    </div>
-  <% elsif flash[:alert] %>
-    <div class="success-message" style="color: #e74c3c;">
-      <%= flash[:alert] %>
-    </div>
-  <% end %>
+    <% if flash[:notice] %>
+      <div class="success-message">
+        <%= flash[:notice] %>
+      </div>
+    <% elsif flash[:alert] %>
+      <div class="success-message" style="color: #e74c3c;">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
 
-  <!-- Email Section -->
-  <div class="profile-section">
-    <div class="section-header" onclick="toggleSection('email-section')">
-      <h2>Email Address</h2>
-      <span class="toggle-icon" id="email-toggle">+</span>
-    </div>
-    <div class="profile-info">
-      <span class="profile-value" id="email-value"><%= current_user.email %></span>
-      <span class="edit-link" onclick="toggleSection('email-section')">Edit</span>
-    </div>
-    <div class="form-group" id="email-section">
-      <%= form_with(model: current_user, url: update_profile_path, method: :patch, id: "email-form") do |form| %>
-        <div class="field">
-          <%= form.label :email %>
-          <%= form.email_field :email, class: "form-control", value: current_user.email %>
-          <% if form.object.errors[:email].any? %>
-            <div class="error-message">
-              <%= form.object.errors[:email].first %>
-            </div>
-          <% end %>
-        </div>
-
-        <div class="field">
-          <%= form.label :current_password, "Current Password (required for changes)" %>
-          <%= form.password_field :current_password, class: "form-control", autocomplete: "current-password" %>
-          <% if form.object.errors[:current_password].any? %>
-            <div class="error-message">
-              <%= form.object.errors[:current_password].first %>
-            </div>
-          <% end %>
-          <small class="form-text text-muted">We need your current password to confirm your changes</small>
-        </div>
-
-        <div class="save-cancel">
-          <button type="button" class="btn-cancel" onclick="cancelEdit('email-section')">Cancel</button>
-          <%= form.submit "Update Email", class: "btn-save", id: "email-submit" %>
-        </div>
-      <% end %>
-    </div>
-  </div>
-
-  <!-- Password Section -->
-  <div class="profile-section">
-    <div class="section-header" onclick="toggleSection('password-section')">
-      <h2>Password</h2>
-      <span class="toggle-icon" id="password-toggle">+</span>
-    </div>
-    <div class="profile-info">
-      <span>**********</span>
-      <span class="edit-link" onclick="toggleSection('password-section')">Change</span>
-    </div>
-    <div class="form-group" id="password-section">
-      <%= form_with(model: current_user, url: update_profile_path, method: :patch, id: "password-form") do |form| %>
-        <div class="field">
-          <%= form.label :current_password, "Current Password" %>
-          <%= form.password_field :current_password, class: "form-control", autocomplete: "current-password" %>
-          <% if form.object.errors[:current_password].any? %>
-            <div class="error-message">
-              <%= form.object.errors[:current_password].first %>
-            </div>
-          <% end %>
-        </div>
-
-        <div class="field">
-          <%= form.label :password, "New Password" %>
-          <%= form.password_field :password, class: "form-control", autocomplete: "new-password", oninput: "checkPasswordStrength(this.value)" %>
-          <div class="password-strength">
-            <div class="password-strength-bar" id="password-strength-bar"></div>
+    <!-- Email Section -->
+    <div class="profile-section">
+      <div class="section-header" onclick="toggleSection('email-section')">
+        <h2>Email Address</h2>
+        <span class="toggle-icon" id="email-toggle">+</span>
+      </div>
+      <div class="profile-info">
+        <span class="profile-value" id="email-value"><%= current_user.email %></span>
+        <span class="edit-link" onclick="toggleSection('email-section')">Edit</span>
+      </div>
+      <div class="form-group" id="email-section">
+        <%= form_with(model: current_user, url: update_profile_path, method: :patch, id: "email-form") do |form| %>
+          <div class="field">
+            <%= form.label :email %>
+            <%= form.email_field :email, class: "form-control", value: current_user.email %>
+            <% if form.object.errors[:email].any? %>
+              <div class="error-message">
+                <%= form.object.errors[:email].first %>
+              </div>
+            <% end %>
           </div>
-          <div class="password-requirements" id="password-requirements">
-            <p>Password must contain:</p>
-            <ul>
-              <li id="length">At least 8 characters</li>
-              <li id="uppercase">At least one uppercase letter</li>
-              <li id="lowercase">At least one lowercase letter</li>
-              <li id="number">At least one number</li>
-              <li id="special">At least one special character</li>
-            </ul>
+
+          <div class="field">
+            <%= form.label :current_password, "Current Password (required for changes)" %>
+            <%= form.password_field :current_password, class: "form-control", autocomplete: "current-password" %>
+            <% if form.object.errors[:current_password].any? %>
+              <div class="error-message">
+                <%= form.object.errors[:current_password].first %>
+              </div>
+            <% end %>
+            <small class="form-text text-muted">We need your current password to confirm your changes</small>
           </div>
-          <% if form.object.errors[:password].any? %>
-            <div class="error-message">
-              <%= form.object.errors[:password].first %>
-            </div>
-          <% end %>
-          <small class="form-text text-muted">Leave blank if you don't want to change it</small>
-        </div>
 
-        <div class="field">
-          <%= form.label :password_confirmation, "Confirm New Password" %>
-          <%= form.password_field :password_confirmation, class: "form-control", autocomplete: "new-password" %>
-          <% if form.object.errors[:password_confirmation].any? %>
-            <div class="error-message">
-              <%= form.object.errors[:password_confirmation].first %>
-            </div>
-          <% end %>
-        </div>
+          <div class="save-cancel">
+            <button type="button" class="btn-cancel" onclick="cancelEdit('email-section')">Cancel</button>
+            <%= form.submit "Update Email", class: "btn-save", id: "email-submit" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
 
-        <div class="save-cancel">
-          <button type="button" class="btn-cancel" onclick="cancelEdit('password-section')">Cancel</button>
-          <%= form.submit "Update Password", class: "btn-save", id: "password-submit" %>
-        </div>
-      <% end %>
+    <!-- Password Section -->
+    <div class="profile-section">
+      <div class="section-header" onclick="toggleSection('password-section')">
+        <h2>Password</h2>
+        <span class="toggle-icon" id="password-toggle">+</span>
+      </div>
+      <div class="profile-info">
+        <span>**********</span>
+        <span class="edit-link" onclick="toggleSection('password-section')">Change</span>
+      </div>
+      <div class="form-group" id="password-section">
+        <%= form_with(model: current_user, url: update_profile_path, method: :patch, id: "password-form") do |form| %>
+          <div class="field">
+            <%= form.label :current_password, "Current Password" %>
+            <%= form.password_field :current_password, class: "form-control", autocomplete: "current-password" %>
+            <% if form.object.errors[:current_password].any? %>
+              <div class="error-message">
+                <%= form.object.errors[:current_password].first %>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="field">
+            <%= form.label :password, "New Password" %>
+            <%= form.password_field :password, class: "form-control", autocomplete: "new-password", oninput: "checkPasswordStrength(this.value)" %>
+            <div class="password-strength">
+              <div class="password-strength-bar" id="password-strength-bar"></div>
+            </div>
+            <div class="password-requirements" id="password-requirements">
+              <p>Password must contain:</p>
+              <ul>
+                <li id="length">At least 8 characters</li>
+                <li id="uppercase">At least one uppercase letter</li>
+                <li id="lowercase">At least one lowercase letter</li>
+                <li id="number">At least one number</li>
+                <li id="special">At least one special character</li>
+              </ul>
+            </div>
+            <% if form.object.errors[:password].any? %>
+              <div class="error-message">
+                <%= form.object.errors[:password].first %>
+              </div>
+            <% end %>
+            <small class="form-text text-muted">Leave blank if you don't want to change it</small>
+          </div>
+
+          <div class="field">
+            <%= form.label :password_confirmation, "Confirm New Password" %>
+            <%= form.password_field :password_confirmation, class: "form-control", autocomplete: "new-password" %>
+            <% if form.object.errors[:password_confirmation].any? %>
+              <div class="error-message">
+                <%= form.object.errors[:password_confirmation].first %>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="save-cancel">
+            <button type="button" class="btn-cancel" onclick="cancelEdit('password-section')">Cancel</button>
+            <%= form.submit "Update Password", class: "btn-save", id: "password-submit" %>
+          </div>
+        <% end %>
+      </div>
     </div>
   </div>
 </div>
@@ -390,23 +392,23 @@
 
     // Check length
     if (password.length >= 8) strength += 1;
-    document.getElementById('length').style.color = password.length >= 8 ? '#27ae60' : '#7f8c8d';
+    document.getElementById('length').style.color = password.length >= 8 ? '#ff6e08' : '#7f8c8d';
 
     // Check for uppercase
     if (/[A-Z]/.test(password)) strength += 1;
-    document.getElementById('uppercase').style.color = /[A-Z]/.test(password) ? '#27ae60' : '#7f8c8d';
+    document.getElementById('uppercase').style.color = /[A-Z]/.test(password) ? '#ff6e08' : '#7f8c8d';
 
     // Check for lowercase
     if (/[a-z]/.test(password)) strength += 1;
-    document.getElementById('lowercase').style.color = /[a-z]/.test(password) ? '#27ae60' : '#7f8c8d';
+    document.getElementById('lowercase').style.color = /[a-z]/.test(password) ? '#ff6e08' : '#7f8c8d';
 
     // Check for numbers
     if (/[0-9]/.test(password)) strength += 1;
-    document.getElementById('number').style.color = /[0-9]/.test(password) ? '#27ae60' : '#7f8c8d';
+    document.getElementById('number').style.color = /[0-9]/.test(password) ? '#ff6e08' : '#7f8c8d';
 
     // Check for special characters
     if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-    document.getElementById('special').style.color = /[^A-Za-z0-9]/.test(password) ? '#27ae60' : '#7f8c8d';
+    document.getElementById('special').style.color = /[^A-Za-z0-9]/.test(password) ? '#ff6e08' : '#7f8c8d';
 
     // Update strength bar
     const strengthPercentage = (strength / 5) * 100;
@@ -418,7 +420,7 @@
     } else if (strengthPercentage < 80) {
       strengthBar.style.backgroundColor = '#f39c12';
     } else {
-      strengthBar.style.backgroundColor = '#27ae60';
+      strengthBar.style.backgroundColor = '#ff6e08';
     }
   }
 
