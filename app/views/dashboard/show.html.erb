@@ -607,6 +607,18 @@
   }
 </style>
 
+<div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
+  <% ip = request.remote_ip %>
+  <% begin %>
+    <% response = Net::HTTP.get(URI("http://ip-api.com/json/#{ip}")) %>
+    <% data = JSON.parse(response) %>
+    <% country = data['country'] %>
+    <strong>Your IP:</strong> <%= ip %> - <strong>Country:</strong> <%= country %>
+  <% rescue %>
+    <!-- Fallback if the API fails -->
+    <strong>Your IP:</strong> <%= ip %> - <strong>Country:</strong> Could not be determined
+  <% end %>
+</div>
 
 <div class="dashboard-container">
   <header class="dashboard-header">
