@@ -1,128 +1,166 @@
-<div class="admin-dashboard">
-  <h1>Manage VPN Servers</h1>
-  <p class="server-capacity">Total Capacity: <%= @servers.sum(:max_subscriptions) %> subscriptions</p>
+<div class="admin-container">
+  <!-- Sidebar Navigation -->
+  <%= render 'admin/sidebar' %>
 
-  <%# Success/Error Messages %>
-  <% if flash[:notice] %>
-    <div class="alert alert-success">
-      <%= flash[:notice] %>
+  <!-- Main Content: Servers Page -->
+  <div class="admin-content">
+    <h1>VPN Servers</h1>
+    <p class="server-capacity">
+      Servers Info:
+      Total Servers: <%= @servers.count %> servers (<%= @servers.where(active: true).count %> active - <%= @servers.where(active: false).count %> inactive) -
+      Total Capacity: <%= @servers.sum(:max_subscriptions) %> subscriptions - 
+      Total Current Load: <%= @servers.sum(:current_subscriptions) %> subscriptions
+    </p>
+
+    <!-- Success/Error Messages -->
+    <% if flash[:notice] %>
+      <div class="alert alert-success">
+        <%= flash[:notice] %>
+      </div>
+    <% end %>
+    <% if flash[:alert] %>
+      <div class="alert alert-warning">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
+
+    <!-- Add New Server Button -->
+    <div class="admin-actions">
+      <%= link_to "Add New Server", new_admin_server_path, class: "admin-btn admin-btn--servers" %>
     </div>
-  <% end %>
-  <% if flash[:alert] %>
-    <div class="alert alert-warning">
-      <%= flash[:alert] %>
-    </div>
-  <% end %>
 
-  <%# Add New Server Button %>
-  <div class="admin-actions">
-    <%= link_to "Add New Server", new_admin_server_path, class: "admin-btn admin-btn--servers" %>
-  </div>
-
-  <%# Active Servers Section %>
-  <div class="admin-section">
-    <h2>Active Servers (<%= @servers.where(active: true).count %>)</h2>
-    <% if @servers.where(active: true).any? %>
-      <div class="table-responsive">
-        <table class="servers-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>IP Address</th>
-              <th>WireGuard IP</th>
-              <th>Current Load</th>
-              <th>Capacity</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @servers.where(active: true).each do |server| %>
-              <tr class="server-row">
-                <td><%= server.name %></td>
-                <td><%= server.ip_address %></td>
-                <td><%= server.wireguard_server_ip %></td>
-                <td>
-                  <div class="load-indicator">
-                    <span class="load-text">
-                      <%= server.current_subscriptions %> / <%= server.max_subscriptions %>
-                    </span>
-                    <div class="load-bar">
-                      <div class="load-fill"
-                           style="width: <%= [server.current_subscriptions.to_f / server.max_subscriptions * 100, 100].min %>%;
-                                background-color: <%= server.current_subscriptions.to_f / server.max_subscriptions * 100 > 80 ? '#e74c3c' : '#27ae60' %>;">
+    <!-- Active Servers Section -->
+    <div class="admin-section">
+      <h2>Active Servers (<%= @servers.where(active: true).count %>)</h2>
+      <% if @servers.where(active: true).any? %>
+        <div class="table-responsive">
+          <table class="servers-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>IP Address</th>
+                <th>Current Load</th>
+                <th>Capacity</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @servers.where(active: true).each do |server| %>
+                <tr class="server-row">
+                  <td><%= server.name %></td>
+                  <td><%= server.ip_address %></td>
+                  <td>
+                    <div class="load-indicator">
+                      <span class="load-text">
+                        <%= server.current_subscriptions %> / <%= server.max_subscriptions %>
+                      </span>
+                      <div class="load-bar">
+                        <div class="load-fill"
+                             style="width: <%= [server.current_subscriptions.to_f / server.max_subscriptions * 100, 100].min %>%;
+                                  background-color: <%= server.current_subscriptions.to_f / server.max_subscriptions * 100 > 80 ? '#e74c3c' : '#ff6e08' %>;">
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
-                <td><%= server.max_subscriptions %></td>
-                <td class="server-actions">
-                  <%= link_to "Edit", edit_admin_server_path(server), class: "admin-btn admin-btn--users" %>
-                  <%= button_to "Deactivate", admin_server_path(server, server: { active: false }), method: :patch,
-                                class: "admin-btn admin-btn--warning",
-                                data: { turbo_confirm: "Are you sure you want to deactivate #{server.name}?" } %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <div class="empty-state">
-        <p>No active servers found.</p>
-        <%= link_to "Add your first server", new_admin_server_path, class: "admin-btn admin-btn--servers" %>
-      </div>
-    <% end %>
-  </div>
+                  </td>
+                  <td><%= server.max_subscriptions %></td>
+                  <td class="server-actions">
+                    <%= link_to "Edit", edit_admin_server_path(server), class: "admin-btn admin-btn--users" %>
+                    <%= button_to "Deactivate", admin_server_path(server, server: { active: false }), method: :patch,
+                                  class: "admin-btn admin-btn--warning",
+                                  data: { turbo_confirm: "Are you sure you want to deactivate #{server.name}?" } %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <p>No active servers found.</p>
+          <%= link_to "Add your first server", new_admin_server_path, class: "admin-btn admin-btn--servers" %>
+        </div>
+      <% end %>
+    </div>
 
-  <%# Inactive Servers Section %>
-  <div class="admin-section">
-    <h2>Inactive Servers (<%= @servers.where(active: false).count %>)</h2>
-    <% if @servers.where(active: false).any? %>
-      <div class="table-responsive">
-        <table class="servers-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>IP Address</th>
-              <th>WireGuard IP</th>
-              <th>Capacity</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @servers.where(active: false).each do |server| %>
-              <tr class="server-row">
-                <td><%= server.name %></td>
-                <td><%= server.ip_address %></td>
-                <td><%= server.wireguard_server_ip %></td>
-                <td><%= server.max_subscriptions %></td>
-                <td class="server-actions">
-                  <%= button_to "Activate", admin_server_path(server, server: { active: true }), method: :patch,
-                                class: "admin-btn admin-btn--servers" %>
-                </td>
+    <!-- Inactive Servers Section -->
+    <div class="admin-section">
+      <h2>Inactive Servers (<%= @servers.where(active: false).count %>)</h2>
+      <% if @servers.where(active: false).any? %>
+        <div class="table-responsive">
+          <table class="servers-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>IP Address</th>
+                <th>WireGuard IP</th>
+                <th>Capacity</th>
+                <th>Actions</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <div class="empty-state">
-        <p>No inactive servers found.</p>
-      </div>
-    <% end %>
+            </thead>
+            <tbody>
+              <% @servers.where(active: false).each do |server| %>
+                <tr class="server-row">
+                  <td><%= server.name %></td>
+                  <td><%= server.ip_address %></td>
+                  <td><%= server.wireguard_server_ip %></td>
+                  <td><%= server.max_subscriptions %></td>
+                  <td class="server-actions">
+                    <%= button_to "Activate", admin_server_path(server, server: { active: true }), method: :patch,
+                                  class: "admin-btn admin-btn--servers" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <p>No inactive servers found.</p>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
 
+<!-- CSS for Servers Page -->
 <style>
-  /* Admin Dashboard Container */
-  .admin-dashboard {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #2c3e50;
+  .header {
+    position: fixed;
+    width: 100vw;
   }
-  
+  /* Admin Container */
+  .admin-container {
+    padding-top: 80px;
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  /* Main Content */
+  .admin-content {
+    margin-left: 200px;
+    padding: 20px;
+    width: calc(100% - 250px);
+  }
+  .admin-content h1 {
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ecf0f1;
+  }
+
+  /* Admin Section */
+  .admin-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin-bottom: 2rem;
+  }
+
   /* Server Capacity Info */
   .server-capacity {
     color: #7f8c8d;
@@ -223,6 +261,55 @@
     margin-top: 15px;
     width: auto;
     padding: 8px 20px;
+  }
+
+  /* Admin Actions */
+  .admin-actions {
+    margin-bottom: 20px;
+  }
+
+  /* Admin Button */
+  .admin-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: white;
+    margin: 5px 0;
+  }
+
+  /* Server Management Button */
+  .admin-btn--servers {
+    background-color: #e74c3c;
+  }
+
+  .admin-btn--servers:hover {
+    background-color: #d62c1a;
+  }
+
+  /* Users Management Button */
+  .admin-btn--users {
+    background-color: #ff6e08;
+  }
+
+  .admin-btn--users:hover {
+    background-color: #e67e22;
+  }
+
+  /* Warning Button */
+  .admin-btn--warning {
+    background-color: #f39c12;
+  }
+
+  .admin-btn--warning:hover {
+    background-color: #e67e22;
   }
 
   /* Responsive adjustments */

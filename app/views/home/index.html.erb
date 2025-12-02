@@ -1,11 +1,11 @@
 <div class="super-container">
   <section class="hero">
     <h1>Fast, Reliable, and Secure VPN in France</h1>
-    <p>Fenguard VPN offers a high-speed, reliable VPN connection via French servers. Protect your privacy and access content effortlessly.</p>
+    <p>Vulcain VPN offers a high-speed, reliable VPN connection via French servers. Protect your privacy and access content effortlessly.</p>
     <a href="<%= new_user_registration_path %>" class="cta-btn">Get Started</a>
   </section>
   <section class="features">
-    <h2>Why Choose Fenguard VPN?</h2>
+    <h2>Why Choose Vulcain VPN?</h2>
     <div class="feature-grid">
       <div class="feature-card">
         <h3>🌍 French Servers</h3>
@@ -32,16 +32,16 @@
           <% end %>
           <h3><%= plan.name %></h3>
           <p class="plan-subtitle">Flexible, cancel anytime</p>
-          <div class="plan-price">$<%= plan.price %>/<%= plan.interval %></div>
+          <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
           <div class="plan-features">
             <% plan.description.split(', ').each do |feature| %>
               <% if feature.include?("Devices") %>
                 <p>
-                  ✅ <%= feature %>
+                  <span class="checkmark">➤</span> <%= feature %>
                   <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
                 </p>
               <% else %>
-                <p><strong>✅ <%= feature %></strong></p>
+                <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
               <% end %>
             <% end %>
           </div>
@@ -61,16 +61,16 @@
                 <% end %>
                 <h3><%= plan.name %></h3>
                 <p class="plan-subtitle">Flexible, cancel anytime</p>
-                <div class="plan-price">$<%= plan.price %>/<%= plan.interval %></div>
+                <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
                 <div class="plan-features">
                   <% plan.description.split(', ').each do |feature| %>
                     <% if feature.include?("Devices") %>
                       <p>
-                        ✅ <%= feature %>
+                        <span class="checkmark">➤</span> <%= feature %>
                         <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
                       </p>
                     <% else %>
-                      <p><strong>✅ <%= feature %></strong></p>
+                      <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
                     <% end %>
                   <% end %>
                 </div>
@@ -103,6 +103,7 @@
   }
   .hero h1 {
     font-size: 3rem;
+    font-family: 'Alice';
     margin-bottom: 1rem;
   }
   .hero p {
@@ -111,7 +112,8 @@
     margin-bottom: 2rem;
   }
   .cta-btn {
-    background-color: #e74c3c;
+    <%# background-color: #e74c3c; %>
+    background-color: #ff6e08;
     color: white;
     padding: 1rem 2rem;
     border: none;
@@ -120,6 +122,9 @@
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
+  }
+  .cta-btn:hover:not(:disabled) {
+    background-color: #ffc33c;
   }
   /* Features Section */
   .features {
@@ -149,6 +154,11 @@
   }
   .feature-card h3 {
     font-size: 1.5rem;
+  }
+  .checkmark {
+    color: #ff6e08; /* Match your accent color */
+    margin-right: 8px;
+    font-weight: bold; /* Optional: Make it stand out */
   }
   /* Super Container */
   .super-container {
@@ -187,12 +197,13 @@
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-top: 4px solid #27ae60;
+    border-top: 4px solid #ff6e08;
     position: relative;
   }
   /* Popular Badge */
   .popular-badge {
-    background-color: #e74c3c;
+    <%# background-color: #e74c3c; %>
+    background-color: #ff6e08;
     color: white;
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
@@ -216,7 +227,8 @@
   /* Plan Price */
   .plan-price {
     font-size: 2.5rem;
-    color: #e74c3c;
+    <%# color: #e74c3c; %>
+    color: #ff6e08;
     margin-bottom: 1.5rem;
   }
   /* Plan Features */
@@ -237,7 +249,7 @@
   }
   /* Plan Button */
   .plan-btn {
-    background-color: #27ae60;
+    background-color: #ff6e08;
     color: white;
     padding: 0.8rem;
     border: none;
@@ -254,7 +266,7 @@
     box-sizing: border-box;
   }
   .plan-btn:hover:not(:disabled) {
-    background-color: #219653;
+    background-color: #ffc33c;
   }
   .plan-btn:disabled {
     background-color: #95a5a6;

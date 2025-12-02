@@ -1,1006 +1,459 @@
-<div class="admin-dashboard">
-  <h1>Admin Dashboard</h1>
+<div class="admin-container">
+  <%= render 'admin/sidebar' %>
+  <div class="admin-content">
+    <h1>Dashboard</h1>
 
-  <!-- Search and Filter Controls -->
-  <div class="admin-section">
-    <div class="controls">
-      <input type="text" id="search-input" placeholder="Search by email, subscription name, or server..." class="search-input">
-      <div class="filter-options">
-        <label>
-          <input type="checkbox" id="hide-inactive" checked>
-          Hide users without active subscriptions
-        </label>
-        <div class="sort-options">
-          <span>Sort by:</span>
-          <button id="sort-email" class="sort-btn active">Email</button>
-          <button id="sort-server" class="sort-btn">Server</button>
-        </div>
+    <!-- Key Metrics Table -->
+    <div class="metrics-section">
+      <h2>Key Metrics</h2>
+      <table class="metrics-table">
+        <tr>
+          <th>Metric</th>
+          <th>Value</th>
+          <th>Trend</th>
+        </tr>
+
+        <!-- User Metrics (Grouped together) -->
+        <tr>
+          <td>Total Users</td>
+          <td><%= @total_users %></td>
+          <td><span class="metric-neutral">—</span></td>
+        </tr>
+        <tr>
+          <td>Active Users</td>
+          <td><%= @active_users %></td>
+          <td><span class="metric-positive">↑ <%= number_to_percentage((@active_users.to_f / @total_users * 100), precision: 1) if @total_users > 0 %></span></td>
+        </tr>
+
+        <!-- Subscription Metrics (Grouped together) -->
+        <tr>
+          <td>Total Subscriptions</td>
+          <td><%= @total_subscriptions %></td>
+          <td><span class="metric-neutral">—</span></td>
+        </tr>
+        <tr>
+          <td>Total Monthly Subscriptions</td>
+          <td><%= @monthly_subscriptions_total %></td>
+          <td><span class="metric-neutral">—</span></td>
+        </tr>
+        <tr>
+          <td>Total Weekly Subscriptions</td>
+          <td><%= @weekly_subscriptions %></td>
+          <td><span class="metric-neutral">—</span></td>
+        </tr>
+        <tr>
+          <td>Active Subscriptions</td>
+          <td><%= @active_subscriptions %></td>
+          <td><span class="metric-positive">↑ <%= number_to_percentage((@active_subscriptions.to_f / @total_subscriptions * 100), precision: 1) if @total_subscriptions > 0 %></span></td>
+        </tr>
+        <tr>
+          <td>Subscriptions Today</td>
+          <td><%= @subscriptions_today %></td>
+          <td><span class="metric-neutral">—</span></td>
+        </tr>
+        <tr>
+          <td>Subscriptions This Month</td>
+          <td><%= @subscriptions_this_month %></td>
+          <td><span class="metric-neutral">—</span></td>
+        </tr>
+        <tr>
+          <td>Subscriptions This Year</td>
+          <td><%= @subscriptions_this_year %></td>
+          <td><span class="metric-neutral">—</span></td>
+        </tr>
+
+        <!-- Server Metrics (Grouped together) -->
+        <tr>
+          <td>Total Servers</td>
+          <td><%= @total_servers %></td>
+          <td><span class="metric-neutral">—</span></td>
+        </tr>
+        <tr>
+          <td>Total Server Capacity</td>
+          <td><%= @total_server_capacity %></td>
+          <td><span class="metric-neutral">—</span></td>
+        </tr>
+        <tr>
+          <td>Server Load</td>
+          <td><%= @server_load_percentage %>%</td>
+          <td>
+            <div class="load-bar" style="width: <%= @server_load_percentage %>%;"></div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts">
+      <div class="chart-container">
+        <h3>Monthly Subscriptions (Past 12 Months)</h3>
+        <canvas id="monthlySubscriptionsChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>Server Load Distribution</h3>
+        <canvas id="serverLoadChart"></canvas>
       </div>
     </div>
-  </div>
 
-  <!-- Users Section -->
-  <div class="admin-section">
-    <h2>Users</h2>
-    <table class="users-table">
-      <thead>
-        <tr>
-          <th>Email</th>
-          <th>Active Subscriptions</th>
-          <th>Server</th> <!-- New column header -->
-          <th>Expired Subscriptions</th>
-        </tr>
-      </thead>
-      <tbody id="users-table-body">
-        <% @users.each do |user| %>
-          <tr class="user-row" data-email="<%= user.email.downcase %>"
-              data-has-active="<%= user.subscriptions.active.any? ? 'true' : 'false' %>"
-              data-server="<%= user.subscriptions.active.first&.server&.name&.downcase || '' %>">
-            <td><%= user.email %></td>
-            <td>
-              <% if user.subscriptions.active.any? %>
-                <button class="toggle-details" data-target="<%= user.id %>-active" aria-expanded="false">
-                  <%= user.subscriptions.active.count %> <span class="toggle-span">(Show)</span>
-                </button>
-              <% else %>
-                <span class="count-display"><%= user.subscriptions.active.count %></span>
-              <% end %>
-            </td>
-            <td>
-              <% if user.subscriptions.active.any? %>
-                <%= user.subscriptions.active.first.server.name %>
-              <% else %>
-                <span class="no-server">No active server</span>
-              <% end %>
-            </td>
-            <td>
-              <% if user.subscriptions.expired.any? %>
-                <button class="toggle-details" data-target="<%= user.id %>-expired" aria-expanded="false">
-                  <%= user.subscriptions.expired.count %> <span class="toggle-span">(Show)</span>
-                </button>
-              <% else %>
-                <span class="count-display"><%= user.subscriptions.expired.count %></span>
-              <% end %>
-            </td>
+    <!-- Detailed Stats -->
+    <div class="detailed-stats">
+      <div class="stat-box">
+        <h3>Subscription Status</h3>
+        <table class="status-table">
+          <tr>
+            <td>Active:</td>
+            <td><%= @active_subscriptions %></td>
           </tr>
-
-          <!-- Active Subscriptions Details Row -->
-          <% if user.subscriptions.active.any? %>
-            <tr id="<%= user.id %>-active" class="details-row" aria-expanded="false" style="display: none;"
-                data-subscriptions="<%= user.subscriptions.active.map(&:name).join(' ').downcase %>"
-                data-server="<%= user.subscriptions.active.first.server.name.downcase %>">
-              <td colspan="4">
-                <div class="details-content">
-                  <strong>Active Subscriptions for <%= user.email %></strong>
-                  <table class="subscription-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Plan</th>
-                        <th>Server</th> <!-- New column header -->
-                        <th>Expires At</th>
-                        <th>WireGuard Clients</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% user.subscriptions.active.each do |subscription| %>
-                        <tr>
-                          <td><%= subscription.name %></td>
-                          <td><%= subscription.plan.name %></td>
-                          <td><%= subscription.server.name %></td> <!-- Server name -->
-                          <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
-                          <td>
-                            <% subscription.wireguard_clients.each do |client| %>
-                              <div class="wireguard-clients"><%= client.name %></div>
-                            <% end %>
-                          </td>
-                        </tr>
-                      <% end %>
-                    </tbody>
-                  </table>
-                </div>
-              </td>
+          <tr>
+            <td>Expired:</td>
+            <td><%= @expired_subscriptions %></td>
+          </tr>
+          <tr>
+            <td>Pending:</td>
+            <td><%= @pending_subscriptions %></td>
+          </tr>
+        </table>
+        <canvas id="subscriptionStatusChart"></canvas>
+      </div>
+      <div class="stat-box">
+        <h3>Plan Popularity</h3>
+        <table class="popularity-table">
+          <% @plan_popularity.each do |plan, count| %>
+            <tr>
+              <td><%= plan %>:</td>
+              <td><%= count %></td>
             </tr>
           <% end %>
-
-          <!-- Expired Subscriptions Details Row -->
-          <% if user.subscriptions.expired.any? %>
-            <tr id="<%= user.id %>-expired" class="details-row" aria-expanded="false" style="display: none;"
-                data-subscriptions="<%= user.subscriptions.expired.map(&:name).join(' ').downcase %>">
-              <td colspan="4">
-                <div class="details-content">
-                  <strong>Expired Subscriptions for <%= user.email %></strong>
-                  <table class="subscription-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Plan</th>
-                        <th>Server</th> <!-- New column header -->
-                        <th>Expired At</th>
-                        <th>WireGuard Clients</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% user.subscriptions.expired.each do |subscription| %>
-                        <tr>
-                          <td><%= subscription.name %></td>
-                          <td><%= subscription.plan.name %></td>
-                          <td><%= subscription.server&.name || 'N/A' %></td> <!-- Server name -->
-                          <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
-                          <td>
-                            <% subscription.wireguard_clients.each do |client| %>
-                              <div class="wireguard-clients"><%= client.name %></div>
-                            <% end %>
-                          </td>
-                        </tr>
-                      <% end %>
-                    </tbody>
-                  </table>
-                </div>
-              </td>
-            </tr>
-          <% end %>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Plans Section -->
-  <div class="admin-section">
-    <h2>Manage Plans</h2>
-    <div class="controls">
-      <button id="add-plan-btn" class="admin-btn admin-btn--plans">Add New Plan</button>
-    </div>
-    <table class="plans-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Price</th>
-          <th>Interval</th>
-          <th>Active</th>
-          <th>Features</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="plans-table-body">
-        <% @plans.each do |plan| %>
-          <tr class="plan-row" data-plan-id="<%= plan.id %>">
-            <td class="editable" data-field="name" data-plan-id="<%= plan.id %>"><%= plan.name %></td>
-            <td class="editable" data-field="price" data-plan-id="<%= plan.id %>">$<%= plan.price %></td>
-            <td><%= plan.interval.capitalize %></td>
-            <td>
-              <input type="checkbox" class="plan-active-toggle" data-plan-id="<%= plan.id %>" <%= plan.active ? 'checked' : '' %>>
-            </td>
-            <td class="editable" data-field="description" data-plan-id="<%= plan.id %>">
-              <%= plan.description %>
-            </td>
-            <td>
-              <button class="edit-plan-btn admin-btn admin-btn--users" data-plan-id="<%= plan.id %>">Edit</button>
-              <button class="save-plan-btn admin-btn admin-btn--servers" data-plan-id="<%= plan.id %>" style="display: none;">Save</button>
-              <button class="cancel-plan-btn admin-btn" data-plan-id="<%= plan.id %>" style="display: none;">Cancel</button>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Servers Section -->
-  <div class="admin-section">
-    <h2>Manage Servers</h2>
-    <div class="admin-actions">
-      <%= link_to "Admin: Manage Servers", admin_servers_path, class: "admin-btn admin-btn--servers" %>
-    </div>
-  </div>
-
-  <!-- Add Plan Modal -->
-  <div id="add-plan-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal">&times;</span>
-      <h3>Add New Plan</h3>
-      <form id="add-plan-form">
-        <div class="form-group">
-          <label for="new-plan-name">Plan Name:</label>
-          <input type="text" id="new-plan-name" required>
-        </div>
-        <div class="form-group">
-          <label for="new-plan-price">Price:</label>
-          <input type="number" step="0.01" id="new-plan-price" required>
-        </div>
-        <div class="form-group">
-          <label for="new-plan-interval">Interval:</label>
-          <select id="new-plan-interval" required>
-            <option value="week">Week</option>
-            <option value="month" selected>Month</option>
-            <option value="year">Year</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="new-plan-features">Features (comma-separated):</label>
-          <textarea id="new-plan-features" rows="3" required></textarea>
-        </div>
-        <div class="form-group">
-          <label>
-            <input type="checkbox" id="new-plan-active" checked>
-            Active
-          </label>
-        </div>
-        <button type="submit" class="admin-btn admin-btn--plans">Create Plan</button>
-      </form>
+        </table>
+        <canvas id="planPopularityChart"></canvas>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Monthly Subscriptions Chart
+  const monthlyCtx = document.getElementById('monthlySubscriptionsChart').getContext('2d');
+  const monthlySubscriptionsChart = new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+      labels: <%= raw @monthly_subscriptions.map { |m| m[:month].strftime("%b %Y") }.to_json %>,
+      datasets: [{
+        label: 'Subscriptions',
+        data: <%= raw @monthly_subscriptions.map { |m| m[:count] }.to_json %>,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            boxWidth: 12,
+            padding: 10
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            autoSkip: false,
+            maxRotation: 45,
+            minRotation: 0
+          }
+        }
+      }
+    }
+  });
+
+  // Server Load Chart
+  const serverLoadCtx = document.getElementById('serverLoadChart').getContext('2d');
+  const serverLoadChart = new Chart(serverLoadCtx, {
+    type: 'bar',
+    data: {
+      labels: <%= raw @server_load_data.map { |s| s[:name] }.to_json %>,
+      datasets: [{
+        label: 'Load (%)',
+        data: <%= raw @server_load_data.map { |s| s[:load].round(2) }.to_json %>,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true }
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            boxWidth: 12,
+            padding: 10
+          }
+        }
+      }
+    }
+  });
+
+  // Subscription Status Chart
+  const statusCtx = document.getElementById('subscriptionStatusChart').getContext('2d');
+  const subscriptionStatusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Active', 'Expired', 'Pending'],
+      datasets: [{
+        data: [<%= @active_subscriptions %>, <%= @expired_subscriptions %>, <%= @pending_subscriptions %>],
+        backgroundColor: ['#4CAF50', '#F44336', '#FFC107']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            boxWidth: 12,
+            padding: 10
+          }
+        }
+      }
+    }
+  });
+
+  // Plan Popularity Chart
+  const planCtx = document.getElementById('planPopularityChart').getContext('2d');
+  const planPopularityChart = new Chart(planCtx, {
+    type: 'pie',
+    data: {
+      labels: <%= raw @plan_popularity.keys.to_json %>,
+      datasets: [{
+        data: <%= raw @plan_popularity.values.to_json %>,
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            boxWidth: 12,
+            padding: 10
+          }
+        }
+      }
+    }
+  });
+</script>
+
 <style>
-  /* Admin Dashboard Styles */
-  .admin-dashboard {
+  .header {
+    position: fixed;
+    width: 100vw;
+  }
+
+  /* Admin Container */
+  .admin-container {
+    padding-top: 80px;
+    display: flex;
+    min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
     line-height: 1.5;
+  }
+
+  /* Sidebar */
+  .admin-sidebar {
+    width: 200px;
+    background: #2c3e50;
+    color: white;
+    padding: 20px 0;
+    position: fixed;
+    height: 100%;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .admin-sidebar h2 {
+    padding: 0 20px 20px;
+    font-size: 20px;
+    color: #ecf0f1;
+  }
+
+  .admin-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .admin-sidebar li a {
+    display: block;
+    padding: 12px 20px;
+    color: #bdc3c7;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .admin-sidebar li a:hover,
+  .admin-sidebar li a.active {
+    background: #34495e;
+    color: white;
+  }
+
+  /* Main Content */
+  .admin-content {
+    margin-left: 200px;
     padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    width: calc(100% - 200px);
   }
 
-  .admin-dashboard h1 {
-    color: #2c3e50;
-    font-size: 28px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #ecf0f1;
-  }
-
-  .admin-dashboard h2 {
+  .admin-content h1 {
     color: #2c3e50;
     font-size: 24px;
-    margin-bottom: 1.5rem;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #ecf0f1;
-    position: relative;
-  }
-
-  .admin-dashboard h2:after {
-    content: "";
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 60px;
-    height: 2px;
-    background-color: #3498db;
-  }
-
-  /* Admin Actions Section */
-  .admin-actions {
-    margin: 1.5rem auto;
-    text-align: center;
-    max-width: 300px;
-  }
-
-  /* Admin Button Base Style */
-  .admin-btn {
-    display: inline-block;
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: 600;
-    text-align: center;
-    text-decoration: none;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    color: white;
-    background-color: #0066cc;
-    margin: 5px 0;
-  }
-
-  /* Server Management Button */
-  .admin-btn--servers {
-    background-color: #e74c3c;
-  }
-
-  .admin-btn--servers:hover {
-    background-color: #d62c1a;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
-  }
-
-  /* Plans Section Button */
-  .admin-btn--plans {
-    background-color: #9b59b6;
-  }
-
-  .admin-btn--plans:hover {
-    background-color: #8e44ad;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(155, 89, 182, 0.3);
-  }
-
-  /* Users Section Button */
-  .admin-btn--users {
-    background-color: #3498db;
-  }
-
-  .admin-btn--users:hover {
-    background-color: #2980b9;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
-  }
-
-  /* Section Cards */
-  .admin-section {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    padding: 24px;
-    margin-bottom: 2rem;
-  }
-
-  /* Controls Styles */
-  .controls {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
-    gap: 15px;
   }
 
-  .search-input {
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    min-width: 250px;
-    flex-grow: 1;
-    transition: border-color 0.2s;
+  /* Metrics Section */
+  .metrics-section {
+    margin-bottom: 30px;
   }
 
-  .search-input:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  .metrics-section h2 {
+    color: #7f8c8d;
+    font-size: 18px;
+    margin-bottom: 10px;
   }
 
-  .filter-options {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-
-  .filter-options label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 14px;
-    color: #555;
-    cursor: pointer;
-  }
-
-  .sort-options {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .sort-btn {
-    padding: 8px 16px;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s;
-  }
-
-  .sort-btn:hover {
-    background: #e9ecef;
-  }
-
-  .sort-btn.active {
-    background: #0066cc;
-    color: white;
-    border-color: #0066cc;
-  }
-
-  /* Table Styles */
-  .users-table, .plans-table {
+  .metrics-table {
     width: 100%;
     border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
     border-radius: 6px;
     overflow: hidden;
-    margin-bottom: 0;
   }
 
-  .users-table th, .plans-table th {
-    padding: 14px 16px;
-    text-align: left;
-    font-weight: 600;
-    background-color: #f8f9fa;
-    color: #2c3e50;
-  }
-
-  .users-table td, .plans-table td {
+  .metrics-table th,
+  .metrics-table td {
     padding: 12px 16px;
-    vertical-align: top;
+    text-align: left;
     border-bottom: 1px solid #f0f0f0;
   }
 
-  .users-table tr:hover, .plans-table tr:hover {
-    background-color: #f9f9f9;
-  }
-
-  .toggle-details {
-    background: none;
-    border: none;
-    color: #3498db;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 4px 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    text-decoration: none;
-  }
-
-  .toggle-details:hover {
-    color: #2980b9;
-    text-decoration: none;
-  }
-
-  .toggle-details::after {
-    content: "+";
-    font-size: 14px;
-    transition: transform 0.2s;
-  }
-
-  .toggle-details[aria-expanded="true"]::after {
-    transform: rotate(45deg);
-  }
-
-  .count-display {
-    color: #666;
-    display: block;
-    padding: 4px 0;
-  }
-
-  .details-row {
-    background-color: #f8f9fa;
-    display: none;
-  }
-
-  .details-row[aria-expanded="true"] {
-    display: table-row;
-  }
-
-  .details-content {
-    width: 100%;
-    padding: 15px;
-  }
-
-  .subscription-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 8px;
-  }
-
-  .subscription-table th {
-    padding: 10px 12px;
-    text-align: left;
-    background-color: #e9ecef;
-    color: #495057;
+  .metrics-table th {
+    background: #f8f9fa;
+    color: #2c3e50;
     font-weight: 600;
   }
 
-  .subscription-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #f0f0f0;
+  .metrics-table tr:hover {
+    background: #f9f9f9;
   }
 
-  .wireguard-clients {
-    margin-bottom: 4px;
-    color: #555;
-    font-size: 14px;
+  .metric-positive {
+    color: #2ecc71;
+    font-weight: 600;
   }
 
-  .toggle-span {
-    font-size: 0.9em;
+  .metric-negative {
+    color: #e74c3c;
+    font-weight: 600;
+  }
+
+  .metric-neutral {
     color: #7f8c8d;
   }
 
-  /* Plans Table Specific */
-  .editable:hover {
-    background-color: #f0f8ff;
-    cursor: pointer;
+  .load-bar {
+    height: 10px;
+    background: #3498db;
+    border-radius: 5px;
+    display: inline-block;
   }
 
-  .edit-input, .edit-textarea {
+  /* Status and Popularity Tables */
+  .status-table,
+  .popularity-table {
     width: 100%;
-    padding: 6px 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+    margin-bottom: 20px;
   }
 
-  .edit-textarea {
-    min-height: 60px;
-    resize: vertical;
-    font-family: inherit;
+  .status-table td,
+  .popularity-table td {
+    padding: 8px;
   }
 
-  .plan-active-toggle {
-    cursor: pointer;
+  .status-table td:first-child,
+  .popularity-table td:first-child {
+    font-weight: 600;
+    color: #2c3e50;
   }
 
-  /* Modal Styles */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.4);
-    overflow: auto;
+  /* Charts */
+  .charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
   }
 
-  .modal-content {
-    background-color: white;
-    margin: 5% auto;
-    padding: 24px;
+  .chart-container,
+  .stat-box {
+    background: white;
     border-radius: 8px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    width: 90%;
-    max-width: 600px;
-    animation: modalopen 0.3s;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
 
-  @keyframes modalopen {
-    from {opacity: 0; transform: translateY(-20px);}
-    to {opacity: 1; transform: translateY(0);}
-  }
-
-  .close-modal {
-    color: #aaa;
-    float: right;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-
-  .close-modal:hover {
-    color: #333;
-  }
-
-  .modal-content h3 {
+  .chart-container h3,
+  .stat-box h3 {
     margin-top: 0;
     color: #2c3e50;
-    font-size: 20px;
-    margin-bottom: 1.5rem;
+    font-size: 16px;
+    margin-bottom: 15px;
   }
 
-  /* Form Group Styling */
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .form-group label {
+  .chart-container canvas,
+  .stat-box canvas {
+    width: 100% !important;
+    max-height: 300px;
     display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #2c3e50;
+    margin: 0 auto;
   }
 
-  .form-group input[type="text"],
-  .form-group input[type="number"],
-  .form-group select,
-  .form-group textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+  /* Detailed Stats */
+  .detailed-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
   }
 
-  .form-group input:focus,
-  .form-group select:focus,
-  .form-group textarea:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-  }
-
-  /* Responsive adjustments */
+  /* Responsive */
   @media (max-width: 768px) {
-    .admin-btn {
-      font-size: 14px;
-      padding: 10px 16px;
+    .admin-sidebar {
+      width: 100%;
+      height: auto;
+      position: relative;
     }
 
-    .admin-dashboard h2 {
-      font-size: 20px;
+    .admin-content {
+      margin-left: 0;
+      width: 100%;
     }
 
-    .users-table th,
-    .users-table td,
-    .plans-table th,
-    .plans-table td {
-      padding: 8px 10px;
-      font-size: 14px;
+    .charts,
+    .detailed-stats {
+      grid-template-columns: 1fr;
     }
-
-    .controls {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .filter-options {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-    }
-
-    .modal-content {
-      margin: 10% auto;
-      width: 95%;
-    }
-  }
-
-  /* Add these new styles for the server column */
-  .no-server {
-    color: #95a5a6;
-    font-style: italic;
-  }
-
-  /* Server name styling */
-  .users-table td:nth-child(3) {
-    font-weight: 500;
-    color: #2c3e50;
-  }
-
-  /* Sort button for server column */
-  #sort-server {
-    background-color: #e74c3c;
-    color: white;
-    border-color: #e74c3c;
-  }
-
-  #sort-server:hover {
-    background-color: #d62c1a;
-  }
-
-  /* Subscription table server column */
-  .subscription-table td:nth-child(3) {
-    font-weight: 500;
-    color: #e74c3c;
   }
 </style>
-
-<script>
-  // Function to toggle details rows
-  function toggleDetails(button) {
-    const targetId = button.getAttribute('data-target');
-    const detailsRow = document.getElementById(targetId);
-    const isExpanded = detailsRow.getAttribute('aria-expanded') === 'true';
-    button.setAttribute('aria-expanded', !isExpanded);
-    detailsRow.setAttribute('aria-expanded', !isExpanded);
-    detailsRow.style.display = isExpanded ? 'none' : 'table-row';
-    const span = button.querySelector('.toggle-span');
-    span.textContent = isExpanded ? '(Show)' : '(Hide)';
-  }
-
-  // Function to filter users
-  function filterUsers() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-    const hideInactive = document.getElementById('hide-inactive').checked;
-    const rows = document.querySelectorAll('.user-row');
-    const detailsRows = document.querySelectorAll('.details-row');
-
-    detailsRows.forEach(row => {
-      row.style.display = 'none';
-      row.setAttribute('aria-expanded', 'false');
-    });
-
-    rows.forEach(row => {
-      const email = row.getAttribute('data-email');
-      const server = row.getAttribute('data-server') || '';
-      const hasActive = row.getAttribute('data-has-active') === 'true';
-      const emailMatch = email.includes(searchTerm);
-      const serverMatch = server.includes(searchTerm);
-
-      if ((searchTerm === '' || emailMatch || serverMatch) && (!hideInactive || hasActive)) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-
-    if (searchTerm !== '') {
-      detailsRows.forEach(row => {
-        const subscriptions = row.getAttribute('data-subscriptions') || '';
-        const server = row.getAttribute('data-server') || '';
-        const subscriptionMatch = subscriptions.split(' ').some(name => name.includes(searchTerm));
-        const serverMatch = server.includes(searchTerm);
-
-        if (subscriptionMatch || serverMatch) {
-          const userId = row.id.split('-')[0];
-          const userRow = document.querySelector(`.user-row[data-email*="${userId}"]`);
-          if (userRow) userRow.style.display = '';
-        }
-      });
-    }
-  }
-
-  // Function to sort users by email
-  function sortUsers() {
-    const tableBody = document.getElementById('users-table-body');
-    const userRows = Array.from(tableBody.querySelectorAll('.user-row'));
-    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-    const hideInactive = document.getElementById('hide-inactive').checked;
-
-    const visibleUserRows = userRows.filter(row => {
-      const email = row.getAttribute('data-email');
-      const hasActive = row.getAttribute('data-has-active') === 'true';
-      const emailMatch = email.includes(searchTerm);
-      return (searchTerm === '' || emailMatch) && (!hideInactive || hasActive);
-    });
-
-    visibleUserRows.sort((a, b) => {
-      const aEmail = a.getAttribute('data-email');
-      const bEmail = b.getAttribute('data-email');
-      return aEmail.localeCompare(bEmail);
-    });
-
-    updateTable(visibleUserRows);
-  }
-
-  // Function to sort users by server
-  function sortUsersByServer() {
-    const tableBody = document.getElementById('users-table-body');
-    const userRows = Array.from(tableBody.querySelectorAll('.user-row'));
-    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-    const hideInactive = document.getElementById('hide-inactive').checked;
-
-    const visibleUserRows = userRows.filter(row => {
-      const email = row.getAttribute('data-email');
-      const hasActive = row.getAttribute('data-has-active') === 'true';
-      const emailMatch = email.includes(searchTerm);
-      return (searchTerm === '' || emailMatch) && (!hideInactive || hasActive);
-    });
-
-    visibleUserRows.sort((a, b) => {
-      const aServer = a.getAttribute('data-server') || '';
-      const bServer = b.getAttribute('data-server') || '';
-      return aServer.localeCompare(bServer);
-    });
-
-    updateTable(visibleUserRows);
-  }
-
-  // Function to update the table with sorted/filtered rows
-  function updateTable(rows) {
-    const tableBody = document.getElementById('users-table-body');
-    const allRows = Array.from(tableBody.querySelectorAll('tr'));
-
-    allRows.forEach(row => row.remove());
-
-    rows.forEach(userRow => {
-      tableBody.appendChild(userRow);
-      const userId = userRow.querySelector('.toggle-details')?.getAttribute('data-target')?.split('-')[0];
-      if (userId) {
-        const activeDetailsRow = document.getElementById(`${userId}-active`);
-        const expiredDetailsRow = document.getElementById(`${userId}-expired`);
-        if (activeDetailsRow && activeDetailsRow.getAttribute('aria-expanded') === 'true') {
-          tableBody.appendChild(activeDetailsRow);
-        }
-        if (expiredDetailsRow && expiredDetailsRow.getAttribute('aria-expanded') === 'true') {
-          tableBody.appendChild(expiredDetailsRow);
-        }
-      }
-    });
-  }
-
-  // Initialize page on load and Turbo navigation
-  document.addEventListener('DOMContentLoaded', initPage);
-  document.addEventListener('turbo:load', initPage);
-
-  function initPage() {
-    // Toggle details functionality
-    document.querySelectorAll('.toggle-details').forEach(button => {
-      button.onclick = () => toggleDetails(button);
-    });
-
-    // Search input
-    document.getElementById('search-input').onkeyup = filterUsers;
-
-    // Hide inactive toggle
-    document.getElementById('hide-inactive').onchange = filterUsers;
-
-    // Sort buttons
-    document.getElementById('sort-email').onclick = function() {
-      document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
-      this.classList.add('active');
-      sortUsers();
-    };
-
-    document.getElementById('sort-server').onclick = function() {
-      document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
-      this.classList.add('active');
-      sortUsersByServer();
-    };
-
-    // Plan management
-    document.getElementById('add-plan-btn').onclick = function() {
-      document.getElementById('add-plan-modal').style.display = 'block';
-    };
-
-    // Close modal
-    document.querySelectorAll('.close-modal').forEach(button => {
-      button.onclick = function() {
-        document.getElementById('add-plan-modal').style.display = 'none';
-      };
-    });
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-      if (event.target === document.getElementById('add-plan-modal')) {
-        document.getElementById('add-plan-modal').style.display = 'none';
-      }
-    };
-
-    // Add new plan form
-    document.getElementById('add-plan-form').onsubmit = function(e) {
-      e.preventDefault();
-      const name = document.getElementById('new-plan-name').value;
-      const price = document.getElementById('new-plan-price').value;
-      const interval = document.getElementById('new-plan-interval').value;
-      const features = document.getElementById('new-plan-features').value;
-      const active = document.getElementById('new-plan-active').checked;
-
-      fetch('/admin/plans', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({
-          plan: {
-            name: name,
-            price: price,
-            interval: interval,
-            description: features,
-            active: active
-          }
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          location.reload();
-        } else {
-          alert('Error creating plan: ' + (data.error || 'Unknown error'));
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while creating the plan');
-      });
-    };
-
-    // Edit plan functionality
-    document.querySelectorAll('.edit-plan-btn').forEach(button => {
-      button.onclick = function() {
-        const planId = this.getAttribute('data-plan-id');
-        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
-        row.querySelector('.edit-plan-btn').style.display = 'none';
-        row.querySelector('.save-plan-btn').style.display = 'inline-block';
-        row.querySelector('.cancel-plan-btn').style.display = 'inline-block';
-
-        row.querySelectorAll('.editable').forEach(cell => {
-          const field = cell.getAttribute('data-field');
-          const value = cell.textContent.replace('$', '');
-          if (field === 'description') {
-            const textarea = document.createElement('textarea');
-            textarea.value = value;
-            textarea.className = 'edit-textarea';
-            cell.innerHTML = '';
-            cell.appendChild(textarea);
-          } else {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = value;
-            input.className = 'edit-input';
-            cell.innerHTML = '';
-            cell.appendChild(input);
-          }
-        });
-      };
-    });
-
-    // Save plan changes
-    document.querySelectorAll('.save-plan-btn').forEach(button => {
-      button.onclick = function() {
-        const planId = this.getAttribute('data-plan-id');
-        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
-        const updatedData = {};
-
-        row.querySelectorAll('.editable').forEach(cell => {
-          const field = cell.getAttribute('data-field');
-          const input = cell.querySelector('input, textarea');
-          if (field === 'price') {
-            updatedData[field] = parseFloat(input.value.replace('$', ''));
-          } else {
-            updatedData[field] = input.value;
-          }
-        });
-
-        updatedData.active = row.querySelector('.plan-active-toggle').checked;
-
-        fetch(`/admin/plans/${planId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-          },
-          body: JSON.stringify({ plan: updatedData })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            location.reload();
-          } else {
-            alert('Error updating plan: ' + (data.error || 'Unknown error'));
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred while updating the plan');
-        });
-      };
-    });
-
-    // Cancel plan editing
-    document.querySelectorAll('.cancel-plan-btn').forEach(button => {
-      button.onclick = function() {
-        location.reload();
-      };
-    });
-
-    // Toggle plan active status
-    document.querySelectorAll('.plan-active-toggle').forEach(checkbox => {
-      checkbox.onchange = function() {
-        const planId = this.getAttribute('data-plan-id');
-        const active = this.checked;
-
-        fetch(`/admin/plans/${planId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-          },
-          body: JSON.stringify({ plan: { active: active } })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (!data.success) {
-            alert('Error updating plan status: ' + (data.error || 'Unknown error'));
-            this.checked = !this.checked;
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred while updating the plan status');
-          this.checked = !this.checked;
-        });
-      };
-    });
-  }
-</script>
-

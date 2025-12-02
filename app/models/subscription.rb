@@ -24,6 +24,10 @@ class Subscription < ApplicationRecord
     where(status: "pending")
   }
 
+   scope :payment_pending, -> {
+    where(status: "payment_pending")
+  }
+
   scope :preallocated, -> {
     where(user_id: nil, status: "preallocated")
   }
@@ -40,6 +44,10 @@ class Subscription < ApplicationRecord
 
   def pending?
     status == "pending"
+  end
+
+  def payment_pending?
+    status == "payment_pending"
   end
 
   def failed?

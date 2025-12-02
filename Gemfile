@@ -46,7 +46,7 @@ gem 'sassc-rails'
 gem "net-ssh", ">= 6.0"
 gem "net-scp", ">= 3.0"
 gem "net-sftp", ">= 3.0"
-gem "ed25519", "~> 1.2" 
+gem "ed25519", "~> 1.2"
 gem "bcrypt_pbkdf", "~> 1.0"
 
 gem 'aws-sdk-s3', '~> 1.11'
@@ -59,6 +59,9 @@ gem "whenever", require: false
 
 # Heroku-Specific
 gem "rails_12factor", group: :production
+
+# Paiment system
+gem 'stripe'
 
 group :development, :test do
   gem "sqlite3", ">= 1.4" # Only for development/test

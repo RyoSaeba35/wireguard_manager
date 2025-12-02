@@ -1,0 +1,664 @@
+<div class="admin-container">
+  <!-- Sidebar Navigation -->
+  <%= render 'admin/sidebar' %>
+
+  <!-- Main Content: Users Page -->
+  <div class="admin-content">
+    <h1>Users Management</h1>
+
+    <!-- User Actions -->
+    <div class="user-actions">
+      <button id="add-user-btn" class="admin-btn admin-btn--users">Add User</button>
+      <button id="cancel-subscription-btn" class="admin-btn admin-btn--servers">Cancel Subscription</button>
+    </div>
+
+    <!-- Search and Filter Controls -->
+    <div class="controls">
+      <input type="text" id="search-input" placeholder="Search by email, subscription name, or server..." class="search-input">
+      <div class="filter-options">
+        <label>
+          <input type="checkbox" id="hide-inactive" unchecked>
+          Hide users without active subscriptions
+        </label>
+        <div class="sort-options">
+          <span>Sort by:</span>
+          <button id="sort-email" class="sort-btn active">Email</button>
+          <button id="sort-server" class="sort-btn">Server</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Table -->
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Active Subscriptions</th>
+          <th>Server</th>
+          <th>Expired Subscriptions</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="users-table-body">
+        <% @users.each do |user| %>
+          <tr class="user-row" data-email="<%= user.email.downcase %>"
+              data-has-active="<%= user.subscriptions.active.any? ? 'true' : 'false' %>"
+              data-server="<%= user.subscriptions.active.first&.server&.name&.downcase || '' %>">
+            <td><%= user.email %></td>
+            <td>
+              <% if user.subscriptions.active.any? %>
+                <button class="toggle-details" data-target="<%= user.id %>-active" aria-expanded="false">
+                  <%= user.subscriptions.active.count %> <span class="toggle-span">(Show)</span>
+                </button>
+              <% else %>
+                <span class="count-display"><%= user.subscriptions.active.count %></span>
+              <% end %>
+            </td>
+            <td>
+              <% if user.subscriptions.active.any? %>
+                <%= user.subscriptions.active.first.server.name %>
+              <% else %>
+                <span class="no-server">No active server</span>
+              <% end %>
+            </td>
+            <td>
+              <% if user.subscriptions.expired.any? %>
+                <button class="toggle-details" data-target="<%= user.id %>-expired" aria-expanded="false">
+                  <%= user.subscriptions.expired.count %> <span class="toggle-span">(Show)</span>
+                </button>
+              <% else %>
+                <span class="count-display"><%= user.subscriptions.expired.count %></span>
+              <% end %>
+            </td>
+            <td>
+              <div class="dropdown">
+                <button class="dropdown-btn">Actions</button>
+                <div class="dropdown-content">
+                  <a href="#" class="add-subscription-btn" data-user-id="<%= user.id %>">Add Subscription</a>
+                  <a href="#" class="delete-user-btn" data-user-id="<%= user.id %>">Delete User</a>
+                </div>
+              </td>
+          </tr>
+
+          <!-- Active Subscriptions Details Row -->
+          <% if user.subscriptions.active.any? %>
+            <tr id="<%= user.id %>-active" class="details-row" aria-expanded="false" style="display: none;"
+                data-subscriptions="<%= user.subscriptions.active.map(&:name).join(' ').downcase %>"
+                data-server="<%= user.subscriptions.active.first.server.name.downcase %>">
+              <td colspan="5">
+                <div class="details-content">
+                  <strong>Active Subscriptions for <%= user.email %></strong>
+                  <table class="subscription-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Plan</th>
+                        <th>Server</th>
+                        <th>Expires At</th>
+                        <th>WireGuard Clients</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% user.subscriptions.active.each do |subscription| %>
+                        <tr>
+                          <td><%= subscription.name %></td>
+                          <td><%= subscription.plan.name %></td>
+                          <td><%= subscription.server.name %></td>
+                          <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
+                          <td>
+                            <% subscription.wireguard_clients.each do |client| %>
+                              <div class="wireguard-clients"><%= client.name %></div>
+                            <% end %>
+                          </td>
+                          <td>
+                            <button class="cancel-subscription-btn admin-btn--servers"
+                                    data-subscription-id="<%= subscription.id %>"
+                                    data-user-id="<%= user.id %>">
+                              Cancel
+                            </button>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+
+          <!-- Expired Subscriptions Details Row -->
+          <% if user.subscriptions.expired.any? %>
+            <tr id="<%= user.id %>-expired" class="details-row" aria-expanded="false" style="display: none;"
+                data-subscriptions="<%= user.subscriptions.expired.map(&:name).join(' ').downcase %>">
+              <td colspan="5">
+                <div class="details-content">
+                  <strong>Expired Subscriptions for <%= user.email %></strong>
+                  <table class="subscription-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Plan</th>
+                        <th>Server</th>
+                        <th>Expired At</th>
+                        <th>WireGuard Clients</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% user.subscriptions.expired.each do |subscription| %>
+                        <tr>
+                          <td><%= subscription.name %></td>
+                          <td><%= subscription.plan.name %></td>
+                          <td><%= subscription.server&.name || 'N/A' %></td>
+                          <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
+                          <td>
+                            <% subscription.wireguard_clients.each do |client| %>
+                              <div class="wireguard-clients"><%= client.name %></div>
+                            <% end %>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add User Modal -->
+  <div id="add-user-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3>Add New User</h3>
+      <form id="add-user-form">
+        <div class="form-group">
+          <label for="new-user-email">Email:</label>
+          <input type="email" id="new-user-email" required>
+        </div>
+        <button type="submit" class="admin-btn admin-btn--users">Create User</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Subscription Modal -->
+  <div id="add-subscription-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3>Add Subscription</h3>
+      <form id="add-subscription-form">
+        <input type="hidden" id="subscription-user-id">
+        <div class="form-group">
+          <label for="subscription-name">Subscription Name:</label>
+          <input type="text" id="subscription-name" required>
+        </div>
+        <div class="form-group">
+          <label for="subscription-plan">Plan:</label>
+          <select id="subscription-plan" required>
+            <% @plans.each do |plan| %>
+              <option value="<%= plan.id %>"><%= plan.name %> ($<%= plan.price %>/<%= plan.interval %>)</option>
+            <% end %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="subscription-server">Server:</label>
+          <select id="subscription-server" required>
+            <% @servers.each do |server| %>
+              <option value="<%= server.id %>"><%= server.name %></option>
+            <% end %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="subscription-expires-at">Expires At:</label>
+          <input type="date" id="subscription-expires-at" required>
+        </div>
+        <button type="submit" class="admin-btn admin-btn--users">Add Subscription</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .header {
+    position: fixed;
+    width: 100vw;
+  }
+  /* Admin Container */
+  .admin-container {
+    padding-top: 80px;
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  /* Sidebar */
+  .admin-sidebar {
+    width: 250px;
+    background: #2c3e50;
+    color: white;
+    padding: 20px 0;
+    position: fixed;
+    height: 100%;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  }
+  .admin-sidebar h2 {
+    padding: 0 20px 20px;
+    font-size: 20px;
+    color: #ecf0f1;
+  }
+  .admin-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .admin-sidebar li a {
+    display: block;
+    padding: 12px 20px;
+    color: #bdc3c7;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .admin-sidebar li a:hover,
+  .admin-sidebar li a.active {
+    background: #34495e;
+    color: white;
+  }
+
+  /* Main Content */
+  .admin-content {
+    margin-left: 250px;
+    padding: 20px;
+    width: calc(100% - 250px);
+  }
+  .admin-content h1 {
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ecf0f1;
+  }
+
+  /* User Actions */
+  .user-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+  }
+  .search-input {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 250px;
+    flex-grow: 1;
+  }
+  .filter-options {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  .sort-btn {
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .sort-btn.active {
+    background: #0066cc;
+    color: white;
+    border-color: #0066cc;
+  }
+
+  /* Tables */
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .users-table th, .users-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .users-table th {
+    background: #f8f9fa;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  .users-table tr:hover {
+    background: #f9f9f9;
+  }
+  .toggle-details {
+    background: none;
+    border: none;
+    color: #ff6e08;
+    cursor: pointer;
+  }
+  .details-row {
+    background: #f8f9fa;
+    display: none;
+  }
+  .details-row[aria-expanded="true"] {
+    display: table-row;
+  }
+  .subscription-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  .subscription-table th {
+    background: #e9ecef;
+    color: #495057;
+    padding: 10px 12px;
+  }
+  .subscription-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  /* Dropdown */
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  .dropdown-btn {
+    background: #0066cc;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background: white;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    z-index: 1;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .dropdown-content a {
+    color: #333;
+    padding: 8px 12px;
+    text-decoration: none;
+    display: block;
+  }
+  .dropdown-content a:hover {
+    background: #f0f0f0;
+  }
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+
+  /* Buttons */
+  .admin-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  .admin-btn--users {
+    background: #ff6e08;
+    color: white;
+  }
+  .admin-btn--servers {
+    background: #e74c3c;
+    color: white;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+  }
+  .modal-content {
+    background: white;
+    margin: 5% auto;
+    padding: 24px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  }
+  .close-modal {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  .form-group {
+    margin-bottom: 15px;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .admin-sidebar {
+      width: 100%;
+      height: auto;
+      position: relative;
+    }
+    .admin-sidebar ul {
+      display: flex;
+      overflow-x: auto;
+    }
+    .admin-sidebar li {
+      white-space: nowrap;
+    }
+    .admin-content {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  // Toggle Details
+  document.querySelectorAll('.toggle-details').forEach(button => {
+    button.addEventListener('click', () => {
+      const targetId = button.getAttribute('data-target');
+      const detailsRow = document.getElementById(targetId);
+      const isExpanded = detailsRow.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', !isExpanded);
+      detailsRow.setAttribute('aria-expanded', !isExpanded);
+      detailsRow.style.display = isExpanded ? 'none' : 'table-row';
+      button.querySelector('.toggle-span').textContent = isExpanded ? '(Show)' : '(Hide)';
+    });
+  });
+
+  // Search and Filter
+  document.getElementById('search-input').addEventListener('keyup', filterUsers);
+  document.getElementById('hide-inactive').addEventListener('change', filterUsers);
+
+  function filterUsers() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const hideInactive = document.getElementById('hide-inactive').checked;
+    document.querySelectorAll('.user-row').forEach(row => {
+      const email = row.getAttribute('data-email');
+      const hasActive = row.getAttribute('data-has-active') === 'true';
+      const emailMatch = email.includes(searchTerm);
+      if ((searchTerm === '' || emailMatch) && (!hideInactive || hasActive)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  // Sorting
+  document.getElementById('sort-email').addEventListener('click', () => {
+    sortUsers('email');
+  });
+  document.getElementById('sort-server').addEventListener('click', () => {
+    sortUsers('server');
+  });
+
+  function sortUsers(by) {
+    const tableBody = document.getElementById('users-table-body');
+    const rows = Array.from(tableBody.querySelectorAll('.user-row'));
+    rows.sort((a, b) => {
+      const aValue = a.getAttribute(`data-${by}`) || '';
+      const bValue = b.getAttribute(`data-${by}`) || '';
+      return aValue.localeCompare(bValue);
+    });
+    rows.forEach(row => tableBody.appendChild(row));
+  }
+
+  // Modals
+  document.getElementById('add-user-btn').addEventListener('click', () => {
+    document.getElementById('add-user-modal').style.display = 'block';
+  });
+  document.querySelectorAll('.add-subscription-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('subscription-user-id').value = button.getAttribute('data-user-id');
+      document.getElementById('add-subscription-modal').style.display = 'block';
+    });
+  });
+  document.querySelectorAll('.close-modal').forEach(span => {
+    span.addEventListener('click', () => {
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.style.display = 'none';
+      });
+    });
+  });
+
+  // Add User
+  document.getElementById('add-user-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('new-user-email').value;
+    fetch('/admin/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ user: { email } })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    });
+  });
+
+  // Add Subscription
+  document.getElementById('add-subscription-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const userId = document.getElementById('subscription-user-id').value;
+    const name = document.getElementById('subscription-name').value;
+    const planId = document.getElementById('subscription-plan').value;
+    const serverId = document.getElementById('subscription-server').value;
+    const expiresAt = document.getElementById('subscription-expires-at').value;
+    fetch(`/admin/users/${userId}/subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({
+        subscription: {
+          name,
+          plan_id: planId,
+          server_id: serverId,
+          expires_at: expiresAt
+        }
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        location.reload();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    });
+  });
+
+  // Cancel Subscription
+  document.querySelectorAll('.cancel-subscription-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      const subscriptionId = button.getAttribute('data-subscription-id');
+      if (confirm('Cancel this subscription?')) {
+        fetch(`/admin/subscriptions/${subscriptionId}/cancel`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Error: ' + data.error);
+          }
+        });
+      }
+    });
+  });
+
+  // Delete User
+  document.querySelectorAll('.delete-user-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const userId = button.getAttribute('data-user-id');
+      if (confirm('Delete this user?')) {
+        fetch(`/admin/users/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Error: ' + data.error);
+          }
+        });
+      }
+    });
+  });
+</script>
