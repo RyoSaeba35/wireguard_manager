@@ -20,8 +20,8 @@ module Admin
                                                 .count
       @expired_subscriptions = Subscription.expired.count
       @pending_subscriptions = Subscription.where(status: ['pending', 'payment_pending']).count
-      @total_servers = Server.count
-      @total_server_capacity = Server.sum(:max_subscriptions)
+      @total_servers = Server.where(active: true).count
+      @total_server_capacity = Server.where(active: true).sum(:max_subscriptions)
       @used_server_capacity = Server.sum(:current_subscriptions)
       @server_load_percentage = (@total_server_capacity > 0) ? (@used_server_capacity.to_f / @total_server_capacity * 100).round(2) : 0
 
