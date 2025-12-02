@@ -1,12 +1,15 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
+  # Add this near the top of your production.rb file
+  Rails.application.routes.default_url_options = { host: ENV['APP_HOST'], protocol: 'https' }
+  config.action_mailer.default_url_options = { host: ENV['APP_HOST'], protocol: 'https' }
   # Code is not reloaded between requests.
-  Rails.application.config.hosts = [
-    'vulcainvpn-83313b910708.herokuapp.com',
-    'www.vulcainvpn.com',
-    'vulcainvpn.com'
-  ]
+  # Rails.application.config.hosts = [
+  #   'vulcainvpn-83313b910708.herokuapp.com',
+  #   'www.vulcainvpn.com',
+  #   'vulcainvpn.com'
+  # ]
   config.enable_reloading = false
 
   # Eager load code on boot.
