@@ -26,16 +26,25 @@ module Admin
       @server_load_percentage = (@total_server_capacity > 0) ? (@used_server_capacity.to_f / @total_server_capacity * 100).round(2) : 0
 
       # Subscriptions by time period
-      @subscriptions_today = Subscription.where('created_at >= ?', Time.current.beginning_of_day).count
-      @subscriptions_this_month = Subscription.where('created_at >= ?', Time.current.beginning_of_month).count
-      @subscriptions_this_year = Subscription.where('created_at >= ?', Time.current.beginning_of_year).count
+      # Only count active and expired subscriptions (not canceled)
+      @subscriptions_today = Subscription.where(status: ['active', 'expired'])
+                                          .where('created_at >= ?', Time.current.beginning_of_day)
+                                          .count
+      @subscriptions_this_month = Subscription.where(status: ['active', 'expired'])
+                                              .where('created_at >= ?', Time.current.beginning_of_month)
+                                              .count
+      @subscriptions_this_year = Subscription.where(status: ['active', 'expired'])
+                                            .where('created_at >= ?', Time.current.beginning_of_year)
+                                            .count
 
       # Monthly subscriptions for the past 12 months (sorted)
       @monthly_subscriptions = (0..11).map do |i|
         month_start = Time.current.beginning_of_month - i.months
         month_end = Time.current.beginning_of_month - (i - 1).months
-        { month: month_start, count: Subscription.where(created_at: month_start..month_end).count }
-      end.sort_by { |m| m[:month] } # Sort by date
+        { month: month_start, count: Subscription.where(status: ['active', 'expired'])
+                                                  .where(created_at: month_start..month_end)
+                                                  .count }
+      end.sort_by { |m| m[:month] }
 
       # Server load distribution
       @server_load_data = Server.all.map { |s| { name: s.name, load: s.current_subscriptions.to_f / s.max_subscriptions * 100 } }
