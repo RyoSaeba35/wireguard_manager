@@ -665,9 +665,9 @@
       </div>
     <% end %>
 
-    <div class="section-divider"></div>
-    <h2>Expired Subscriptions</h2>
     <% if @expired_subscriptions.any? %>
+      <div class="section-divider"></div>
+      <h2>Expired Subscriptions</h2>
       <% last_expired = @expired_subscriptions.last %>
       <div class="subscription-card">
         <h3>Subscription #<%= last_expired.name %></h3>
@@ -684,7 +684,7 @@
         <%= link_to "View Full History", expired_subscriptions_path, class: "history-button" %>
       <% end %>
     <% else %>
-      <p>No expired subscriptions.</p>
+      <%# <p>No expired subscriptions.</p> %>
     <% end %>
   </section>
   <section class="setup-guide-section">
