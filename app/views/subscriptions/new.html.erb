@@ -16,7 +16,7 @@
             <% plan.description.split(', ').each do |feature| %>
               <% if feature.include?("Devices") %>
                 <p>
-                  <span class="checkmark">➤</span> <%= feature %>
+                  <strong><span class="checkmark">➤</span> <%= feature %></strong>
                   <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
                 </p>
               <% else %>
@@ -84,8 +84,8 @@
                   <% plan.description.split(', ').each do |feature| %>
                     <% if feature.include?("Devices") %>
                       <p>
-                        <span class="checkmark">➤</span> <%= feature %>
-                        <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
+                        <strong><span class="checkmark">➤</span> <%= feature %></strong>
+                        <%# <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span> %>
                       </p>
                     <% else %>
                       <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
@@ -98,7 +98,7 @@
                       <%= form.hidden_field :price, value: plan.price %>
                       <%= form.hidden_field :plan_id, value: plan.id %>
                     </div>
-                    <%= form.submit "Subscribe Now", class: "plan-btn", data: { turbo: true, disable_with: "Processing..." } %>
+                    <%= form.submit "Subscribe Now", class: "plan-btn", data: { disable_with: "Processing..." } %>
                   <% end %>
                   <div id="subscribe-success-mobile-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
                     Success! Your subscription is active. We’re setting up your VPN—you’ll get an email with your config in a few minutes.
@@ -297,6 +297,7 @@
   @media (max-width: 768px) {
     .super-container {
       padding: 1rem 0;
+      padding-top:3rem;
     }
     .plan {
       max-width: 90%;
