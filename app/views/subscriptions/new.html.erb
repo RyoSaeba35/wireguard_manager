@@ -93,7 +93,7 @@
                   <% end %>
                 </div>
                 <% if plan.active && Subscription.where(status: 'active').count < Setting.max_active_subscriptions %>
-                  <%= form_with(model: [current_user, @subscription], local: false, id: "subscribe-form-mobile-#{plan.id}") do |form| %>
+                  <%= form_with(model: [current_user, @subscription], id: "subscribe-form-mobile-#{plan.id}") do |form| %>
                     <div class="form-group" style="margin: 0;">
                       <%= form.hidden_field :price, value: plan.price %>
                       <%= form.hidden_field :plan_id, value: plan.id %>
