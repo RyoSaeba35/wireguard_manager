@@ -43,7 +43,7 @@
               <% @plans.each do |plan| %>
                 <tr class="plan-row" data-plan-id="<%= plan.id %>">
                   <td class="editable" data-field="name" data-plan-id="<%= plan.id %>"><%= plan.name %></td>
-                  <td class="editable" data-field="price" data-plan-id="<%= plan.id %>">$<%= plan.price %></td>
+                  <td class="editable" data-field="price" data-plan-id="<%= plan.id %>">€<%= plan.price %></td>
                   <td><%= plan.interval.capitalize %></td>
                   <td>
                     <input type="checkbox" class="plan-active-toggle" data-plan-id="<%= plan.id %>" <%= plan.active ? 'checked' : '' %>>
@@ -391,7 +391,7 @@
         // Replace text with input fields
         row.querySelectorAll('.editable').forEach(cell => {
           const field = cell.getAttribute('data-field');
-          const value = cell.textContent.replace('$', '');
+          const value = cell.textContent.replace('€', '');
 
           if (field === 'description') {
             const textarea = document.createElement('textarea');
@@ -431,7 +431,7 @@
           const input = cell.querySelector('input, textarea');
 
           if (field === 'price') {
-            updatedData[field] = parseFloat(input.value.replace('$', ''));
+            updatedData[field] = parseFloat(input.value.replace('€', ''));
           } else {
             updatedData[field] = input.value;
           }
