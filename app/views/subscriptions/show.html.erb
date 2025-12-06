@@ -221,7 +221,7 @@
             <h3>QR Code:</h3>
             <%= image_tag download_qr_code_path(filename: "#{client.name}.png") %>
           </div>
-          <div>
+          <div class="qr-code">
             <h3>Config File:</h3>
             <%= link_to "Download Config",
                         download_config_path(filename: "#{client.name}.conf"),
