@@ -11,7 +11,7 @@
           <% end %>
           <h3><%= plan.name %></h3>
           <p class="plan-subtitle">Flexible, cancel anytime</p>
-          <div class="plan-price">$<%= plan.price %>/<%= plan.interval %></div>
+          <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
           <div class="plan-features">
             <% plan.description.split(', ').each do |feature| %>
               <% if feature.include?("Devices") %>
@@ -79,7 +79,7 @@
                 <% end %>
                 <h3><%= plan.name %></h3>
                 <p class="plan-subtitle">Flexible, cancel anytime</p>
-                <div class="plan-price">$<%= plan.price %>/<%= plan.interval %></div>
+                <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
                 <div class="plan-features">
                   <% plan.description.split(', ').each do |feature| %>
                     <% if feature.include?("Devices") %>

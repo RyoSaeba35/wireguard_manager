@@ -199,7 +199,7 @@
           <label for="subscription-plan">Plan:</label>
           <select id="subscription-plan" required>
             <% @plans.each do |plan| %>
-              <option value="<%= plan.id %>"><%= plan.name %> ($<%= plan.price %>/<%= plan.interval %>)</option>
+              <option value="<%= plan.id %>"><%= plan.name %> (€<%= plan.price %>/<%= plan.interval %>)</option>
             <% end %>
           </select>
         </div>
@@ -240,7 +240,7 @@
   .admin-sidebar {
     width: 250px;
     background: #2c3e50;
-    color: white;
+    color: #ecf0f1;
     padding: 20px 0;
     position: fixed;
     height: 100%;
@@ -266,7 +266,7 @@
   .admin-sidebar li a:hover,
   .admin-sidebar li a.active {
     background: #34495e;
-    color: white;
+    color: #ecf0f1;
   }
 
   /* Main Content */
@@ -321,7 +321,7 @@
   }
   .sort-btn.active {
     background: #0066cc;
-    color: white;
+    color: #ecf0f1;
     border-color: #0066cc;
   }
 

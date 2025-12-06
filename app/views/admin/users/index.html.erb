@@ -208,7 +208,7 @@
             <option value="">Select a plan</option>
             <% @plans.each do |plan| %>
               <option value="<%= plan.id %>">
-                <%= plan.name %> ($<%= plan.price %>/<%= plan.interval %>)
+                <%= plan.name %> (€<%= plan.price %>/<%= plan.interval %>)
               </option>
             <% end %>
           </select>

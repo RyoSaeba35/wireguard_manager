@@ -12,7 +12,7 @@ class StripeCheckoutService
       mode: 'payment', # one-time payment
       line_items: [{
         price_data: {
-          currency: 'usd',
+          currency: 'eur',
           product_data: {
             name: "#{@subscription.plan.name} Plan",
             description: @subscription.plan.description
