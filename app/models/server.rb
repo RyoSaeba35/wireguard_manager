@@ -7,6 +7,15 @@ class Server < ApplicationRecord
   validates :ip_address, presence: true
   validates :max_subscriptions, numericality: { only_integer: true, greater_than: 0 }
 
+  validate :current_subscriptions_cannot_be_negative
+
+  def current_subscriptions_cannot_be_negative
+    if current_subscriptions < 0
+      errors.add(:current_subscriptions, "cannot be negative")
+      throw :abort
+    end
+  end
+
   # validate :ssh_credentials_present, if: :active?
 
   # def ssh_credentials_present
