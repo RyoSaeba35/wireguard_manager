@@ -22,7 +22,7 @@ class StripeCheckoutService
           product_data: {
             name: "#{@subscription.plan.name} Plan",
             description: formatted_description,
-            images: ['https://www.vulcainvpn.com/logo.png']
+            images: ['https://www.vulcainvpn.com/logo_1.png']
           },
           unit_amount: (@subscription.price * 100).to_i # Stripe expects cents
         },
