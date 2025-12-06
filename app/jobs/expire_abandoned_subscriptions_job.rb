@@ -35,7 +35,11 @@ class ExpireAbandonedSubscriptionsJob < ApplicationJob
 
       # Decrement server's current_subscriptions
       if subscription.server
-        subscription.server.decrement!(:current_subscriptions)
+        if subscription.server.current_subscriptions > 0
+          subscription.server.decrement!(:current_subscriptions)
+        else
+          Rails.logger.warn "current_subscriptions is already 0 for server #{subscription.server.name}"
+        end
         Rails.logger.info "Decremented server #{subscription.server.name} subscription count"
       end
 
