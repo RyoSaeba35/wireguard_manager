@@ -8,7 +8,7 @@
     <p class="server-capacity">
       Servers Info:
       Total Servers: <%= @servers.count %> servers (<%= @servers.where(active: true).count %> active - <%= @servers.where(active: false).count %> inactive) -
-      Total Capacity: <%= @servers.sum(:max_subscriptions) %> subscriptions - 
+      Total Capacity: <%= @servers.where(active: true).sum(:max_subscriptions) %> subscriptions -
       Total Current Load: <%= @servers.sum(:current_subscriptions) %> subscriptions
     </p>
 
