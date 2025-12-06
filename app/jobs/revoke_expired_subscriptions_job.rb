@@ -73,6 +73,7 @@ class RevokeExpiredSubscriptionsJob < ApplicationJob
       if retries < MAX_RETRIES
         sleep(2 ** retries) # Exponential backoff
         Rails.logger.info "Retrying (#{retries + 1}/#{MAX_RETRIES}) to revoke client #{wireguard_client.name}"
+        retries += 1
         retry
       else
         Rails.logger.error "Failed to revoke client #{wireguard_client.name} after #{MAX_RETRIES} attempts: #{e.message}"
