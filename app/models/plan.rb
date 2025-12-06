@@ -6,7 +6,7 @@ class Plan < ApplicationRecord
   validates :price, presence: true, numericality: { greater_than: 0 }
   validates :interval, presence: true, inclusion: { in: %w[week month year] }
   validates :active, inclusion: { in: [true, false] }
-  validates :stripe_price_id, presence: true
+  # validates :stripe_price_id, presence: true
 
   scope :active, -> { where(active: true) }
 end
