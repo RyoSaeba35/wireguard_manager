@@ -21,7 +21,8 @@ class StripeCheckoutService
           currency: 'eur',
           product_data: {
             name: "#{@subscription.plan.name} Plan",
-            description: formatted_description
+            description: formatted_description,
+            images: ['https://www.vulcainvpn.com/logo.png']
           },
           unit_amount: (@subscription.price * 100).to_i # Stripe expects cents
         },
