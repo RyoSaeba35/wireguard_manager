@@ -173,7 +173,7 @@
       <h3>Your payment is pending!</h3>
       <p>You have not completed your payment yet.</p>
       <div style="margin: 1.5rem 0; text-align: center;">
-        <%= link_to "Pay Now", @stripe_session_url, class: "download-link", style: "margin-right: 1rem;" %>
+        <%= link_to "Pay Now", @stripe_session_url, class: "download-link" %>
         <%= button_to "Cancel Subscription", cancel_user_subscription_path(current_user, @subscription), method: :patch, class: "download-link", style: "background-color: #e74c3c;", data: { confirm: "Are you sure you want to cancel this subscription?" } %>
       </div>
     </div>
