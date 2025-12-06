@@ -7,6 +7,12 @@ class StripeCheckoutService
 
   def create_session
     host = Rails.application.routes.default_url_options[:host]
+
+    # Split the description into an array of items
+    items = @subscription.plan.description.split(', ')
+    # Prepend a bullet to each item and join with newlines
+    formatted_description = items.map { |item| "• #{item}" }.join("\n")
+
     Stripe::Checkout::Session.create(
       payment_method_types: ['card'],
       mode: 'payment', # one-time payment
@@ -15,7 +21,7 @@ class StripeCheckoutService
           currency: 'eur',
           product_data: {
             name: "#{@subscription.plan.name} Plan",
-            description: @subscription.plan.description
+            description: formatted_description
           },
           unit_amount: (@subscription.price * 100).to_i # Stripe expects cents
         },
