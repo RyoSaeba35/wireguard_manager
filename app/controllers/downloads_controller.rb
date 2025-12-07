@@ -26,12 +26,13 @@ class DownloadsController < ApplicationController
     client_name = filename.gsub('.conf', '')
     client = current_user.wireguard_clients.find_by(name: client_name)
 
-    if client && client.config_file.attached?
+    if client&.config_file&.attached?
       custom_name = "Vulcain_#{client.name}.conf"
 
-      url = client.config_file.blob.service_url(
+      url = client.config_file.url(
         disposition: :attachment,
-        filename: custom_name
+        filename: custom_name,
+        content_type: "text/x-config"
       )
 
       redirect_to url
