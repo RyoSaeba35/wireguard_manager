@@ -1,10 +1,11 @@
 # app/mailers/user_mailer.rb
 class UserMailer < ApplicationMailer
-  default from: 'Vulcain VPN'
+  default from: 'support@vulcainvpn.com' # Use a valid email address
 
   def vpn_config_ready(user, subscription)
     @user = user
     @subscription = subscription
+
     # Attach the PDF
     pdf_path = Rails.root.join('public', 'pdfs', 'Vulcain_VPN_Setup_Guide.pdf')
     if File.exist?(pdf_path)
@@ -12,8 +13,15 @@ class UserMailer < ApplicationMailer
     else
       Rails.logger.error "PDF not found at #{pdf_path}"
     end
-    # Use `attachments.inline` instead of `attachments`
-    attachments.inline['logo.png'] = File.read(Rails.root.join('app/assets/images/logo.png'))
+
+    # Attach the logo as an inline image
+    logo_path = Rails.root.join('app/assets/images/Vulcain_VPN_logo_3.png')
+    if File.exist?(logo_path)
+      attachments.inline['Vulcain_VPN_logo_3.png'] = File.read(logo_path)
+    else
+      Rails.logger.error "Logo not found at #{logo_path}"
+    end
+
     mail(to: @user.email, subject: "Your Vulcain VPN Configuration is Ready!")
   end
 end
