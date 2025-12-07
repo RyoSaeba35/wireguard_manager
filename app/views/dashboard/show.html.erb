@@ -654,9 +654,7 @@
         </div>
     <% else %>
       <!-- Not using VPN: Static message -->
-      <div class="scrolling-text">
-        <strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %>
-      </div>
+      <strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %>
     <% end %>
   </div>
 </div>
