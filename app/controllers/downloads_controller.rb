@@ -31,8 +31,7 @@ class DownloadsController < ApplicationController
 
     custom_name = "Vulcain_#{client.name}.conf"
     if client && client.config_file.attached?
-      redirect_to rails_blob_url(
-        client.config_file,
+      redirect_to client.config_file.service_url(
         disposition: "attachment",
         filename: custom_name
       )
