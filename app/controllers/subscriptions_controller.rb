@@ -92,7 +92,7 @@ class SubscriptionsController < ApplicationController
     else
       # On-demand subscription
       subscription_name = loop do
-        random_name = SecureRandom.alphanumeric(6).upcase
+        random_name = SecureRandom.alphanumeric(5).upcase
         break random_name unless Subscription.exists?(name: random_name)
       end
 
