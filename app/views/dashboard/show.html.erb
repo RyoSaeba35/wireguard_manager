@@ -374,30 +374,34 @@
   .rotating-message {
     display: inline-block;
     position: relative;
-    height: 20px; /* Adjust based on your font size */
-    overflow: hidden;
+    height: auto; /* Let the container adjust to content */
+    min-height: 20px; /* Fallback minimum height */
+    overflow: visible; /* Allow content to be visible */
+    white-space: nowrap;
   }
 
   .rotating-message > div {
     position: absolute;
-    width: 100%;
+    left: 0;
+    right: 0;
     text-align: center;
     opacity: 0;
-    animation: rotateMessages 20s infinite;
+    transition: opacity 0.5s ease-in-out; /* Smooth fade */
   }
 
   .rotating-message .message-1 {
-    animation-delay: 0s;
+    animation: rotateMessages 20s infinite;
   }
 
   .rotating-message .message-2 {
+    animation: rotateMessages 20s infinite;
     animation-delay: 10s;
   }
 
   @keyframes rotateMessages {
-    0%, 45% { opacity: 0; }
-    5%, 40% { opacity: 1; }
-    50%, 100% { opacity: 0; }
+    0%, 40% { opacity: 0; }
+    5%, 35% { opacity: 1; } /* Show for 30 seconds (5s fade in + 25s visible + 5s fade out) */
+    45%, 100% { opacity: 0; }
   }
 
   /* Mobile Styles */
@@ -639,14 +643,14 @@
 
 <div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
   <div class="scrolling-text-container">
-    <div class="scrolling-text">
+
       <% if @vpn_server_ips.include?(@user_ip) %>
         <!-- VPN Protected: Rotating messages -->
         <div class="rotating-message">
           <div class="message-1"><strong>You are well protected using Vulcain VPN!</strong></div>
           <div class="message-2"><strong>Country:</strong> <%= @country || "Could not be determined" %></div>
         </div>
-      </div>
+
     <% else %>
       <!-- Not using VPN: Static message -->
       <div class="scrolling-text">
