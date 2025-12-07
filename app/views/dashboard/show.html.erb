@@ -377,6 +377,7 @@
     height: auto; /* Let the container adjust to content */
     min-height: 20px; /* Fallback minimum height */
     overflow: visible; /* Allow content to be visible */
+    text-align: center;
     white-space: nowrap;
   }
 
@@ -643,14 +644,12 @@
 
 <div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
   <div class="scrolling-text-container">
-
       <% if @vpn_server_ips.include?(@user_ip) %>
         <!-- VPN Protected: Rotating messages -->
         <div class="rotating-message">
           <div class="message-1"><strong>You are well protected using Vulcain VPN!</strong></div>
           <div class="message-2"><strong>Country:</strong> <%= @country || "Could not be determined" %></div>
         </div>
-
     <% else %>
       <!-- Not using VPN: Static message -->
       <div class="scrolling-text">
