@@ -10,7 +10,6 @@ class DownloadsController < ApplicationController
     client_name = filename.gsub('.png', '')
     Rails.logger.info "Filename: #{filename}, Client Name: #{client_name}"
     client = current_user.wireguard_clients.find_by(name: client_name)
-
     if client && client.qr_code.attached?
       redirect_to rails_blob_path(client.qr_code, disposition: "inline")
     else
@@ -37,22 +36,16 @@ class DownloadsController < ApplicationController
         return
       end
 
-      temp_file = Tempfile.new(["config_#{SecureRandom.hex}", '.conf'])
-      temp_file.binmode
-      temp_file.write(file_data)
-      temp_file.close
+      Rails.logger.info "File data size: #{file_data.bytesize}"
 
-      send_file temp_file.path,
-                filename: filename,
-                disposition: 'attachment',
-                type: 'text/x-config',
-                x_sendfile: true
+      response.headers['Content-Type'] = 'text/x-config'
+      response.headers['Content-Disposition'] = "attachment; filename=\"#{filename}\""
+      response.headers['Content-Length'] = file_data.bytesize.to_s
+
+      send_data file_data, type: 'text/x-config', disposition: 'attachment'
     else
       Rails.logger.error "Config file not found for client: #{client_name}"
       redirect_to root_path, alert: "Config file not found."
     end
-  ensure
-    temp_file&.close!
-    temp_file&.unlink
   end
 end
