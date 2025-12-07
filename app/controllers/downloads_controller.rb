@@ -21,22 +21,21 @@ class DownloadsController < ApplicationController
 
   def config
     filename = params[:filename]
-    unless filename.end_with?('.conf')
-      filename += '.conf'
-    end
+    filename += '.conf' unless filename.end_with?('.conf')
+
     client_name = filename.gsub('.conf', '')
-    Rails.logger.info "Filename: #{filename}, Client Name: #{client_name}"
-    Rails.logger.info "Current User Wireguard Clients: #{current_user.wireguard_clients.pluck(:name)}"
     client = current_user.wireguard_clients.find_by(name: client_name)
 
-    custom_name = "Vulcain_#{client.name}.conf"
     if client && client.config_file.attached?
-      redirect_to client.config_file.service_url(
-        disposition: "attachment",
+      custom_name = "Vulcain_#{client.name}.conf"
+
+      url = client.config_file.blob.service_url(
+        disposition: :attachment,
         filename: custom_name
       )
+
+      redirect_to url
     else
-      Rails.logger.error "Config file not found for client: #{client_name}"
       redirect_to root_path, alert: "Config file not found."
     end
   end
