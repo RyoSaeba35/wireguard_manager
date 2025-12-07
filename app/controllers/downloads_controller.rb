@@ -29,15 +29,23 @@ class DownloadsController < ApplicationController
 
     client = current_user.wireguard_clients.find_by(name: client_name)
     if client && client.config_file.attached?
-      file_data = client.config_file.download
-      send_data file_data,
+      # Create a temporary file to hold the config data
+      temp_file = Tempfile.new(["config_#{SecureRandom.hex}", '.conf'])
+      temp_file.binmode
+      temp_file.write(client.config_file.download)
+      temp_file.close
+
+      # Send the file with the custom filename
+      send_file temp_file.path,
                 filename: filename,
                 disposition: 'attachment',
                 type: 'text/x-config'
-      return # Ensure no further code is executed
     else
       Rails.logger.error "Config file not found for client: #{client_name}"
       redirect_to root_path, alert: "Config file not found."
     end
+  ensure
+    # Ensure the temp file is deleted after sending
+    temp_file&.close!
   end
 end
