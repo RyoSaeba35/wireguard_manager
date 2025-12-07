@@ -4,6 +4,9 @@ class DashboardController < ApplicationController
 
   def show
     @vpn_server_ips = Server.where(active: true).pluck(:wireguard_server_ip)
+    # Fetch the user's IP (ensure this is set correctly in your controller)
+    @user_ip = request.remote_ip
+    
     # Fetch the "active" subscription, but only if it's truly not expired
     @active_subscription = current_user.subscriptions.find_by(
       status: "active",
