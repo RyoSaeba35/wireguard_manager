@@ -51,13 +51,21 @@
     <div style="position: relative;">
       <% if notice %>
         <div class="flash flash-notice" id="notice-flash" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 1000;">
-          <%= notice %>
+          <div class="scrolling-text-container">
+            <div class="scrolling-text">
+              <%= notice %>
+            </div>
+          </div>
           <button class="flash-close" onclick="this.parentElement.style.display='none'">&times;</button>
         </div>
       <% end %>
       <% if alert %>
         <div class="flash flash-alert" id="alert-flash" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 1000;">
-          <%= alert %>
+          <div class="scrolling-text-container">
+            <div class="scrolling-text">
+              <%= alert %>
+            </div>
+          </div>
           <button class="flash-close" onclick="this.parentElement.style.display='none'">&times;</button>
         </div>
       <% end %>
@@ -78,27 +86,35 @@
         }
       }
 
-      // Initialize on DOM load and Turbo navigation
-      document.addEventListener('DOMContentLoaded', initFlashMessages);
-      document.addEventListener('turbo:load', initFlashMessages);
-
-      function initFlashMessages() {
-        const noticeFlash = document.getElementById('notice-flash');
-        const alertFlash = document.getElementById('alert-flash');
-
-        autoCloseFlash(noticeFlash);
-        autoCloseFlash(alertFlash);
+      // Function to initialize scrolling for flash messages
+      function initScrollingFlash() {
+        document.querySelectorAll('.scrolling-text-container').forEach(function(container) {
+          const text = container.querySelector('.scrolling-text');
+          if (text && text.scrollWidth > container.clientWidth) {
+            text.style.animationPlayState = 'running';
+          }
+        });
       }
 
+      // Initialize on DOM load and Turbo navigation
       document.addEventListener('DOMContentLoaded', function() {
-        const container = document.querySelector('.scrolling-text-container');
-        const text = document.querySelector('.scrolling-text');
-
-        // Check if the text is wider than its container
-        if (text.scrollWidth > container.clientWidth) {
-          text.style.animationPlayState = 'running'; // Start the animation
-        }
+        const noticeFlash = document.getElementById('notice-flash');
+        const alertFlash = document.getElementById('alert-flash');
+        autoCloseFlash(noticeFlash);
+        autoCloseFlash(alertFlash);
+        initScrollingFlash();
       });
+
+      document.addEventListener('turbo:load', function() {
+        const noticeFlash = document.getElementById('notice-flash');
+        const alertFlash = document.getElementById('alert-flash');
+        autoCloseFlash(noticeFlash);
+        autoCloseFlash(alertFlash);
+        initScrollingFlash();
+      });
+
+      // Recheck scrolling on window resize
+      window.addEventListener('resize', initScrollingFlash);
     </script>
 
     <style>
@@ -143,8 +159,9 @@
       /* Container for the scrolling text */
       .scrolling-text-container {
         display: inline-block;
-        width: 100%;
+        width: calc(100% - 25px); /* Account for close button */
         overflow: hidden;
+        vertical-align: middle;
       }
 
       /* The actual scrolling text */
@@ -155,7 +172,7 @@
         animation-play-state: paused; /* Pause by default */
       }
 
-      .scrolling-text:hover {
+      .scrolling-text-container:hover .scrolling-text {
         animation-play-state: paused;
       }
 
@@ -176,8 +193,8 @@
 
       .flash-close {
         position: absolute;
-        top: 12px;
-        right: 6px;
+        top: 50%;
+        right: 10px;
         transform: translateY(-50%);
         background: none;
         border: none;
