@@ -651,7 +651,7 @@
         <!-- VPN Protected: Rotating messages -->
         <div class="rotating-message">
           <div class="message-1"><strong>You are well protected using Vulcain VPN!</strong></div>
-          <div class="message-2"><strong>Country:</strong> <%= @country || "Could not be determined" %></div>
+          <div class="message-2"><strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
         </div>
     <% else %>
       <!-- Not using VPN: Static message -->
