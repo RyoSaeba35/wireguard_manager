@@ -24,7 +24,6 @@ class DownloadsController < ApplicationController
     unless filename.end_with?('.conf')
       filename += '.conf'
     end
-
     client_name = filename.gsub('.conf', '').gsub('Vulcain_', '')
     Rails.logger.info "Filename: #{filename}, Client Name: #{client_name}"
 
@@ -35,6 +34,7 @@ class DownloadsController < ApplicationController
                 filename: filename,
                 disposition: 'attachment',
                 type: 'text/x-config'
+      return # Ensure no further code is executed
     else
       Rails.logger.error "Config file not found for client: #{client_name}"
       redirect_to root_path, alert: "Config file not found."
