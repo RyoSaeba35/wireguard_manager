@@ -4,8 +4,10 @@ class DashboardController < ApplicationController
 
   def show
     @user_ip = request.env['HTTP_X_FORWARDED_FOR'] || request.remote_ip
+    @user_ip = @user_ip.to_s.strip
+    @user_ip = @user_ip.gsub(/^::ffff:/, '') if @user_ip.include?('::ffff:')
     @vpn_server_ips = Rails.cache.fetch("active_vpn_server_ips", expires_in: 12.hours) do
-      Server.where(active: true).pluck(:wireguard_server_ip)
+      Server.where(active: true).pluck(:wireguard_server_ip).map(&:to_s).map(&:strip)
     end
     @country = fetch_country(@user_ip)
 
