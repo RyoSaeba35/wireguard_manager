@@ -29,8 +29,13 @@ class DownloadsController < ApplicationController
     Rails.logger.info "Current User Wireguard Clients: #{current_user.wireguard_clients.pluck(:name)}"
     client = current_user.wireguard_clients.find_by(name: client_name)
 
+    custom_name = "Vulcain_#{client.name}.conf"
     if client && client.config_file.attached?
-      redirect_to rails_blob_path(client.config_file, disposition: "attachment")
+      redirect_to rails_blob_path(
+        client.config_file,
+        disposition: "attachment",
+        filename: "custom_name"
+      )
     else
       Rails.logger.error "Config file not found for client: #{client_name}"
       redirect_to root_path, alert: "Config file not found."
