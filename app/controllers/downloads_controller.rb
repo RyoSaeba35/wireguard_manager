@@ -35,17 +35,21 @@ class DownloadsController < ApplicationController
       temp_file.write(client.config_file.download)
       temp_file.close
 
-      # Send the file with the custom filename
-      send_file temp_file.path,
-                filename: filename,
-                disposition: 'attachment',
-                type: 'text/x-config'
+      # Set proper response headers
+      response.headers['Content-Type'] = 'text/x-config'
+      response.headers['Content-Disposition'] = "attachment; filename=\"#{filename}\""
+      response.headers['Content-Length'] = temp_file.size.to_s
+      response.headers['Cache-Control'] = 'private'
+      response.headers['Last-Modified'] = File.mtime(temp_file.path).httpdate
+
+      # Send the file
+      send_file temp_file.path, filename: filename, disposition: 'attachment', type: 'text/x-config'
     else
       Rails.logger.error "Config file not found for client: #{client_name}"
       redirect_to root_path, alert: "Config file not found."
     end
   ensure
-    # Ensure the temp file is deleted after sending
+    # Clean up the temp file
     temp_file&.close!
   end
 end
