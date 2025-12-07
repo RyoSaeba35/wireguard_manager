@@ -34,7 +34,7 @@ class DownloadsController < ApplicationController
       redirect_to rails_blob_url(
         client.config_file,
         disposition: "attachment",
-        filename: "custom_name"
+        filename: custom_name
       )
     else
       Rails.logger.error "Config file not found for client: #{client_name}"
