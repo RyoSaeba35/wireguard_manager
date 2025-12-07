@@ -609,7 +609,7 @@
 
 <div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
   <% begin %>
-    <% response = Net::HTTP.get(URI("http://ip-api.com/json/#{ip}")) %>
+    <% response = Net::HTTP.get(URI("http://ip-api.com/json/#{@user_ip}")) %>
     <% data = JSON.parse(response) %>
     <% country = data['country'] %>
     <% if @vpn_server_ips.include?(@user_ip) %>
