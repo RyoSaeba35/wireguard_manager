@@ -608,7 +608,7 @@
 </style>
 
 <div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
-  <% if @vpn_server_ips.include?("51.75.126.238") %>
+  <% if @vpn_server_ips.include?(@user_ip) %>
     <strong>You are well protected using Vulcain VPN!</strong> -
   <% else %>
     <strong>Your IP:</strong> <%= @user_ip %> -
