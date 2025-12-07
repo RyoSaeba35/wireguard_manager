@@ -24,8 +24,10 @@ class DownloadsController < ApplicationController
     unless filename.end_with?('.conf')
       filename += '.conf'
     end
-    client_name = filename.gsub('.conf', '')
+    # Remove "Vulcain_" prefix before extracting client_name
+    client_name = filename.gsub('.conf', '').gsub('Vulcain_', '')
     Rails.logger.info "Filename: #{filename}, Client Name: #{client_name}"
+
     Rails.logger.info "Current User Wireguard Clients: #{current_user.wireguard_clients.pluck(:name)}"
     client = current_user.wireguard_clients.find_by(name: client_name)
 
