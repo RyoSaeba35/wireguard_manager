@@ -38,7 +38,7 @@ class PreallocateSubscriptionsJob < ApplicationJob
         begin
           # Generate a unique subscription name
           subscription_name = loop do
-            random_name = SecureRandom.alphanumeric(6).upcase
+            random_name = SecureRandom.alphanumeric(5).upcase
             break random_name unless server.subscriptions.exists?(name: random_name)
           end
 

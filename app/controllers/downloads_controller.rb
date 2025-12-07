@@ -30,6 +30,8 @@ class DownloadsController < ApplicationController
     client = current_user.wireguard_clients.find_by(name: client_name)
 
     if client && client.config_file.attached?
+      # Force the downloaded filename to match the requested `filename`
+      response.headers['Content-Disposition'] = "attachment; filename=\"#{filename}\""
       redirect_to rails_blob_path(client.config_file, disposition: "attachment")
     else
       Rails.logger.error "Config file not found for client: #{client_name}"
