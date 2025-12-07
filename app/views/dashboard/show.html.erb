@@ -608,20 +608,12 @@
 </style>
 
 <div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
-  <% begin %>
-    <% response = Net::HTTP.get(URI("http://ip-api.com/json/#{@user_ip}")) %>
-    <% data = JSON.parse(response) %>
-    <% country = data['country'] %>
-    <% if @vpn_server_ips.include?(@user_ip) %>
-      <strong>You are well protected using Vulcain VPN!</strong> -
-    <% else %>
-      <strong>Your IP:</strong> <%= @user_ip %> -
-    <% end %>
-    <strong>Country:</strong> <%= country %>
-  <% rescue %>
-    <!-- Fallback if the API fails -->
-    <strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> Could not be determined
+  <% if @vpn_server_ips.include?(@user_ip) %>
+    <strong>You are well protected using Vulcain VPN!</strong> -
+  <% else %>
+    <strong>Your IP:</strong> <%= @user_ip %> -
   <% end %>
+  <strong>Country:</strong> <%= @country || "Could not be determined" %>>
 </div>
 
 <div class="dashboard-container">
