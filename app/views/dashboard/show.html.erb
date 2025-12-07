@@ -370,6 +370,36 @@
     text-decoration: none;
   }
 
+  /* Rotating messages for VPN users */
+  .rotating-message {
+    display: inline-block;
+    position: relative;
+    height: 20px; /* Adjust based on your font size */
+    overflow: hidden;
+  }
+
+  .rotating-message > div {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    opacity: 0;
+    animation: rotateMessages 20s infinite;
+  }
+
+  .rotating-message .message-1 {
+    animation-delay: 0s;
+  }
+
+  .rotating-message .message-2 {
+    animation-delay: 10s;
+  }
+
+  @keyframes rotateMessages {
+    0%, 45% { opacity: 0; }
+    5%, 40% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
   /* Mobile Styles */
   @media (max-width: 600px) {
     .dashboard-container {
@@ -609,14 +639,18 @@
 
 <div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
   <div class="scrolling-text-container">
-    <div class="scrolling-text">
-      <% if @vpn_server_ips.include?(@user_ip) %>
-        <strong>You are well protected using Vulcain VPN!</strong> -
-      <% else %>
-        <strong>Your IP:</strong> <%= @user_ip %> -
-      <% end %>
-      <strong>Country:</strong> <%= @country || "Could not be determined" %>
-    </div>
+    <% if @vpn_server_ips.include?(@user_ip) %>
+      <!-- VPN Protected: Rotating messages -->
+      <div class="rotating-message">
+        <div class="message-1"><strong>You are well protected using Vulcain VPN!</strong></div>
+        <div class="message-2"><strong>Country:</strong> <%= @country || "Could not be determined" %></div>
+      </div>
+    <% else %>
+      <!-- Not using VPN: Static message -->
+      <div class="scrolling-text">
+        <strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %>
+      </div>
+    <% end %>
   </div>
 </div>
 
@@ -915,5 +949,20 @@
         setInterval(() => updateCountdown(expiresAt), 60000);
       <% end %>
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const rotatingMessages = document.querySelectorAll('.rotating-message');
+      rotatingMessages.forEach(function(container) {
+        const messages = container.querySelectorAll('div');
+        let current = 0;
+
+        setInterval(function() {
+          messages.forEach((msg, i) => {
+            msg.style.opacity = (i === current) ? '1' : '0';
+          });
+          current = (current + 1) % messages.length;
+        }, 10000); // Rotate every 10 seconds
+      });
+    });
   </script>
 </div>
