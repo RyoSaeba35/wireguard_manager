@@ -374,20 +374,22 @@
   .rotating-message {
     display: inline-block;
     position: relative;
-    height: auto; /* Let the container adjust to content */
-    min-height: 20px; /* Fallback minimum height */
-    overflow: visible; /* Allow content to be visible */
+    width: 100%;
     text-align: center;
+    height: auto;
+    min-height: 20px;
+    overflow: visible;
     white-space: nowrap;
   }
 
   .rotating-message > div {
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
     text-align: center;
     opacity: 0;
-    transition: opacity 0.5s ease-in-out; /* Smooth fade */
+    transition: opacity 0.5s ease-in-out;
   }
 
   .rotating-message .message-1 {
@@ -401,7 +403,7 @@
 
   @keyframes rotateMessages {
     0%, 40% { opacity: 0; }
-    5%, 35% { opacity: 1; } /* Show for 30 seconds (5s fade in + 25s visible + 5s fade out) */
+    5%, 35% { opacity: 1; }
     45%, 100% { opacity: 0; }
   }
 
@@ -956,18 +958,26 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      const rotatingMessages = document.querySelectorAll('.rotating-message');
-      rotatingMessages.forEach(function(container) {
-        const messages = container.querySelectorAll('div');
-        let current = 0;
+      const rotatingMessage = document.querySelector('.rotating-message');
+      if (rotatingMessage) {
+        const message1 = rotatingMessage.querySelector('.message-1');
+        const message2 = rotatingMessage.querySelector('.message-2');
+        let isMessage1Visible = true;
+
+        // Show the first message immediately
+        message1.style.opacity = '1';
 
         setInterval(function() {
-          messages.forEach((msg, i) => {
-            msg.style.opacity = (i === current) ? '1' : '0';
-          });
-          current = (current + 1) % messages.length;
+          if (isMessage1Visible) {
+            message1.style.opacity = '0';
+            message2.style.opacity = '1';
+          } else {
+            message1.style.opacity = '1';
+            message2.style.opacity = '0';
+          }
+          isMessage1Visible = !isMessage1Visible;
         }, 10000); // Rotate every 10 seconds
-      });
+      }
     });
   </script>
 </div>
