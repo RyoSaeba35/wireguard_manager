@@ -35,7 +35,8 @@ class DownloadsController < ApplicationController
         content_type: "text/x-config"
       )
 
-      redirect_to url
+      # allow redirect to external S3/Wasabi URL
+      redirect_to url, allow_other_host: true
     else
       redirect_to root_path, alert: "Config file not found."
     end
