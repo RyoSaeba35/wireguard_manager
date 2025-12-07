@@ -114,6 +114,8 @@
         /* transition: opacity 0.3s ease-in-out;  */
         position: absolute;
         z-index: 1000;
+        overflow: hidden; /* Hide overflow to enable scrolling */
+        white-space: nowrap; /* Prevent text from wrapping */
       }
 
       .flash-notice {
@@ -126,6 +128,23 @@
         background-color: #f8d7da;
         color: #721c24;
         border: 1px solid #f5c6cb;
+      }
+
+      /* Animation for scrolling text */
+      .scrolling-text {
+        display: inline-block;
+        padding-left: 100%; /* Start off-screen to the right */
+        animation: scroll-left 20s linear infinite; /* Adjust duration as needed */
+      }
+
+      /* Keyframes for the scrolling animation */
+      @keyframes scroll-left {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-100%); /* Move text to the left */
+        }
       }
 
       @keyframes fadeIn {
