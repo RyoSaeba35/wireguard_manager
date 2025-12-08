@@ -58,8 +58,11 @@ Rails.application.configure do
     user_name: ENV['SMTP_USERNAME'],
     password: ENV['SMTP_PASSWORD'],
     authentication: 'plain',
-    enable_starttls_auto: true,
+    enable_starttls_auto: false,
+    ssl: true,                    # Enable SSL for port 465
     openssl_verify_mode: 'none',
+    open_timeout: 10,            # Increase open timeout to 10 seconds
+    read_timeout: 10,            # Increase read timeout to 10 seconds
     from: 'Vulcain VPN <support@vulcainvpn.com>'
   }
   # Set the default "From" address
