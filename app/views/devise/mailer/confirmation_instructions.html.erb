@@ -1,39 +1,68 @@
-<h1 style="color: #2c3e50; font-family: Arial, sans-serif;">Confirm Your Email Address</h1>
-<p style="font-family: Arial, sans-serif; font-size: 16px;">
-  Welcome <%= @email %>!
-</p>
-<p style="font-family: Arial, sans-serif; font-size: 16px;">
-  You're just one step away from getting started. Please confirm your email address by clicking the button below:
-</p>
-<p style="text-align: center; margin: 20px 0;">
-  <a
-    href="<%= confirmation_url(@resource, confirmation_token: @token) %>"
-    class="cta-btn"
-    style="
-      background-color: #ff6e08;
-      color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 4px;
-      font-size: 16px;
-      text-decoration: none;
-      display: inline-block;
-      font-family: Arial, sans-serif;
-    "
-  >
-    Confirm My Account
-  </a>
-</p>
-<p style="font-family: Arial, sans-serif; font-size: 16px;">
-  If you didn't create an account, you can safely ignore this email.
-</p>
-<p style="font-family: Arial, sans-serif; font-size: 16px;">
-  Best regards,<br>
-  <strong>The Vulcain VPN Team</strong>
-</p>
-<p style="font-family: Arial, sans-serif; font-size: 12px; color: #7f8c8d; margin-top: 20px;">
-  © 2025 Vulcain VPN. All rights reserved.<br>
-  <a href="https://vulcainvpn.com/privacy" style="color: #7f8c8d; text-decoration: none;">Privacy Policy</a> -
-  <a href="https://vulcainvpn.com/terms" style="color: #7f8c8d; text-decoration: none;">Terms of Service</a> -
-  <a href="https://vulcainvpn.com/logging" style="color: #7f8c8d; text-decoration: none;">Logging Policy</a>
-</p>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .cta-btn:hover {
+      background-color: #e65c00;
+    }
+  </style>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #2c3e50; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <!-- Logo -->
+  <div style="text-align: center; margin-bottom: 20px;">
+    <img src="https://vulcainvpn.com/logo.png" alt="Vulcain VPN Logo" style="max-width: 150px;">
+  </div>
+
+  <!-- Header -->
+  <h1 style="color: #2c3e50; font-family: Arial, sans-serif; text-align: center;">
+    Confirm Your Email Address
+  </h1>
+
+  <!-- Welcome Message -->
+  <p style="font-size: 16px;">
+    Welcome Pierre!
+  </p>
+
+  <!-- Instructions -->
+  <p style="font-size: 16px;">
+    You're just one step away from getting started. Please confirm your email address by clicking the button below:
+  </p>
+
+  <!-- CTA Button -->
+  <p style="text-align: center; margin: 20px 0;">
+    <a href="<%= confirmation_url(@resource, confirmation_token: @token) %>"
+       class="cta-btn"
+       style="background-color: #ff6e08; color: white; padding: 12px 24px; border: none; border-radius: 4px; font-size: 16px; text-decoration: none; display: inline-block; font-family: Arial, sans-serif; transition: background-color 0.3s ease;">
+      Confirm My Account
+    </a>
+  </p>
+
+  <!-- Security Note -->
+  <p style="font-size: 14px; color: #7f8c8d;">
+    This link will expire in 24 hours for your security.
+  </p>
+
+  <!-- Ignore Instruction -->
+  <p style="font-size: 16px;">
+    If you didn't create an account, you can safely ignore this email.
+  </p>
+
+  <!-- Regards -->
+  <p style="font-size: 16px;">
+    Best regards,<br>
+    <strong>The Vulcain VPN Team</strong>
+  </p>
+
+  <!-- Footer -->
+  <p style="font-size: 12px; color: #7f8c8d; margin-top: 20px; text-align: center;">
+    © 2025 Vulcain VPN. All rights reserved.<br>
+    <a href="https://vulcainvpn.com/privacy" style="color: #7f8c8d; text-decoration: none;">Privacy Policy</a> -
+    <a href="https://vulcainvpn.com/terms" style="color: #7f8c8d; text-decoration: none;">Terms of Service</a> -
+    <a href="https://vulcainvpn.com/logging" style="color: #7f8c8d; text-decoration: none;">Logging Policy</a><br>
+    <a href="https://twitter.com/vulcainvpn" style="color: #7f8c8d; text-decoration: none;">Twitter</a> |
+    <a href="https://facebook.com/vulcainvpn" style="color: #7f8c8d; text-decoration: none;">Facebook</a><br>
+    <a href="<%= unsubscribe_url %>" style="color: #7f8c8d; text-decoration: none; font-size: 12px;">Unsubscribe</a>
+  </p>
+</body>
+</html>
