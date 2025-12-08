@@ -92,6 +92,11 @@ Rails.application.configure do
     openssl_verify_mode: 'none'
   }
 
+  config.action_mailer.default_options = {
+    from: 'Vulcain VPN <support@vulcainvpn.com>',
+    reply_to: 'support@vulcainvpn.com'
+  }
+
   # Use a real queuing backend for Active Job (and separate queues per environment).
   config.active_job.queue_adapter = :sidekiq
   config.action_controller.default_url_options = { host: "localhost", port: 3000 }
