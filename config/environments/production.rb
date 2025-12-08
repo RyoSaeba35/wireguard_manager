@@ -59,7 +59,7 @@ Rails.application.configure do
     password: ENV['SMTP_PASSWORD'],
     authentication: 'plain',
     enable_starttls_auto: true,
-    openssl_verify_mode: 'none'
+    openssl_verify_mode: 'none',
     from: 'Vulcain VPN <support@vulcainvpn.com>'
   }
   # Set the default "From" address
