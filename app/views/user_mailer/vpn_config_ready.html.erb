@@ -36,18 +36,18 @@
         </table>
 
         <!-- Welcome Message -->
-        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;max-width: 600px">
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;">
           Hello <%= @user.email %>,
         </p>
 
         <!-- Instructions -->
-        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;max-width: 600px">
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;">
           Your VPN configuration for your subscription <strong>#<%= @subscription.name %></strong> is now ready to use.
           With <strong>Vulcain VPN</strong>, you can enjoy fast, secure, and private internet access with a French IP address.
         </p>
 
         <!-- CTA Button -->
-        <p style="text-align: center; margin: 20px 0;max-width: 600px">
+        <p style="text-align: center; margin: 20px 0;">
           <a
             href="<%= user_subscription_url(@user, @user.subscriptions.find_by(status: "active")) %>"
             class="cta-btn cta-btn-download"
@@ -68,20 +68,20 @@
         </p>
 
         <!-- Help Links -->
-        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left; max-width: 600px">
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;">
           Need help setting up?
           <a href="https://vulcainvpn.com/setup" style="color: #ff6e08; text-decoration: none;">Check out our step-by-step guide</a> or
           <a href="https://vulcainvpn.com/support" style="color: #ff6e08; text-decoration: none;">contact support</a>.
         </p>
 
         <!-- Regards -->
-        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left; max-width: 600px">
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;">
           Best regards,<br>
           <strong>The Vulcain VPN Team</strong>
         </p>
 
         <!-- Footer -->
-        <p style="font-size: 12px; color: #7f8c8d; margin: 20px 0 0 0; text-align: center; max-width: 600px">
+        <p style="font-size: 12px; color: #7f8c8d; margin: 20px 0 0 0; text-align: center;">
           © 2025 Vulcain VPN. All rights reserved.<br>
           <a href="https://vulcainvpn.com/privacy" style="color: #7f8c8d; text-decoration: none;">Privacy Policy</a> -
           <a href="https://vulcainvpn.com/terms" style="color: #7f8c8d; text-decoration: none;">Terms of Service</a> -
