@@ -29,6 +29,11 @@ class StripeCheckoutService
         quantity: 1
       }],
       customer_email: @user.email,
+      metadata: {
+        subscription_id: @subscription.name,
+        plan_type: @subscription.plan.name,
+        message: "Thank you for choosing Vulcain VPN!"
+      },
       success_url: Rails.application.routes.url_helpers.user_subscription_url(@user, @subscription, host: host) + "?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: Rails.application.routes.url_helpers.new_user_subscription_url(@user, host: host),
       automatic_tax: { enabled: false }
