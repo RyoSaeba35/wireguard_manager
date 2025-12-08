@@ -62,7 +62,10 @@ Rails.application.configure do
     openssl_verify_mode: 'none'
   }
   # Set the default "From" address
-  config.action_mailer.default_options = { from: ENV['SMTP_USERNAME'] }
+  config.action_mailer.default_options = {
+    from: 'Vulcain VPN <support@vulcainvpn.com>',
+    reply_to: 'support@vulcainvpn.com'
+  }
   config.action_mailer.default_url_options = { host: ENV['APP_HOST'], protocol: 'https' }
   config.action_mailer.perform_caching = false
 
