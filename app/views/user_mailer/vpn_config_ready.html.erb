@@ -1,62 +1,99 @@
-<table role="presentation" style="margin: 0 auto; text-align: center; width: 100%;">
-  <tr>
-    <td style="padding: 10px 0;">
-      <a href="https://vulcainvpn.com" style="display: inline-block;">
-        <img
-          src="<%= attachments['Vulcain_VPN_logo_3.png'].url %>"
-          alt="Vulcain VPN Logo"
-          style="max-width: 200px; height: auto; display: block; margin: 0 auto;border=0"
-        >
-        <!-- Fallback text if images are blocked -->
-        <span style="display: none; color: #2c3e50; font-weight: bold;">Vulcain VPN</span>
-      </a>
-    </td>
-  </tr>
-</table>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .cta-btn:hover {
+      background-color: #e65c00;
+    }
+    .cta-btn-download:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #2c3e50; margin: 0; padding: 0; max-width: 600px;">
+  <!-- Outer table with fixed width -->
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 600px; margin: 0 auto; max-width: 600px;">
+    <tr>
+      <td style="padding: 20px;">
+        <!-- Logo -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto; text-align: center;">
+          <tr>
+            <td style="padding: 10px 0;">
+              <a href="https://vulcainvpn.com" style="display: inline-block;">
+                <% if attachments['Vulcain_VPN_logo_3.png'] %>
+                  <%= image_tag(
+                    attachments['Vulcain_VPN_logo_3.png'].url,
+                    alt: "Vulcain VPN Logo",
+                    style: "max-width: 200px; height: auto; display: block; margin: 0 auto; border: 0;"
+                  ) %>
+                <% else %>
+                  <span style="color: #2c3e50; font-weight: bold; font-size: 20px;">Vulcain VPN</span>
+                <% end %>
+              </a>
+            </td>
+          </tr>
+        </table>
 
+        <!-- Header -->
+        <h1 style="color: #2c3e50; font-family: Arial, sans-serif; text-align: center; margin: 0; max-width: 600px">
+          Your Vulcain VPN Configuration is Ready!
+        </h1>
 
-<h1 style="color: #2c3e50; font-family: Arial, sans-serif;">Your Vulcain VPN Configuration is Ready!</h1>
+        <!-- Welcome Message -->
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;max-width: 600px">
+          Hello <%= @user.email %>,
+        </p>
 
-<p style="font-family: Arial, sans-serif; font-size: 16px;">Hello <%= @user.email %>,</p>
-<p style="font-family: Arial, sans-serif; font-size: 16px;">
-  Your VPN configuration for your subscription <strong>#<%= @subscription.name %></strong> is now ready to use.
-  With <strong>Vulcain VPN</strong>, you can enjoy fast, secure, and private internet access with a French IP address.
-</p>
+        <!-- Instructions -->
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;max-width: 600px">
+          Your VPN configuration for your subscription <strong>#<%= @subscription.name %></strong> is now ready to use.
+          With <strong>Vulcain VPN</strong>, you can enjoy fast, secure, and private internet access with a French IP address.
+        </p>
 
-<p style="text-align: center; margin: 20px 0;">
-  <a
-    href="<%= user_subscription_url(@user, @user.subscriptions.find_by(status: "active")) %>"
-    class="cta-btn"
-    style="
-      background-color: #e74c3c;
-      color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 4px;
-      font-size: 16px;
-      text-decoration: none;
-      display: inline-block;
-      font-family: Arial, sans-serif;
-    "
-  >
-    Download Your Configuration
-  </a>
-</p>
+        <!-- CTA Button -->
+        <p style="text-align: center; margin: 20px 0;max-width: 600px">
+          <a
+            href="<%= user_subscription_url(@user, @user.subscriptions.find_by(status: "active")) %>"
+            class="cta-btn cta-btn-download"
+            style="
+              background-color: #e74c3c;
+              color: white;
+              padding: 12px 24px;
+              border: none;
+              border-radius: 4px;
+              font-size: 16px;
+              text-decoration: none;
+              display: inline-block;
+              font-family: Arial, sans-serif;
+            "
+          >
+            Download Your Configuration
+          </a>
+        </p>
 
-<p style="font-family: Arial, sans-serif; font-size: 16px;">
-  Need help setting up?
-  <a href="http://localhost:3000/setup" style="color: #ff6e08; text-decoration: none;">Check out our step-by-step guide</a> or
-  <a href="#" style="color: #ff6e08; text-decoration: none;">contact support</a>.
-</p>
+        <!-- Help Links -->
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left; max-width: 600px">
+          Need help setting up?
+          <a href="https://vulcainvpn.com/setup" style="color: #ff6e08; text-decoration: none;">Check out our step-by-step guide</a> or
+          <a href="https://vulcainvpn.com/support" style="color: #ff6e08; text-decoration: none;">contact support</a>.
+        </p>
 
-<p style="font-family: Arial, sans-serif; font-size: 16px;">
-  Best regards,<br>
-  <strong>The Vulcain VPN Team</strong>
-</p>
+        <!-- Regards -->
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left; max-width: 600px">
+          Best regards,<br>
+          <strong>The Vulcain VPN Team</strong>
+        </p>
 
-<p style="font-family: Arial, sans-serif; font-size: 12px; color: #7f8c8d; margin-top: 20px;">
-  © 2025 Vulcain VPN. All rights reserved.<br>
-  <a href="https://www.vulcainvpn.com/privacy" style="color: #7f8c8d; text-decoration: none;">Privacy Policy</a> -
-  <a href="https://www.vulcainvpn.com/terms" style="color: #7f8c8d; text-decoration: none;">Terms of Service</a> -
-  <a href="https://www.vulcainvpn.com/logging" style="color: #7f8c8d; text-decoration: none;">Logging Policy</a>
-</p>
+        <!-- Footer -->
+        <p style="font-size: 12px; color: #7f8c8d; margin: 20px 0 0 0; text-align: center; max-width: 600px">
+          © 2025 Vulcain VPN. All rights reserved.<br>
+          <a href="https://vulcainvpn.com/privacy" style="color: #7f8c8d; text-decoration: none;">Privacy Policy</a> -
+          <a href="https://vulcainvpn.com/terms" style="color: #7f8c8d; text-decoration: none;">Terms of Service</a> -
+          <a href="https://vulcainvpn.com/logging" style="color: #7f8c8d; text-decoration: none;">Logging Policy</a>
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
