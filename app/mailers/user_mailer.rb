@@ -1,6 +1,6 @@
 # app/mailers/user_mailer.rb
 class UserMailer < ApplicationMailer
-  default from: 'support@vulcainvpn.com' # Use a valid email address
+  default from: 'Vulcain VPN <support@vulcainvpn.com>' # Use a valid email address
 
   def vpn_config_ready(user, subscription)
     @user = user
@@ -22,6 +22,6 @@ class UserMailer < ApplicationMailer
       Rails.logger.error "Logo not found at #{logo_path}"
     end
 
-    mail(to: @user.email, subject: "Your Vulcain VPN Configuration is Ready!")
+    mail(to: @user.email, subject: "Welcome to Vulcain VPN – Your Secure Connection is Ready!")
   end
 end
