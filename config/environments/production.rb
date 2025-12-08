@@ -84,6 +84,7 @@ Rails.application.configure do
 
   # Enable DNS rebinding protection.
   config.hosts = [
+    'vulcainvpn.com',
     ENV['APP_DOMAIN'],
     /.*\.#{ENV['APP_DOMAIN']}/ # Allow subdomains
   ]
