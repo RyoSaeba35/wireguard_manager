@@ -11,7 +11,12 @@ class DashboardController < ApplicationController
     end
     @country = fetch_country(@user_ip)
 
-    @server_status = fetch_server_status if @vpn_server_ips.include?(@user_ip)
+    begin
+      @server_status = fetch_server_status_internal if @vpn_server_ips.include?(@user_ip)
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch server status in show action: #{e.message}")
+      @server_status = "Server status unavailable"
+    end
 
     # Fetch the "active" subscription, but only if it's truly not expired
     @active_subscription = current_user.subscriptions.find_by(
@@ -35,7 +40,7 @@ class DashboardController < ApplicationController
     begin
       uri = URI.parse("http://51.75.126.238/api/server-status")
       request = Net::HTTP::Get.new(uri)
-      request.basic_auth('vulcainadmin', 'Vulcain1989!') # Replace with your credentials
+      request.basic_auth('vulcainadmin', 'Vulcain1989!')
 
       response = Net::HTTP.start(uri.hostname, uri.port) do |http|
         http.request(request)
@@ -45,11 +50,11 @@ class DashboardController < ApplicationController
         data = JSON.parse(response.body)
         render plain: "Server: #{data['status']} - #{data['messages'].first}"
       else
-        render plain: "Server status unavailable", status: :unprocessable_entity
+        render plain: "Server status unavailable", status: :ok
       end
     rescue StandardError => e
       Rails.logger.error("Failed to fetch server status: #{e.message}")
-      render plain: "Server status unavailable", status: :unprocessable_entity
+      render plain: "Server status unavailable", status: :ok
     end
   end
 
@@ -61,6 +66,28 @@ class DashboardController < ApplicationController
       JSON.parse(response)['country']
     rescue StandardError
       nil
+    end
+  end
+
+  def fetch_server_status_internal
+    begin
+      uri = URI.parse("http://51.75.126.238/api/server-status")
+      request = Net::HTTP::Get.new(uri)
+      request.basic_auth('vulcainadmin', 'Vulcain1989!')
+
+      response = Net::HTTP.start(uri.hostname, uri.port) do |http|
+        http.request(request)
+      end
+
+      if response.code == "200"
+        data = JSON.parse(response.body)
+        "Server: #{data['status']} - #{data['messages'].first}"
+      else
+        "Server status unavailable"
+      end
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch server status: #{e.message}")
+      "Server status unavailable"
     end
   end
 end
