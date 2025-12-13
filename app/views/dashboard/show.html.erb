@@ -975,7 +975,8 @@
 
         // Function to fetch server status
         function fetchServerStatus() {
-          fetch('/dashboard/fetch_server_status')
+          const timestamp = new Date().getTime();
+          fetch(`/dashboard/fetch_server_status?t=${timestamp}`)
             .then(response => {
               if (!response.ok) {
                 throw new Error('Network response was not ok');
