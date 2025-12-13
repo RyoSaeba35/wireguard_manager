@@ -401,6 +401,11 @@
     animation-delay: 10s;
   }
 
+  .rotating-message .message-3 {
+    animation: rotateMessages 20s infinite;
+    animation-delay: 10s;
+  }
+
   @keyframes rotateMessages {
     0%, 50% { opacity: 0; }
     5%, 45% { opacity: 1; }
@@ -652,6 +657,7 @@
         <div class="rotating-message">
           <div class="message-1"><strong>You are well protected using Vulcain VPN!</strong></div>
           <div class="message-2"><strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
+          <div class="message-3"><strong><%= @server_status || "Server status: OK" %></strong></div>
         </div>
     <% else %>
       <!-- Not using VPN: Static message -->
@@ -961,21 +967,49 @@
       if (rotatingMessage) {
         const message1 = rotatingMessage.querySelector('.message-1');
         const message2 = rotatingMessage.querySelector('.message-2');
-        let isMessage1Visible = true;
+        const message3 = rotatingMessage.querySelector('.message-3');
+        let currentMessage = 1;
 
         // Show the first message immediately
         message1.style.opacity = '1';
 
+        // Function to fetch server status
+        function fetchServerStatus() {
+          fetch('/dashboard/fetch_server_status')
+            .then(response => response.text())
+            .then(data => {
+              if (message3) {
+                message3.innerHTML = `<strong>${data}</strong>`;
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              if (message3) {
+                message3.innerHTML = '<strong>Server status: Unavailable</strong>';
+              }
+            });
+        }
+
+        // Rotate messages
         setInterval(function() {
-          if (isMessage1Visible) {
+          if (currentMessage === 1) {
             message1.style.opacity = '0';
             message2.style.opacity = '1';
-          } else {
-            message1.style.opacity = '1';
+            currentMessage = 2;
+          } else if (currentMessage === 2) {
             message2.style.opacity = '0';
+            message3.style.opacity = '1';
+            currentMessage = 3;
+            fetchServerStatus(); // Fetch status when showing message 3
+          } else {
+            message3.style.opacity = '0';
+            message1.style.opacity = '1';
+            currentMessage = 1;
           }
-          isMessage1Visible = !isMessage1Visible;
         }, 10000); // Rotate every 10 seconds
+
+        // Initial fetch
+        fetchServerStatus();
       }
     });
   </script>

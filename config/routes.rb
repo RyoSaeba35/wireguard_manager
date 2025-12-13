@@ -76,4 +76,6 @@ Rails.application.routes.draw do
   get 'setup', to: 'dashboard#setup', as: :setup_guide
   get 'download_config/:filename', to: 'downloads#config', as: :download_config
   get 'download_qr_code/:filename', to: 'downloads#qr_code', as: :download_qr_code
+
+  get 'dashboard/fetch_server_status', to: 'dashboard#fetch_server_status'
 end
