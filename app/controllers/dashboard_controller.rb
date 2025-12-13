@@ -49,17 +49,21 @@ class DashboardController < ApplicationController
   end
 
   def fetch_server_status
+    response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+
     begin
       uri = URI.parse("http://51.75.126.238/api/server-status")
       request = Net::HTTP::Get.new(uri)
       request.basic_auth('vulcainadmin', 'Vulcain1989!')
 
-      response = Net::HTTP.start(uri.hostname, uri.port) do |http|
+      response_api = Net::HTTP.start(uri.hostname, uri.port) do |http|
         http.request(request)
       end
 
-      if response.code == "200"
-        data = JSON.parse(response.body)
+      if response_api.code == "200"
+        data = JSON.parse(response_api.body)
         render plain: "Server: #{data['status']} - #{data['messages'].first}"
       else
         render plain: "Server status unavailable", status: :ok
