@@ -11,6 +11,8 @@ class DashboardController < ApplicationController
     end
     @country = fetch_country(@user_ip)
 
+    @server_status = fetch_server_status if @vpn_server_ips.include?(@user_ip)
+    
     # Fetch the "active" subscription, but only if it's truly not expired
     @active_subscription = current_user.subscriptions.find_by(
       status: "active",
@@ -38,5 +40,31 @@ class DashboardController < ApplicationController
     rescue StandardError
       nil
     end
+  end
+
+  def fetch_server_status
+    begin
+      uri = URI.parse("http://51.75.126.238/api/server-status")
+      request = Net::HTTP::Get.new(uri)
+      request.basic_auth('vulcainadmin', 'Vulcain1989!') # Replace with your credentials
+
+      response = Net::HTTP.start(uri.hostname, uri.port) do |http|
+        http.request(request)
+      end
+
+      if response.code == "200"
+        data = JSON.parse(response.body)
+        "Server: #{data['status']} - #{data['messages'].first}"
+      else
+        "Server status unavailable"
+      end
+    rescue StandardError => e
+      Rails.logger.error("Failed to fetch server status: #{e.message}")
+      "Server status unavailable"
+    end
+  end
+
+  def get_country_from_ip(ip)
+    # Your existing logic to get country from IP
   end
 end
