@@ -11,23 +11,35 @@ class DashboardController < ApplicationController
     end
     @country = fetch_country(@user_ip)
 
-    begin
-      @server_status = fetch_server_status_internal if @vpn_server_ips.include?(@user_ip)
-    rescue StandardError => e
-      Rails.logger.error("Failed to fetch server status in show action: #{e.message}")
-      @server_status = "Server status unavailable"
+    if @vpn_server_ips.include?(@user_ip)
+      begin
+        uri = URI.parse("http://51.75.126.238/api/server-status")
+        request = Net::HTTP::Get.new(uri)
+        request.basic_auth('vulcainadmin', 'Vulcain1989!')
+
+        response = Net::HTTP.start(uri.hostname, uri.port) do |http|
+          http.request(request)
+        end
+
+        if response.code == "200"
+          data = JSON.parse(response.body)
+          @server_status = "Server: #{data['status']} - #{data['messages'].first}"
+        else
+          @server_status = "Server status unavailable"
+        end
+      rescue StandardError => e
+        Rails.logger.error("Failed to fetch server status: #{e.message}")
+        @server_status = "Server status unavailable"
+      end
     end
 
-    # Fetch the "active" subscription, but only if it's truly not expired
     @active_subscription = current_user.subscriptions.find_by(
       status: "active",
-      expires_at: Time.current..Float::INFINITY  # Only subscriptions that expire in the future
+      expires_at: Time.current..Float::INFINITY
     )
 
-    # Fetch all expired subscriptions (for the "Expired Subscriptions" section)
     @expired_subscriptions = current_user.subscriptions.where("expires_at < ?", Time.current)
 
-    # Set @has_subscription based on whether there's a truly active subscription
     @has_subscription = @active_subscription.present?
   end
 
