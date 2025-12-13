@@ -43,13 +43,13 @@ class DashboardController < ApplicationController
 
       if response.code == "200"
         data = JSON.parse(response.body)
-        "Server: #{data['status']} - #{data['messages'].first}"
+        render plain: "Server: #{data['status']} - #{data['messages'].first}"
       else
-        "Server status unavailable"
+        render plain: "Server status unavailable", status: :unprocessable_entity
       end
     rescue StandardError => e
       Rails.logger.error("Failed to fetch server status: #{e.message}")
-      "Server status unavailable"
+      render plain: "Server status unavailable", status: :unprocessable_entity
     end
   end
 
