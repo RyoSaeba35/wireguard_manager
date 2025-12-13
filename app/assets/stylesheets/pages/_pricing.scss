@@ -1,0 +1,70 @@
+// Pricing Section
+.pricing {
+  width: 100%;
+  text-align: center;
+  padding: 1rem;
+  padding-top: 0;
+  box-sizing: border-box;
+  
+  h2 {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #2c3e50;
+  }
+}
+
+// Plan Grid
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+// Mobile Carousel
+#plan-slider {
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: block;
+  }
+}
+
+.splide {
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.splide__slide {
+  padding: 0 0.5rem;
+}
+
+// Plan Card (already defined in cards.scss, but adding pricing-specific styles)
+.plan {
+  // Styles are in components/_cards.scss
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
+}
+
+// Plan Unavailable
+.plan-unavailable {
+  color: #e74c3c;
+  font-weight: bold;
+  padding: 1rem;
+  background-color: #fdecea;
+  border-radius: 4px;
+  margin-top: 1rem;
+  
+  p {
+    margin: 0.5rem 0;
+  }
+}

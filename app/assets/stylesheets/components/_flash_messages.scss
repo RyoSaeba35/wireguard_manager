@@ -1,0 +1,83 @@
+// Flash Messages Container
+.flash {
+  padding: 12px 20px;
+  margin: 0 auto;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  z-index: 1000;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: fadeIn 0.3s ease-in-out;
+  transition: opacity 0.3s ease-in-out;
+}
+
+// Flash Message Variants
+.flash-notice {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.flash-alert {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+// Scrolling Text Container
+.scrolling-text-container {
+  display: inline-block;
+  width: calc(100% - 25px);
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+// Scrolling Text
+.scrolling-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: scroll-left 20s linear infinite;
+  animation-play-state: paused;
+}
+
+.scrolling-text-container:hover .scrolling-text {
+  animation-play-state: paused;
+}
+
+// Flash Close Button
+.flash-close {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+// Animations
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

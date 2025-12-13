@@ -1,0 +1,143 @@
+// Form Styles
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  
+  &:focus {
+    border-color: #ff6e08;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 110, 8, 0.2);
+  }
+}
+
+// Input Variants
+.form-control-lg {
+  padding: 1rem;
+  font-size: 1.25rem;
+}
+
+.form-control-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+// Textarea
+.textarea {
+  @extend .form-control;
+  min-height: 150px;
+  resize: vertical;
+}
+
+// Select
+.select {
+  @extend .form-control;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'292.4'%20height%3D'292.4'%3E%3Cpath%20fill%3D'%23000000'%20d%3D'M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%2000%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z'%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 0.65rem 0.65rem;
+}
+
+// Checkbox and Radio
+.checkbox,
+.radio {
+  margin-right: 0.5rem;
+}
+
+// Form Layouts
+.form-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  
+  .form-group {
+    margin-bottom: 0;
+    margin-right: 1rem;
+  }
+}
+
+.form-horizontal {
+  .form-group {
+    display: flex;
+    align-items: center;
+    
+    .form-label {
+      flex: 0 0 200px;
+      margin-bottom: 0;
+    }
+    
+    .form-control {
+      flex: 1;
+    }
+  }
+}
+
+// Form Validation
+.is-valid {
+  border-color: #28a745;
+  
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+  }
+}
+
+.is-invalid {
+  border-color: #e74c3c;
+  
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+  }
+}
+
+.valid-feedback {
+  color: #28a745;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.invalid-feedback {
+  color: #e74c3c;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+// Button in forms
+.form-btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  background-color: #ff6e08;
+  color: white;
+  margin-top: 1rem;
+  
+  &:hover:not(:disabled) {
+    background-color: #e76007;
+    text-decoration: none;
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}

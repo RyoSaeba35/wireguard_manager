@@ -1,0 +1,62 @@
+// Main Application Layout
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
+// Main Content Container
+.main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+// Super Container (from home page)
+.super-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f4f4f4;
+  box-sizing: border-box;
+}
+
+// Container
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+
+// Section Styles
+.section {
+  padding: 2rem 0;
+}
+
+// Page-specific containers
+.dashboard-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 5rem;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+    margin: 0 auto;
+    max-width: 100%;
+  }
+}
+
+.admin-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f4f4f4;
+}

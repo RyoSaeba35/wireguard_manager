@@ -1,0 +1,157 @@
+// Devise Pages Layout
+.login-super-container,
+.signup-super-container,
+.auth-super-container {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f4;
+  margin: auto;
+  padding: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.login-container,
+.signup-container,
+.auth-container {
+  background-color: white;
+  padding: 2rem;
+  margin: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-container h2,
+.signup-container h2,
+.auth-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+// Form Styles
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus,
+.form-group input[type="text"]:focus {
+  outline: none;
+  border-color: #ff6e08;
+  box-shadow: 0 0 0 2px rgba(255, 110, 8, 0.2);
+}
+
+.remember-me-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.remember-me-container input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.remember-me-container label {
+  margin-bottom: 0;
+  display: inline;
+}
+
+// Button Styles
+.login-container .login-btn,
+.signup-container .signup-btn,
+.auth-container .auth-btn {
+  width: 100%;
+  background-color: #ff6e08;
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.login-container .login-btn:hover,
+.signup-container .signup-btn:hover,
+.auth-container .auth-btn:hover {
+  background-color: #ffc33c;
+}
+
+// Link Styles
+.signup-link,
+.login-link,
+.link-text {
+  text-align: center;
+  margin-top: 1rem;
+  color: #e74c3c;
+}
+
+.signup-link a,
+.login-link a,
+.link-text a {
+  color: #432923;
+  text-decoration: none;
+}
+
+.signup-link a:hover,
+.login-link a:hover,
+.link-text a:hover {
+  color: #ffc33c;
+  text-decoration: none;
+}
+
+.link-text {
+  color: #ff6e08;
+}
+
+// Shared Links
+.shared-links {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.shared-links a {
+  color: #ff6e08;
+  text-decoration: none;
+  margin: 0 0.5rem;
+}
+
+.shared-links a:hover {
+  text-decoration: underline;
+}
+
+// Responsive Styles
+@media (max-width: 480px) {
+  .login-container,
+  .signup-container {
+    padding: 1.5rem;
+    margin: 0.5rem;
+  }
+  
+  .login-container h2,
+  .signup-container h2 {
+    font-size: 1.5rem;
+  }
+}

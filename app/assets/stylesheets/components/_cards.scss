@@ -1,0 +1,272 @@
+// Base Card Styles
+.card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+// Feature Card
+.feature-card {
+  background-color: #f9f9f9;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  h3 {
+    font-size: 1.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
+}
+
+// Plan Card
+.plan {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #ff6e08;
+  position: relative;
+  
+  h3 {
+    color: #2c3e50;
+    margin-top: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    
+    h3 {
+      margin-top: 1.8rem;
+    }
+  }
+}
+
+// Popular Badge
+.popular-badge {
+  background-color: #ff6e08;
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+// Plan Subtitle
+.plan-subtitle {
+  color: #7f8c8d;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+// Plan Price
+.plan-price {
+  font-size: 2.5rem;
+  color: #ff6e08;
+  margin-bottom: 1.5rem;
+  
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+}
+
+// Plan Features
+.plan-features {
+  text-align: left;
+  margin-bottom: 1.5rem;
+  
+  p {
+    margin: 0.5rem 0;
+  }
+}
+
+// Tooltip Icon
+.tooltip-icon {
+  cursor: help;
+  margin-left: 5px;
+  font-size: 0.8em;
+  color: #666;
+  border-bottom: 1px dotted #666;
+}
+
+// Subscription Card
+.subscription-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background-color: #f9f9f9;
+  max-width: 400px;
+  
+  h3 {
+    margin-top: 0;
+    color: #333;
+  }
+  
+  p {
+    margin: 5px 0;
+  }
+  
+  @media (max-width: 768px) {
+    max-width: 100%;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    
+    h3 {
+      font-size: 1.1rem;
+    }
+    
+    p {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Alert Cards
+.alert {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  
+  p {
+    margin: 0.5rem 0;
+  }
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #28a745;
+  border-left: 4px solid #28a745;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border-left: 4px solid #ffeeba;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #e74c3c;
+  border-left: 4px solid #e74c3c;
+}
+
+// Subscription Alert
+.subscription-alert {
+  display: flex;
+  align-items: flex-start;
+  background-color: #fff3cd;
+  color: #2c3e50;
+  border-left: 4px solid #ff6e08;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  max-width: 600px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease-in-out;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.25rem;
+  }
+}
+
+.alert-icon {
+  margin-right: 12px;
+  margin-top: 0px;
+  flex-shrink: 0;
+  
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: #ff6e08;
+  }
+  
+  @media (max-width: 768px) {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.alert-content {
+  h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.2em;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  
+  p {
+    margin: 4px 0;
+    line-height: 1.5;
+    color: #555;
+  }
+  
+  strong {
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    
+    h3 {
+      font-size: 1.1rem;
+    }
+    
+    p {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Local Time Container
+.local-time-container {
+  position: relative;
+  display: inline-block;
+  font-weight: 600;
+  color: #2c3e50;
+  cursor: help;
+}
+
+.utc-tooltip {
+  display: none;
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  white-space: nowrap;
+  z-index: 100;
+  left: 0;
+  top: 100%;
+  margin-top: 5px;
+}
+
+.local-time-container:hover .utc-tooltip {
+  display: block;
+}
+
+// Countdown
+.countdown {
+  font-weight: 600;
+  color: #e74c3c;
+  margin: 8px 0 0;
+  font-size: 1.1em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
