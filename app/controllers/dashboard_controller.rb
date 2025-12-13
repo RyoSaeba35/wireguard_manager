@@ -12,7 +12,7 @@ class DashboardController < ApplicationController
     @country = fetch_country(@user_ip)
 
     @server_status = fetch_server_status if @vpn_server_ips.include?(@user_ip)
-    
+
     # Fetch the "active" subscription, but only if it's truly not expired
     @active_subscription = current_user.subscriptions.find_by(
       status: "active",
@@ -29,17 +29,6 @@ class DashboardController < ApplicationController
   def setup
     @has_subscription = current_user.subscriptions.active.any?
     @active_subscription = current_user.subscriptions.active.first
-  end
-
-  private
-
-  def fetch_country(ip)
-    Rails.cache.fetch("country_#{ip}", expires_in: 1.hour) do
-      response = Net::HTTP.get(URI("http://ip-api.com/json/#{ip}"))
-      JSON.parse(response)['country']
-    rescue StandardError
-      nil
-    end
   end
 
   def fetch_server_status
@@ -64,7 +53,14 @@ class DashboardController < ApplicationController
     end
   end
 
-  def get_country_from_ip(ip)
-    # Your existing logic to get country from IP
+  private
+
+  def fetch_country(ip)
+    Rails.cache.fetch("country_#{ip}", expires_in: 1.hour) do
+      response = Net::HTTP.get(URI("http://ip-api.com/json/#{ip}"))
+      JSON.parse(response)['country']
+    rescue StandardError
+      nil
+    end
   end
 end
