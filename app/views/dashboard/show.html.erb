@@ -976,14 +976,21 @@
         // Function to fetch server status
         function fetchServerStatus() {
           fetch('/dashboard/fetch_server_status')
-            .then(response => response.text())
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.text();
+            })
             .then(data => {
+              const message3 = document.querySelector('.message-3');
               if (message3) {
                 message3.innerHTML = `<strong>${data}</strong>`;
               }
             })
             .catch(error => {
               console.error('Error:', error);
+              const message3 = document.querySelector('.message-3');
               if (message3) {
                 message3.innerHTML = '<strong>Server status: Unavailable</strong>';
               }
