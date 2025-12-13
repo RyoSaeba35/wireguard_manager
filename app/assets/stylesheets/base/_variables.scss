@@ -1,0 +1,42 @@
+// Colors
+$primary-color: #ff6e08;
+$secondary-color: #432923;
+$success-color: #28a745;
+$warning-color: #ffc107;
+$danger-color: #e74c3c;
+$info-color: #17a2b8;
+$light-color: #f8f9fa;
+$dark-color: #2c3e50;
+$white-color: #ffffff;
+$black-color: #000000;
+
+// Fonts
+$font-primary: 'Arial', sans-serif;
+$font-secondary: 'Alice', serif;
+
+// Breakpoints
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+// Spacing
+$spacing-unit: 1rem;
+$spacing-small: 0.5rem;
+$spacing-medium: 1rem;
+$spacing-large: 2rem;
+
+// Shadows
+$shadow-small: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-large: 0 10px 20px rgba(0, 0, 0, 0.1);
+
+// Border radius
+$border-radius-small: 4px;
+$border-radius-medium: 8px;
+$border-radius-large: 12px;
+
+// Transitions
+$transition-fast: all 0.2s ease;
+$transition-medium: all 0.3s ease;
+$transition-slow: all 0.5s ease;
