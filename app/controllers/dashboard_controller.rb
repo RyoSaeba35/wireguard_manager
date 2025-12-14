@@ -85,7 +85,7 @@ class DashboardController < ApplicationController
   end
 
   def format_server_status(data)
-    if data['status'] == "OK"
+    if data['status'] == "OK" || data['status'] == "WARNING"
       "Server: OK"
     else
       "Server: #{data['status']}"
