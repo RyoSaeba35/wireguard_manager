@@ -50,6 +50,11 @@ class DashboardController < ApplicationController
     response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+    @active_subscription = current_user.subscriptions.find_by(
+      status: "active",
+      expires_at: Time.current..Float::INFINITY
+    )
+    @has_subscription = @active_subscription.present?
     @user_server_ip = @active_subscription.server.ip_address if @has_subscription && @active_subscription&.server&.present?
 
     if (@user_server_ip.present? && @vpn_server_ips.include?(@user_server_ip))
@@ -72,7 +77,7 @@ class DashboardController < ApplicationController
         Rails.logger.error("Failed to fetch server status: #{e.message}")
         render json: { error: "Server status unavailable" }, status: :ok
       end
-   end
+    end
   end
 
   private
