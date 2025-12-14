@@ -41,6 +41,7 @@
                 <th>IP Address</th>
                 <th>Current Load</th>
                 <th>Capacity</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -63,6 +64,20 @@
                     </div>
                   </td>
                   <td><%= server.max_subscriptions %></td>
+                  <td>
+                    <% status = @server_statuses[server.id] %>
+                    <% if status %>
+                      <% if status['status'] == 'OK' %>
+                        <span class="status-badge status-ok">Operational</span>
+                      <% elsif status['status'] == 'WARNING' %>
+                        <span class="status-badge status-warning">Warning</span>
+                      <% else %>
+                        <span class="status-badge status-critical">Critical</span>
+                      <% end %>
+                    <% else %>
+                      <span class="status-badge status-unknown">Unknown</span>
+                    <% end %>
+                  </td>
                   <td class="server-actions">
                     <%= link_to "Edit", edit_admin_server_path(server), class: "admin-btn admin-btn--users" %>
                     <%= button_to "Deactivate", admin_server_path(server, server: { active: false }), method: :patch,
@@ -332,5 +347,36 @@
     .load-bar {
       height: 6px;
     }
+  }
+
+  /* Status Badge */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    width: 80px;
+  }
+
+  .status-ok {
+    background-color: #27ae60;
+    color: white;
+  }
+
+  .status-warning {
+    background-color: #f39c12;
+    color: white;
+  }
+
+  .status-critical {
+    background-color: #e74c3c;
+    color: white;
+  }
+
+  .status-unknown {
+    background-color: #95a5a6;
+    color: white;
   }
 </style>

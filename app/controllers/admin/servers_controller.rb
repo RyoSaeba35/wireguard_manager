@@ -6,6 +6,27 @@ module Admin
 
     def index
       @servers = Server.all
+      @server_statuses = {}
+
+      @servers.where(active: true).each do |server|
+        begin
+          uri = URI.parse("http://#{server.ip_address}/api/server-status")
+          request = Net::HTTP::Get.new(uri)
+          request.basic_auth('vulcainadmin', 'Vulcain1989!')
+
+          response = Net::HTTP.start(uri.hostname, uri.port) do |http|
+            http.request(request)
+          end
+
+          if response.code == "200"
+            data = JSON.parse(response.body)
+            @server_statuses[server.id] = data
+          end
+        rescue StandardError => e
+          Rails.logger.error("Failed to fetch server status for #{server.ip_address}: #{e.message}")
+          @server_statuses[server.id] = { status: "unavailable", error: "Failed to fetch status" }
+        end
+      end
     end
 
     def new
