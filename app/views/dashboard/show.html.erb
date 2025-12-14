@@ -972,7 +972,6 @@
   document.addEventListener('DOMContentLoaded', function() {
     const rotatingMessage = document.querySelector('.rotating-message');
     if (rotatingMessage) {
-      // Function to fetch server status
       function fetchServerStatus() {
         const timestamp = new Date().getTime();
         fetch(`/dashboard/fetch_server_status?t=${timestamp}`)
@@ -983,35 +982,36 @@
             return response.json();
           })
           .then(data => {
-            const message3 = document.querySelector('.message-3');
+            const message3 = document.queryListener('.message-3');
             if (message3) {
-              let statusText;
-              let color;
-              if (data.status === "OK" || data.status === "WARNING") {
-                statusText = "VPN Service: All systems operational.";
-                color = "green";
+              if (data.no_subscription) {
+                message3.innerHTML = '';
               } else {
-                statusText = "VPN Service: Unavailable. We are experiencing technical difficulties.";
-                color = "red";
+                let statusText;
+                let color;
+                if (data.status === "OK" || data.status === "WARNING") {
+                  statusText = "VPN Service: All systems operational.";
+                  color = "green";
+                } else {
+                  statusText = "VPN Service: Unavailable. We are experiencing technical difficulties.";
+                  color = "red";
+                }
+                message3.innerHTML = `<strong>${statusText}</strong>`;
+                message3.style.color = color;
               }
-              message3.innerHTML = `<strong>${statusText}</strong>`;
-              message3.style.color = color;
             }
           })
           .catch(error => {
             console.error('Error:', error);
+            // Optionally leave message3 empty or handle the error silently
             const message3 = document.querySelector('.message-3');
             if (message3) {
-              message3.innerHTML = '<strong>Server status: Unavailable</strong>';
-              message3.style.color = "black";
+              message3.innerHTML = '';
             }
           });
       }
 
-      // Initial fetch
       fetchServerStatus();
-
-      // Fetch server status every 30 seconds
       setInterval(fetchServerStatus, 30000);
     }
   });
