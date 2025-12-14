@@ -59,9 +59,13 @@ class DashboardController < ApplicationController
     response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+    @user_ip = request.env['HTTP_X_FORWARDED_FOR'] || request.remote_ip
+    @user_ip = @user_ip.to_s.strip
+    @user_ip = @user_ip.gsub(/^::ffff:/, '') if @user_ip.include?('::ffff:')
+    @user_server_ip = @active_subscription.server.ip_address if @has_subscription && @active_subscription&.server&.present?
 
     begin
-      uri = URI.parse("http://51.75.126.238/api/server-status")
+      uri = URI.parse("http://#{@user_server_ip || @user_ip}/api/server-status")
       request = Net::HTTP::Get.new(uri)
       request.basic_auth('vulcainadmin', 'Vulcain1989!')
 
