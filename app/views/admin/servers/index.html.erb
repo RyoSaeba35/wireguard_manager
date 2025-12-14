@@ -67,13 +67,9 @@
                   <td>
                     <% status = @server_statuses[server.id] %>
                     <% if status %>
-                      <% if status['status'] == 'OK' %>
-                        <span class="status-badge status-ok">Operational</span>
-                      <% elsif status['status'] == 'WARNING' %>
-                        <span class="status-badge status-warning">Warning</span>
-                      <% else %>
-                        <span class="status-badge status-critical">Critical</span>
-                      <% end %>
+                      <span class="status-badge status-<%= status['status'].downcase %>" data-status='<%= status.to_json %>' data-server-name='<%= server.name %>'>
+                        <%= status['status'] == 'OK' ? 'Operational' : status['status'].capitalize %>
+                      </span>
                     <% else %>
                       <span class="status-badge status-unknown">Unknown</span>
                     <% end %>
@@ -133,6 +129,15 @@
           <p>No inactive servers found.</p>
         </div>
       <% end %>
+    </div>
+  </div>
+
+  <!-- Add this inside your admin-container div, before the closing </div> -->
+  <div id="statusModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalServerName"></h2>
+      <div id="modalServerStatus"></div>
     </div>
   </div>
 </div>
@@ -348,4 +353,92 @@
       height: 6px;
     }
   }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .close:hover {
+    color: black;
+  }
+
+  .modal-content h2 {
+    margin-top: 0;
+    color: #2c3e50;
+  }
+
+  .modal-content ul {
+    padding-left: 20px;
+  }
+
+  .modal-content li {
+    margin-bottom: 8px;
+  }
 </style>
+
+<script>
+  // Add this JavaScript to your page
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('statusModal');
+    const span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on a status badge, open the modal and display the status details
+    document.querySelectorAll('.status-badge').forEach(badge => {
+      badge.addEventListener('click', function() {
+        const status = JSON.parse(this.getAttribute('data-status'));
+        const serverName = this.getAttribute('data-server-name');
+
+        document.getElementById('modalServerName').textContent = `Server: ${serverName}`;
+        let statusHTML = '<ul>';
+
+        for (const [key, value] of Object.entries(status)) {
+          statusHTML += `<li><strong>${key.replace('_', ' ')}:</strong> ${value}</li>`;
+        }
+
+        statusHTML += '</ul>';
+        document.getElementById('modalServerStatus').innerHTML = statusHTML;
+        modal.style.display = 'block';
+      });
+    });
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+      modal.style.display = 'none';
+    };
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    };
+  });
+</script>
