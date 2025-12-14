@@ -652,13 +652,18 @@
 
 <div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
   <div class="scrolling-text-container">
-      <% if @vpn_server_ips.include?(@user_ip) %>
-        <!-- VPN Protected: Rotating messages -->
-        <div class="rotating-message">
-          <div class="message-1"><strong>You are well protected using Vulcain VPN!</strong></div>
-          <div class="message-2"><strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
-          <div class="message-3"><strong><%= @server_status || "Server status: OK" %></strong></div>
-        </div>
+    <% if @vpn_server_ips.include?(@user_ip) %>
+      <!-- VPN Protected: Rotating messages -->
+      <div class="rotating-message">
+        <div class="message-1"><strong>You are well protected using Vulcain VPN!</strong></div>
+        <div class="message-2"><strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
+        <div class="message-3"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
+      </div>
+    <% elsif @active_subscription.server.ip_address.present? %>
+      <div class="rotating-message">
+        <div class="message-1"><strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
+        <div class="message-2"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
+      </div>
     <% else %>
       <!-- Not using VPN: Static message -->
       <strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %>
