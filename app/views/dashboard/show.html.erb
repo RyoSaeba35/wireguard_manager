@@ -389,7 +389,7 @@
     width: auto;
     text-align: center;
     opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 0.2s ease-in-out;
   }
 
   .rotating-message .message-1 {
@@ -408,7 +408,7 @@
 
   @keyframes rotateMessages {
     0%, 30% { opacity: 0; }
-    1%, 26% { opacity: 1; }
+    5%, 26% { opacity: 1; }
     27%, 100% { opacity: 0; }
   }
 
@@ -974,12 +974,24 @@
             if (!response.ok) {
               throw new Error('Network response was not ok');
             }
-            return response.text();
+            return response.json();
           })
           .then(data => {
             const message3 = document.querySelector('.message-3');
             if (message3) {
-              message3.innerHTML = `<strong>${data}</strong>`;
+              let statusText = "Server: ";
+              if (data.status === "OK") {
+                statusText += "OK - ";
+                statusText += `WireGuard: ${data.wireguard}, `;
+                statusText += `CAKE: ${data.cake}, `;
+                statusText += `IPTables: ${data.iptables_rules}, `;
+                statusText += `rp_filter: ${data.rp_filter}, `;
+                statusText += `Fail2Ban: ${data.fail2ban}, `;
+                statusText += `Ports: ${data.required_ports}`;
+              } else {
+                statusText += "Unavailable";
+              }
+              message3.innerHTML = `<strong>${statusText}</strong>`;
             }
           })
           .catch(error => {

@@ -1,4 +1,3 @@
-# app/controllers/dashboard_controller.rb
 class DashboardController < ApplicationController
   before_action :authenticate_user!, except: [:fetch_server_status]
 
@@ -23,7 +22,7 @@ class DashboardController < ApplicationController
 
         if response.code == "200"
           data = JSON.parse(response.body)
-          @server_status = "Server: #{data['status']} - #{data['messages'].first}"
+          @server_status = format_server_status(data)
         else
           @server_status = "Server status unavailable"
         end
@@ -64,13 +63,13 @@ class DashboardController < ApplicationController
 
       if response_api.code == "200"
         data = JSON.parse(response_api.body)
-        render plain: "Server: #{data['status']} - #{data['messages'].first}"
+        render json: data
       else
-        render plain: "Server status unavailable", status: :ok
+        render json: { error: "Server status unavailable" }, status: :ok
       end
     rescue StandardError => e
       Rails.logger.error("Failed to fetch server status: #{e.message}")
-      render plain: "Server status unavailable", status: :ok
+      render json: { error: "Server status unavailable" }, status: :ok
     end
   end
 
@@ -83,5 +82,18 @@ class DashboardController < ApplicationController
     rescue StandardError
       nil
     end
+  end
+
+  def format_server_status(data)
+    status_text = "Server: #{data['status']}"
+    if data['status'] == "OK"
+      status_text += " - WireGuard: #{data['wireguard']}, "
+      status_text += "CAKE: #{data['cake']}, "
+      status_text += "IPTables: #{data['iptables_rules']}, "
+      status_text += "rp_filter: #{data['rp_filter']}, "
+      status_text += "Fail2Ban: #{data['fail2ban']}, "
+      status_text += "Ports: #{data['required_ports']}"
+    end
+    status_text
   end
 end
