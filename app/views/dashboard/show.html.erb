@@ -979,8 +979,17 @@
           .then(data => {
             const message3 = document.querySelector('.message-3');
             if (message3) {
-              let statusText = data.status === "OK" ? "Server: OK" : `Server: ${data.status}`;
+              let statusText;
+              let color;
+              if (data.status === "OK" || data.status === "WARNING") {
+                statusText = "Server: OK";
+                color = "green";
+              } else {
+                statusText = `Server: ${data.status}`;
+                color = "red";
+              }
               message3.innerHTML = `<strong>${statusText}</strong>`;
+              message3.style.color = color;
             }
           })
           .catch(error => {
@@ -988,6 +997,7 @@
             const message3 = document.querySelector('.message-3');
             if (message3) {
               message3.innerHTML = '<strong>Server status: Unavailable</strong>';
+              message3.style.color = "black";
             }
           });
       }
