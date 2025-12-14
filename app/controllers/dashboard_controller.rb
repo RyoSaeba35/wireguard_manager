@@ -50,26 +50,29 @@ class DashboardController < ApplicationController
     response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+    @user_server_ip = @active_subscription.server.ip_address if @has_subscription && @active_subscription&.server&.present?
 
-    begin
-      uri = URI.parse("http://51.75.126.238/api/server-status")
-      request = Net::HTTP::Get.new(uri)
-      request.basic_auth('vulcainadmin', 'Vulcain1989!')
+    if (@user_server_ip.present? && @vpn_server_ips.include?(@user_server_ip))
+      begin
+        uri = URI.parse("http://#{@user_server_ip}/api/server-status")
+        request = Net::HTTP::Get.new(uri)
+        request.basic_auth('vulcainadmin', 'Vulcain1989!')
 
-      response_api = Net::HTTP.start(uri.hostname, uri.port) do |http|
-        http.request(request)
-      end
+        response_api = Net::HTTP.start(uri.hostname, uri.port) do |http|
+          http.request(request)
+        end
 
-      if response_api.code == "200"
-        data = JSON.parse(response_api.body)
-        render json: data
-      else
+        if response_api.code == "200"
+          data = JSON.parse(response_api.body)
+          render json: data
+        else
+          render json: { error: "Server status unavailable" }, status: :ok
+        end
+      rescue StandardError => e
+        Rails.logger.error("Failed to fetch server status: #{e.message}")
         render json: { error: "Server status unavailable" }, status: :ok
       end
-    rescue StandardError => e
-      Rails.logger.error("Failed to fetch server status: #{e.message}")
-      render json: { error: "Server status unavailable" }, status: :ok
-    end
+   end
   end
 
   private
