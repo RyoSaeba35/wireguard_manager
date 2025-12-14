@@ -20,10 +20,11 @@ class DashboardController < ApplicationController
 
     if @vpn_server_ips.include?(@user_ip) || (@user_server_ip.present? && @vpn_server_ips.include?(@user_server_ip))
       begin
-        uri = URI.parse("http://#{@user_ip}/api/server-status")
-        Rails.logger.info("Fetching server status from #{uri}")
+        uri = URI.parse("http://#{@user_server_ip || @user_ip}/api/server-status")
+        request = Net::HTTP::Get.new(uri)
+        request.basic_auth('vulcainadmin', 'Vulcain1989!')
 
-        response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https', open_timeout: 5, read_timeout: 5) do |http|
+        response = Net::HTTP.start(uri.hostname, uri.port) do |http|
           http.request(request)
         end
 
@@ -31,18 +32,8 @@ class DashboardController < ApplicationController
           data = JSON.parse(response.body)
           @server_status = format_server_status(data)
         else
-          Rails.logger.warn("Server status request failed with code #{response.code}")
           @server_status = "Server status unavailable"
         end
-      rescue URI::InvalidURIError => e
-        Rails.logger.error("Invalid URI: #{e.message}")
-        @server_status = "Server status unavailable"
-      rescue Net::OpenTimeout, Net::ReadTimeout => e
-        Rails.logger.error("Request timeout: #{e.message}")
-        @server_status = "Server status unavailable"
-      rescue JSON::ParserError => e
-        Rails.logger.error("Failed to parse server status: #{e.message}")
-        @server_status = "Server status unavailable"
       rescue StandardError => e
         Rails.logger.error("Failed to fetch server status: #{e.message}")
         @server_status = "Server status unavailable"
@@ -59,13 +50,9 @@ class DashboardController < ApplicationController
     response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
-    @user_ip = request.env['HTTP_X_FORWARDED_FOR'] || request.remote_ip
-    @user_ip = @user_ip.to_s.strip
-    @user_ip = @user_ip.gsub(/^::ffff:/, '') if @user_ip.include?('::ffff:')
-    @user_server_ip = @active_subscription.server.ip_address if @has_subscription && @active_subscription&.server&.present?
 
     begin
-      uri = URI.parse("http://#{@user_ip}/api/server-status")
+      uri = URI.parse("http://51.75.126.238/api/server-status")
       request = Net::HTTP::Get.new(uri)
       request.basic_auth('vulcainadmin', 'Vulcain1989!')
 
