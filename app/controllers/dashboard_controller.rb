@@ -9,14 +9,21 @@ class DashboardController < ApplicationController
       Server.where(active: true).pluck(:ip_address).map(&:to_s).map(&:strip)
     end
     @country = fetch_country(@user_ip)
+    @active_subscription = current_user.subscriptions.find_by(
+      status: "active",
+      expires_at: Time.current..Float::INFINITY
+    )
+    @expired_subscriptions = current_user.subscriptions.where("expires_at < ?", Time.current)
+    @has_subscription = @active_subscription.present?
 
-    if @vpn_server_ips.include?(@user_ip)
+    @user_server_ip = @active_subscription.server.ip_address if @has_subscription && @active_subscription&.server&.present?
+
+    if @vpn_server_ips.include?(@user_ip) || (@user_server_ip.present? && @vpn_server_ips.include?(@user_server_ip))
       begin
-        uri = URI.parse("http://#{@user_ip}/api/server-status")
-        request = Net::HTTP::Get.new(uri)
-        request.basic_auth('vulcainadmin', 'Vulcain1989!')
+        uri = URI.parse("http://#{@user_server_ip || @user_ip}/api/server-status")
+        Rails.logger.info("Fetching server status from #{uri}")
 
-        response = Net::HTTP.start(uri.hostname, uri.port) do |http|
+        response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https', open_timeout: 5, read_timeout: 5) do |http|
           http.request(request)
         end
 
@@ -24,22 +31,23 @@ class DashboardController < ApplicationController
           data = JSON.parse(response.body)
           @server_status = format_server_status(data)
         else
+          Rails.logger.warn("Server status request failed with code #{response.code}")
           @server_status = "Server status unavailable"
         end
+      rescue URI::InvalidURIError => e
+        Rails.logger.error("Invalid URI: #{e.message}")
+        @server_status = "Server status unavailable"
+      rescue Net::OpenTimeout, Net::ReadTimeout => e
+        Rails.logger.error("Request timeout: #{e.message}")
+        @server_status = "Server status unavailable"
+      rescue JSON::ParserError => e
+        Rails.logger.error("Failed to parse server status: #{e.message}")
+        @server_status = "Server status unavailable"
       rescue StandardError => e
         Rails.logger.error("Failed to fetch server status: #{e.message}")
         @server_status = "Server status unavailable"
       end
     end
-
-    @active_subscription = current_user.subscriptions.find_by(
-      status: "active",
-      expires_at: Time.current..Float::INFINITY
-    )
-
-    @expired_subscriptions = current_user.subscriptions.where("expires_at < ?", Time.current)
-
-    @has_subscription = @active_subscription.present?
   end
 
   def setup

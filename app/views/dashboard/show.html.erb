@@ -661,8 +661,9 @@
       </div>
     <% elsif @active_subscription.server.ip_address.present? %>
       <div class="rotating-message">
-        <div class="message-1"><strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
-        <div class="message-2"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
+        <div class="message-1"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
+        <div class="message-2"><strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
+        <div class="message-3"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
       </div>
     <% else %>
       <!-- Not using VPN: Static message -->
