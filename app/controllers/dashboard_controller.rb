@@ -84,26 +84,4 @@ class DashboardController < ApplicationController
       nil
     end
   end
-
-  def fetch_server_status_internal
-    begin
-      uri = URI.parse("http://51.75.126.238/api/server-status")
-      request = Net::HTTP::Get.new(uri)
-      request.basic_auth('vulcainadmin', 'Vulcain1989!')
-
-      response = Net::HTTP.start(uri.hostname, uri.port) do |http|
-        http.request(request)
-      end
-
-      if response.code == "200"
-        data = JSON.parse(response.body)
-        "Server: #{data['status']} - #{data['messages'].first}"
-      else
-        "Server status unavailable"
-      end
-    rescue StandardError => e
-      Rails.logger.error("Failed to fetch server status: #{e.message}")
-      "Server status unavailable"
-    end
-  end
 end
