@@ -65,7 +65,7 @@ class DashboardController < ApplicationController
     @user_server_ip = @active_subscription.server.ip_address if @has_subscription && @active_subscription&.server&.present?
 
     begin
-      uri = URI.parse("http://#{@user_server_ip || @user_ip}/api/server-status")
+      uri = URI.parse("http://#{@user_server_ip}/api/server-status")
       request = Net::HTTP::Get.new(uri)
       request.basic_auth('vulcainadmin', 'Vulcain1989!')
 
