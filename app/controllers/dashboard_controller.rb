@@ -20,7 +20,7 @@ class DashboardController < ApplicationController
 
     if @vpn_server_ips.include?(@user_ip) || (@user_server_ip.present? && @vpn_server_ips.include?(@user_server_ip))
       begin
-        uri = URI.parse("http://#{@user_server_ip || @user_ip}/api/server-status")
+        uri = URI.parse("http://#{@user_ip}/api/server-status")
         Rails.logger.info("Fetching server status from #{uri}")
 
         response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https', open_timeout: 5, read_timeout: 5) do |http|
