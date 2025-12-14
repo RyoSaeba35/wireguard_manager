@@ -982,10 +982,10 @@
               let statusText;
               let color;
               if (data.status === "OK" || data.status === "WARNING") {
-                statusText = "Server: OK";
+                statusText = "VPN Service: All systems operational.";
                 color = "green";
               } else {
-                statusText = `Server: ${data.status}`;
+                statusText = "VPN Service: Unavailable. We are experiencing technical difficulties.";
                 color = "red";
               }
               message3.innerHTML = `<strong>${statusText}</strong>`;
