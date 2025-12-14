@@ -86,9 +86,9 @@ class DashboardController < ApplicationController
 
   def format_server_status(data)
     if data['status'] == "OK" || data['status'] == "WARNING"
-      "Server: OK"
+      "VPN Service: All systems operational."
     else
-      "Server: #{data['status']}"
+      "VPN Service: Unavailable. We are experiencing technical difficulties."
     end
   end
 end
