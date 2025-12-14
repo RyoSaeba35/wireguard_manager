@@ -972,6 +972,15 @@
   document.addEventListener('DOMContentLoaded', function() {
     const rotatingMessage = document.querySelector('.rotating-message');
     if (rotatingMessage) {
+      const message1 = rotatingMessage.querySelector('.message-1');
+      const message2 = rotatingMessage.querySelector('.message-2');
+      const message3 = rotatingMessage.querySelector('.message-3');
+      let currentMessage = 1;
+
+      // Show the first message immediately
+      if (message1) message1.style.opacity = '1';
+
+      // Function to fetch server status
       function fetchServerStatus() {
         const timestamp = new Date().getTime();
         fetch(`/dashboard/fetch_server_status?t=${timestamp}`)
@@ -982,36 +991,47 @@
             return response.json();
           })
           .then(data => {
-            const message3 = document.queryListener('.message-3');
-            if (message3) {
-              if (data.no_subscription) {
-                message3.innerHTML = '';
+            if (!data.no_subscription && message3) {
+              let statusText;
+              let color;
+              if (data.status === "OK" || data.status === "WARNING") {
+                statusText = "VPN Service: All systems operational.";
+                color = "green";
               } else {
-                let statusText;
-                let color;
-                if (data.status === "OK" || data.status === "WARNING") {
-                  statusText = "VPN Service: All systems operational.";
-                  color = "green";
-                } else {
-                  statusText = "VPN Service: Unavailable. We are experiencing technical difficulties.";
-                  color = "red";
-                }
-                message3.innerHTML = `<strong>${statusText}</strong>`;
-                message3.style.color = color;
+                statusText = "VPN Service: Unavailable. We are experiencing technical difficulties.";
+                color = "red";
               }
+              message3.innerHTML = `<strong>${statusText}</strong>`;
+              message3.style.color = color;
             }
           })
           .catch(error => {
             console.error('Error:', error);
-            // Optionally leave message3 empty or handle the error silently
-            const message3 = document.querySelector('.message-3');
-            if (message3) {
-              message3.innerHTML = '';
-            }
+            // Optionally handle the error silently
           });
       }
 
+      // Rotate messages
+      setInterval(function() {
+        if (currentMessage === 1) {
+          if (message1) message1.style.opacity = '0';
+          if (message2) message2.style.opacity = '1';
+          currentMessage = 2;
+        } else if (currentMessage === 2) {
+          if (message2) message2.style.opacity = '0';
+          if (message3) message3.style.opacity = '1';
+          currentMessage = 3;
+          fetchServerStatus(); // Fetch status when showing message 3
+        } else {
+          if (message3) message3.style.opacity = '0';
+          if (message1) message1.style.opacity = '1';
+          currentMessage = 1;
+        }
+      }, 10000); // Rotate every 10 seconds
+
+      // Initial fetch
       fetchServerStatus();
+      // Fetch server status every 30 seconds
       setInterval(fetchServerStatus, 30000);
     }
   });
