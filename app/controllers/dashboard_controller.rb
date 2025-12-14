@@ -12,7 +12,7 @@ class DashboardController < ApplicationController
 
     if @vpn_server_ips.include?(@user_ip)
       begin
-        uri = URI.parse("http://51.75.126.238/api/server-status")
+        uri = URI.parse("http://#{@user_ip}/api/server-status")
         request = Net::HTTP::Get.new(uri)
         request.basic_auth('vulcainadmin', 'Vulcain1989!')
 
@@ -85,15 +85,10 @@ class DashboardController < ApplicationController
   end
 
   def format_server_status(data)
-    status_text = "Server: #{data['status']}"
     if data['status'] == "OK"
-      status_text += " - WireGuard: #{data['wireguard']}, "
-      status_text += "CAKE: #{data['cake']}, "
-      status_text += "IPTables: #{data['iptables_rules']}, "
-      status_text += "rp_filter: #{data['rp_filter']}, "
-      status_text += "Fail2Ban: #{data['fail2ban']}, "
-      status_text += "Ports: #{data['required_ports']}"
+      "Server: OK"
+    else
+      "Server: #{data['status']}"
     end
-    status_text
   end
 end

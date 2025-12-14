@@ -979,18 +979,7 @@
           .then(data => {
             const message3 = document.querySelector('.message-3');
             if (message3) {
-              let statusText = "Server: ";
-              if (data.status === "OK") {
-                statusText += "OK - ";
-                statusText += `WireGuard: ${data.wireguard}, `;
-                statusText += `CAKE: ${data.cake}, `;
-                statusText += `IPTables: ${data.iptables_rules}, `;
-                statusText += `rp_filter: ${data.rp_filter}, `;
-                statusText += `Fail2Ban: ${data.fail2ban}, `;
-                statusText += `Ports: ${data.required_ports}`;
-              } else {
-                statusText += "Unavailable";
-              }
+              let statusText = data.status === "OK" ? "Server: OK" : `Server: ${data.status}`;
               message3.innerHTML = `<strong>${statusText}</strong>`;
             }
           })
