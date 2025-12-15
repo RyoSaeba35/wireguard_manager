@@ -664,7 +664,7 @@
       <div class="rotating-message">
         <div class="message-1"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
         <div class="message-2"><strong>Your IP:</strong> <%= @user_ip || "Unavailable" %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
-        <div class="message-3"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
+        <div class="message-3"><strong>You are not connected to your Vulcain VPN!</strong></div>
       </div>
     <% else %>
       <!-- Not using VPN or no active subscription/server: Static message -->
