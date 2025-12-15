@@ -13,6 +13,7 @@
       <%= button_to "Log Out", destroy_user_session_path, method: :delete, class: "logout-btn" %>
     <% else %>
       <a href="<%= new_user_session_path %>" class="login-btn">Log In</a>
+      <%# <a href="#contact-section" class="scroll-btn">Contact</a> %>
     <% end %>
   </nav>
 </header>
@@ -22,7 +23,7 @@
     background-color: #432923;
     /* background-color: #2c3539; */
     color: white;
-    padding: 010px 2rem;
+    padding: 10px 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
