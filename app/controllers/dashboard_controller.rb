@@ -13,6 +13,7 @@ class DashboardController < ApplicationController
       status: "active",
       expires_at: Time.current..Float::INFINITY
     )
+    @active_subscription ||= nil
     @expired_subscriptions = current_user.subscriptions.where("expires_at < ?", Time.current)
     @has_subscription = @active_subscription.present?
 
@@ -59,6 +60,7 @@ class DashboardController < ApplicationController
       status: "active",
       expires_at: Time.current..Float::INFINITY
     )
+    @active_subscription ||= nil
 
     if @active_subscription && @active_subscription.server.present?
       @user_server_ip = @active_subscription.server.ip_address

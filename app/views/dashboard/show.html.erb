@@ -656,21 +656,28 @@
       <!-- VPN Protected: Rotating messages -->
       <div class="rotating-message">
         <div class="message-1"><strong>You are well protected using Vulcain VPN!</strong></div>
-        <div class="message-2"><strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
+        <div class="message-2"><strong>Your IP:</strong> <%= @user_ip || "Unavailable" %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
         <div class="message-3"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
       </div>
-    <% elsif @active_subscription.server.ip_address.present? %>
+    <% elsif @active_subscription&.server&.ip_address.present? %>
+      <!-- User has an active subscription and server -->
       <div class="rotating-message">
         <div class="message-1"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
-        <div class="message-2"><strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
+        <div class="message-2"><strong>Your IP:</strong> <%= @user_ip || "Unavailable" %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
         <div class="message-3"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
       </div>
     <% else %>
-      <!-- Not using VPN: Static message -->
-      <strong>Your IP:</strong> <%= @user_ip %> - <strong>Country:</strong> <%= @country || "Could not be determined" %>
+      <!-- Not using VPN or no active subscription/server: Static message -->
+      <div class="scrolling-text">
+        <strong>Your IP:</strong> <%= @user_ip || "Unavailable" %> - <strong>Country:</strong> <%= @country || "Could not be determined" %>
+        <% unless @active_subscription %>
+          - <strong>No active subscription</strong>
+        <% end %>
+      </div>
     <% end %>
   </div>
 </div>
+
 
 <div class="dashboard-container">
   <header class="dashboard-header">
