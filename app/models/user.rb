@@ -4,12 +4,14 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
          :confirmable, :lockable, :timeoutable,
-         :trackable
+         :trackable, :jwt_authenticatable,
+         jwt_revocation_strategy: JwtDenylist
 
   # Association with WireguardClient
   # has_many :wireguard_clients, dependent: :destroy
   has_many :subscriptions, dependent: :destroy
   has_many :wireguard_clients, through: :subscriptions
+  has_many :devices, dependent: :destroy
 
   # Helper method to check admin status
   def admin?
