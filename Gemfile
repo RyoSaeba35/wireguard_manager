@@ -26,6 +26,13 @@ gem "redis", ">= 4.0.1" # Required for Sidekiq and caching
 # Authentication
 gem "devise"
 gem "bcrypt", "~> 3.1.7" # Required for Devise
+gem "devise-jwt"
+
+# API CORS
+gem "rack-cors"
+
+# JSON serialization
+gem "active_model_serializers"
 
 # Forms and Styling
 gem "simple_form"

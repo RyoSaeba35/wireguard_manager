@@ -78,4 +78,15 @@ Rails.application.routes.draw do
   get 'download_qr_code/:filename', to: 'downloads#qr_code', as: :download_qr_code
 
   get 'dashboard/fetch_server_status', to: 'dashboard#fetch_server_status'
+
+  # API namespace for Flutter app
+  constraints subdomain: 'api' do
+    namespace :api do
+      post 'login', to: 'sessions#create'
+      delete 'logout', to: 'sessions#destroy'
+      get 'status', to: 'users#status'      # optional: to check subscription/device status
+      get 'config/:device_id', to: 'wireguard_clients#config'  # fetch sing-box config
+      post 'revoke/:device_id', to: 'wireguard_clients#revoke' # revoke device
+    end
+  end
 end
