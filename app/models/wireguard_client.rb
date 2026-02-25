@@ -1,6 +1,6 @@
 class WireguardClient < ApplicationRecord
   belongs_to :subscription
-  belongs_to :device
+  belongs_to :device, optional: true  # Make this association optional
   has_one_attached :config_file
   has_one_attached :qr_code
   validates :name, uniqueness: true
