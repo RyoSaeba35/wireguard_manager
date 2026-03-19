@@ -3,6 +3,8 @@ class Subscription < ApplicationRecord
   belongs_to :plan
   belongs_to :server
   has_many :wireguard_clients, dependent: :destroy
+  has_many :shadowsocks_clients, dependent: :destroy
+  has_many :hysteria2_clients, dependent: :destroy
   has_many :devices, dependent: :destroy
 
   validates :name, :price, :plan, :expires_at, presence: true

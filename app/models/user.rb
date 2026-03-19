@@ -11,6 +11,8 @@ class User < ApplicationRecord
   # has_many :wireguard_clients, dependent: :destroy
   has_many :subscriptions, dependent: :destroy
   has_many :wireguard_clients, through: :subscriptions
+  has_many :shadowsocks_clients, through: :subscriptions
+  has_many :hysteria2_clients, through: :subscriptions
   has_many :devices, dependent: :destroy
 
   # Helper method to check admin status

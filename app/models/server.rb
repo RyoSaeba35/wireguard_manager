@@ -1,7 +1,11 @@
 # app/models/server.rb
 class Server < ApplicationRecord
   encrypts :ssh_user, :ssh_password, :ssh_private_key, deterministic: true
+  encrypts :singbox_ss_master_password, :singbox_salamander_password
+
   has_many :subscriptions
+  has_many :shadowsocks_clients, through: :subscriptions
+  has_many :hysteria2_clients, through: :subscriptions
 
   validates :name, presence: true
   validates :ip_address, presence: true

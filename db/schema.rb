@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_01_08_151639) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_19_134859) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -50,10 +50,28 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_08_151639) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "api_key"
+    t.datetime "connected_at"
+    t.datetime "last_heartbeat_at"
     t.index ["api_key"], name: "index_devices_on_api_key", unique: true
     t.index ["subscription_id"], name: "index_devices_on_subscription_id"
     t.index ["user_id", "device_id"], name: "index_devices_on_user_id_and_device_id", unique: true
     t.index ["user_id"], name: "index_devices_on_user_id"
+  end
+
+  create_table "hysteria2_clients", force: :cascade do |t|
+    t.integer "subscription_id", null: false
+    t.integer "device_id"
+    t.string "name", null: false
+    t.string "password", null: false
+    t.string "status", default: "preallocated"
+    t.datetime "expires_at"
+    t.datetime "connected_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["device_id"], name: "index_hysteria2_clients_on_device_id"
+    t.index ["name"], name: "index_hysteria2_clients_on_name", unique: true
+    t.index ["status"], name: "index_hysteria2_clients_on_status"
+    t.index ["subscription_id"], name: "index_hysteria2_clients_on_subscription_id"
   end
 
   create_table "jwt_denylists", force: :cascade do |t|
@@ -90,6 +108,12 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_08_151639) do
     t.string "ssh_password"
     t.text "ssh_public_key"
     t.text "ssh_private_key"
+    t.boolean "singbox_active", default: false
+    t.string "singbox_server_name"
+    t.string "singbox_salamander_password"
+    t.string "singbox_ss_master_password"
+    t.integer "singbox_ss_port", default: 443
+    t.integer "singbox_hysteria2_port", default: 8443
   end
 
   create_table "settings", force: :cascade do |t|
@@ -97,6 +121,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_08_151639) do
     t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "shadowsocks_clients", force: :cascade do |t|
+    t.integer "subscription_id", null: false
+    t.integer "device_id"
+    t.string "name", null: false
+    t.string "password", null: false
+    t.string "status", default: "preallocated"
+    t.datetime "expires_at"
+    t.datetime "connected_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["device_id"], name: "index_shadowsocks_clients_on_device_id"
+    t.index ["name"], name: "index_shadowsocks_clients_on_name", unique: true
+    t.index ["status"], name: "index_shadowsocks_clients_on_status"
+    t.index ["subscription_id"], name: "index_shadowsocks_clients_on_subscription_id"
   end
 
   create_table "subscriptions", force: :cascade do |t|
@@ -162,6 +202,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_01_08_151639) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "devices", "subscriptions"
   add_foreign_key "devices", "users"
+  add_foreign_key "hysteria2_clients", "devices"
+  add_foreign_key "hysteria2_clients", "subscriptions"
+  add_foreign_key "shadowsocks_clients", "devices"
+  add_foreign_key "shadowsocks_clients", "subscriptions"
   add_foreign_key "subscriptions", "plans"
   add_foreign_key "subscriptions", "servers"
   add_foreign_key "subscriptions", "users"
