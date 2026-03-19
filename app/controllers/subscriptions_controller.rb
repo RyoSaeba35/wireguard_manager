@@ -1,7 +1,7 @@
 class SubscriptionsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_subscription, only: [:show, :cancel]
-  before_action :authorize_subscription, only: [:show]
+  before_action :authorize_subscription, only: [:show, :cancel]
 
   def new
     if current_user.subscriptions.where("status = ? AND expires_at > ?", "active", Time.current).exists?
@@ -137,8 +137,11 @@ class SubscriptionsController < ApplicationController
   end
 
   def cancel
-    # User initiated cancel — subscription was never actively used
-    # Return to pool instead of full revocation
+    unless @subscription.payment_pending?
+      redirect_to root_path, alert: "This subscription cannot be cancelled."
+      return
+    end
+
     StripeSessionExpirer.expire(@subscription)
     return_to_pool(@subscription)
 
@@ -162,9 +165,8 @@ class SubscriptionsController < ApplicationController
   end
 
   def set_subscription
-    @subscription = current_user.subscriptions.find_by!(name: params[:id])
-  rescue ActiveRecord::RecordNotFound
-    redirect_to root_path, alert: "Subscription not found."
+    @subscription = current_user.subscriptions.find_by(name: params[:id])
+    redirect_to root_path, alert: "Subscription not found." unless @subscription
   end
 
   def authorize_subscription
