@@ -1,43 +1,79 @@
+# app/jobs/backup_database_job.rb
 class BackupDatabaseJob < ApplicationJob
   queue_as :default
 
-  def perform(*args)
-    # Parse DATABASE_URL for connection details
-    db_url = URI.parse(ENV['DATABASE_URL'])
-    db_host = db_url.host
-    db_port = db_url.port
-    db_user = db_url.user
-    db_password = db_url.password
-    db_name = db_url.path.gsub('/', '')
-
-    # Define the backup filename with a timestamp
+  def perform
+    db_config = parse_database_config
     backup_file = "railway_backup_#{Time.now.strftime('%Y%m%d_%H%M%S')}.sql"
     local_path = "/tmp/#{backup_file}"
 
-    # Dump the database to a temporary file in plain SQL format
-    `PGPASSWORD="#{db_password}" pg_dump -F p -h #{db_host} -p #{db_port} -U #{db_user} -d #{db_name} -f #{local_path}`
+    dump_database(db_config, local_path)
+    upload_to_wasabi(local_path, backup_file)
 
-    # Check if the backup file was created and is not empty
-    unless File.exist?(local_path) && File.size(local_path) > 0
-      raise "Backup failed: #{local_path} is empty or does not exist"
+    Rails.logger.info "Database backup completed: #{backup_file}"
+  rescue => e
+    Rails.logger.error "Database backup failed: #{e.message}"
+    raise
+  ensure
+    File.delete(local_path) if local_path && File.exist?(local_path)
+  end
+
+  private
+
+  def parse_database_config
+    db_url = URI.parse(ENV['DATABASE_URL'])
+    {
+      host: db_url.host,
+      port: db_url.port,
+      user: db_url.user,
+      password: db_url.password,
+      name: db_url.path.delete_prefix('/')
+    }
+  end
+
+  def dump_database(config, local_path)
+    # Use system() with env hash instead of string interpolation
+    # to avoid shell injection with credentials
+    env = { "PGPASSWORD" => config[:password] }
+
+    success = system(
+      env,
+      "pg_dump",
+      "-F", "p",
+      "-h", config[:host],
+      "-p", config[:port].to_s,
+      "-U", config[:user],
+      "-d", config[:name],
+      "-f", local_path
+    )
+
+    unless success && File.exist?(local_path) && File.size(local_path) > 0
+      raise "pg_dump failed or produced an empty file at #{local_path}"
     end
 
-    # Upload to Wasabi using the AWS SDK
-    s3 = Aws::S3::Resource.new(
+    Rails.logger.info "Database dumped successfully to #{local_path}"
+  end
+
+  def upload_to_wasabi(local_path, backup_file)
+    s3_client = Aws::S3::Client.new(
       region: ENV['AWS_REGION'],
       endpoint: ENV['AWS_ENDPOINT'],
       access_key_id: ENV['AWS_ACCESS_KEY_ID'],
       secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'],
       force_path_style: true
     )
-    transfer_manager = Aws::S3::TransferManager.new(client: s3.client)
-    transfer_manager.upload_file(
-      local_path,
-      bucket: ENV['AWS_BUCKET'],
-      key: backup_file
-    )
 
-    # Remove the temporary file
-    File.delete(local_path)
+    File.open(local_path, 'rb') do |file|
+      s3_client.put_object(
+        bucket: ENV['AWS_BUCKET'],
+        key: backup_file,
+        body: file
+      )
+    end
+
+    Rails.logger.info "Backup uploaded to Wasabi: #{backup_file}"
+  rescue Aws::S3::Errors::ServiceError => e
+    Rails.logger.error "Wasabi upload failed: #{e.message}"
+    raise
   end
 end

@@ -1,161 +1,152 @@
 # app/jobs/preallocate_subscriptions_job.rb
 class PreallocateSubscriptionsJob < ApplicationJob
+  include WireguardClientCreator
+  include SingboxClientCreator
   queue_as :default
 
-  # # Number of pre-allocated subscriptions to maintain per server
-  # TARGET_POOL_SIZE = 10
-
   def perform(server_id = nil)
-    if server_id
-      # Pre-allocate for a specific server
-      servers = [Server.find(server_id)]
+    servers = if server_id
+      [Server.find(server_id)]
     else
-      # Pre-allocate for all active servers with available capacity
-      servers = Server.where(active: true)
-                     .where("current_subscriptions < max_subscriptions")
+      Server.where(active: true).where("current_subscriptions < max_subscriptions")
     end
 
     servers.each do |server|
-      # Calculate available capacity
-      available_capacity = server.max_subscriptions - server.current_subscriptions
-
-      # Base pool size on server capacity (20%) and demand (2x yesterday's usage)
-      capacity_based = [server.max_subscriptions * 0.2, 5].max.to_i
-      demand_based = [Subscription.where(server: server, status: "active", created_at: 1.day.ago.all_day).count * 2, 5].max
-
-      # Take the greater of capacity-based or demand-based, but never exceed available capacity
-      target_pool_size = [
-        [capacity_based, demand_based].max,  # Take the greater of the two
-        available_capacity                   # But never exceed available capacity
-      ].min
-
-      current_preallocated = server.subscriptions.preallocated.count
-      next if current_preallocated >= target_pool_size
-
-      Rails.logger.info "Pre-allocating for #{server.name}. Target: #{target_pool_size} (capacity: #{capacity_based}, demand: #{demand_based})"
-
-      (current_preallocated...target_pool_size).each do |i|
-        begin
-          # Generate a unique subscription name
-          subscription_name = loop do
-            random_name = SecureRandom.alphanumeric(5).upcase
-            break random_name unless server.subscriptions.exists?(name: random_name)
-          end
-
-          # Use the first active plan as default (or pass plan_id as argument)
-          default_plan = Plan.where(active: true).first
-          next unless default_plan
-
-          # Create a pre-allocated subscription
-          subscription = server.subscriptions.create!(
-            name: subscription_name,
-            status: "preallocated",
-            plan_id: default_plan.id,
-            price: default_plan.price,
-            expires_at: 1.month.from_now, # Placeholder, will be updated when assigned to user
-            user_id: nil
-          )
-
-          Rails.logger.info "Created pre-allocated subscription: #{subscription_name}"
-
-          # Create 3 WireGuard clients for this subscription
-          3.times do |client_number|
-            client_name = "#{subscription_name}_#{client_number + 1}"
-
-            # Generate a unique temporary file path for the private key
-            private_key_path = "/tmp/server_#{server.id}_private_key_#{SecureRandom.hex(8)}"
-            File.write(private_key_path, server.ssh_private_key)
-            File.chmod(0600, private_key_path)
-
-            # Create client on server via SSH
-            Net::SSH.start(server.ip_address, server.ssh_user, keys: [private_key_path], verify_host_key: :never) do |ssh|
-              output = ssh.exec!("echo '#{client_name}' | pivpn -a")
-              Rails.logger.info "Created WireGuard client #{client_name}: #{output}"
-
-              # Fetch client details
-              private_key, public_key, ip_address = fetch_client_details(ssh, client_name, server)
-
-              # Create WireguardClient record
-              subscription.wireguard_clients.create!(
-                name: client_name,
-                private_key: private_key,
-                public_key: public_key,
-                ip_address: ip_address,
-                status: "active",
-                expires_at: subscription.expires_at
-              )
-
-              # Copy the config file to a temporary location
-              ssh.exec!("sudo cp /etc/wireguard/configs/#{client_name}.conf /home/#{server.ssh_user}/configs/")
-              ssh.exec!("sudo chown #{server.ssh_user}:#{server.ssh_user} /home/#{server.ssh_user}/configs/#{client_name}.conf")
-              ssh.exec!("chmod 644 /home/#{server.ssh_user}/configs/#{client_name}.conf")
-
-              # Generate and upload config file
-              config_file_path = "/home/#{server.ssh_user}/configs/#{client_name}.conf"
-              temp_file = Tempfile.new(["#{client_name}", '.conf'])
-              Net::SCP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |scp|
-                scp.download!(config_file_path, temp_file.path)
-              end
-
-              # Attach config file to the client
-              subscription.wireguard_clients.last.config_file.attach(
-                io: File.open(temp_file.path),
-                filename: "#{client_name}.conf",
-                content_type: 'application/octet-stream'
-              )
-              temp_file.close
-              temp_file.unlink
-
-              # Generate and upload QR code
-              ssh.exec!("qrencode -t PNG -o /home/#{server.ssh_user}/configs/#{client_name}.png < /home/#{server.ssh_user}/configs/#{client_name}.conf")
-              qr_code_path = "/home/#{server.ssh_user}/configs/#{client_name}.png"
-              qr_temp_file = Tempfile.new(["#{client_name}", '.png'])
-              Net::SFTP.start(server.ip_address, server.ssh_user, keys: [private_key_path]) do |sftp|
-                sftp.download!(qr_code_path, qr_temp_file.path)
-              end
-
-              # Attach QR code to the client
-              subscription.wireguard_clients.last.qr_code.attach(
-                io: File.open(qr_temp_file.path),
-                filename: "#{client_name}.png",
-                content_type: 'image/png'
-              )
-              qr_temp_file.close
-              qr_temp_file.unlink
-            end
-          rescue Net::SSH::Exception => e
-            Rails.logger.error "SSH Error creating client #{client_name}: #{e.message}"
-            subscription.destroy! # Clean up if client creation fails
-            next
-          ensure
-            File.delete(private_key_path) if File.exist?(private_key_path)
-          end
-        rescue => e
-          Rails.logger.error "Error pre-allocating subscription #{subscription_name}: #{e.message}"
-          next
-        end
-      end
+      preallocate_for_server(server)
     end
   end
 
   private
 
-  def fetch_client_details(ssh, client_name, server)
-    # Fetch the private key
-    private_key_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'PrivateKey'"
-    private_key_output = ssh.exec!(private_key_cmd)
-    private_key = private_key_output.chomp.split(' = ').last.strip
+  def preallocate_for_server(server)
+    target_pool_size = calculate_target_pool_size(server)
+    current_preallocated = server.subscriptions.preallocated.count
 
-    # Fetch the public key
-    public_key_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep -A 5 '[Peer]' | grep 'PublicKey' | head -n 1"
-    public_key_output = ssh.exec!(public_key_cmd)
-    public_key = public_key_output.chomp.split(' = ').last.strip
+    Rails.logger.info "Server #{server.name}: target=#{target_pool_size}, current=#{current_preallocated}"
 
-    # Fetch the IP address
-    ip_address_cmd = "cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'Address' | cut -d'=' -f2 | cut -d',' -f1 | cut -d'/' -f1 | tr -d ' '"
-    ip_address_output = ssh.exec!(ip_address_cmd)
-    ip_address = ip_address_output.chomp.strip
+    if current_preallocated >= target_pool_size
+      Rails.logger.info "Server #{server.name} pool is healthy — skipping"
+      ensure_singbox_matches_wireguard(server)
+      return
+    end
 
-    [private_key, public_key, ip_address]
+    default_plan = Plan.where(active: true).first
+    unless default_plan
+      Rails.logger.warn "No active plan found — skipping #{server.name}"
+      return
+    end
+
+    private_key_path = nil
+    singbox_reloaded = false
+
+    private_key_path = write_private_key(server)
+
+    Net::SSH.start(server.ip_address, server.ssh_user, keys: [private_key_path], verify_host_key: :never) do |ssh|
+      (current_preallocated...target_pool_size).each do
+        preallocate_one(ssh, server, default_plan)
+      end
+
+      if server.singbox_active?
+        validate_and_reload_singbox(ssh, server)
+        singbox_reloaded = true
+      end
+    end
+
+    Rails.logger.info "Server #{server.name}: pool topped up to #{target_pool_size} — sing-box reloaded: #{singbox_reloaded}"
+
+  rescue Net::SSH::Exception => e
+    Rails.logger.error "SSH failed for #{server.name}: #{e.message}"
+  ensure
+    File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
+  end
+
+  def preallocate_one(ssh, server, plan)
+    subscription_name = unique_subscription_name(server)
+
+    subscription = server.subscriptions.create!(
+      name: subscription_name,
+      status: "preallocated",
+      plan: plan,
+      price: plan.price,
+      expires_at: 1.month.from_now,
+      user_id: nil
+    )
+
+    CLIENTS_PER_SUBSCRIPTION.times do |i|
+      client_name = "#{subscription_name}_#{i + 1}"
+      create_client_on_server(ssh, client_name, subscription, server)
+    end
+
+    if server.singbox_active?
+      create_singbox_clients(ssh, subscription, server)
+    end
+
+    Rails.logger.info "Pre-allocated subscription #{subscription_name} with WireGuard + sing-box clients"
+
+  rescue => e
+    Rails.logger.error "Failed to preallocate #{subscription_name}: #{e.message}"
+    subscription&.destroy!
+  end
+
+  def ensure_singbox_matches_wireguard(server)
+    return unless server.singbox_active?
+
+    wg_count = server.subscriptions.preallocated
+                     .joins(:wireguard_clients)
+                     .distinct.count
+
+    sb_count = server.subscriptions.preallocated
+                     .joins(:hysteria2_clients)
+                     .distinct.count
+
+    if wg_count != sb_count
+      Rails.logger.warn "Server #{server.name}: WireGuard pool (#{wg_count}) != sing-box pool (#{sb_count}) — rebalancing"
+
+      missing = server.subscriptions.preallocated.select do |sub|
+        sub.hysteria2_clients.empty?
+      end
+
+      return if missing.empty?
+
+      private_key_path = nil
+
+      private_key_path = write_private_key(server)
+
+      Net::SSH.start(server.ip_address, server.ssh_user, keys: [private_key_path], verify_host_key: :never) do |ssh|
+        missing.each do |sub|
+          create_singbox_clients(ssh, sub, server)
+        end
+        validate_and_reload_singbox(ssh, server)
+      end
+
+      Rails.logger.info "Rebalanced sing-box pool for #{server.name}"
+    else
+      Rails.logger.info "Server #{server.name}: pools are in sync (#{wg_count} each)"
+    end
+  rescue => e
+    Rails.logger.error "Failed to rebalance sing-box pool for #{server.name}: #{e.message}"
+  ensure
+    File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
+  end
+
+  def calculate_target_pool_size(server)
+    available_capacity = server.max_subscriptions - server.current_subscriptions
+    minimum_pool = (server.max_subscriptions * 0.7).to_i
+    capacity_based = (server.max_subscriptions * 0.2).to_i
+    demand_based = Subscription.where(
+      server: server,
+      status: "active",
+      created_at: 1.day.ago.all_day
+    ).count * 2
+
+    target = [minimum_pool, capacity_based, demand_based].max
+    [target, available_capacity].min
+  end
+
+  def unique_subscription_name(server)
+    loop do
+      name = SecureRandom.alphanumeric(5).upcase
+      break name unless server.subscriptions.exists?(name: name)
+    end
   end
 end
