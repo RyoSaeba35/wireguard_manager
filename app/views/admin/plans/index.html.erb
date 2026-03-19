@@ -20,7 +20,7 @@
 
     <!-- Add New Plan Button -->
     <div class="admin-actions">
-      <button id="add-plan-btn" class="admin-btn admin-btn--plans">Add New Plan</button>
+      <button class="add-plan-btn admin-btn admin-btn--plans">Add New Plan</button>
     </div>
 
     <!-- Plans Table -->
@@ -64,7 +64,7 @@
       <% else %>
         <div class="empty-state">
           <p>No plans found.</p>
-          <button id="add-plan-btn" class="admin-btn admin-btn--plans">Add Your First Plan</button>
+          <button class="add-plan-btn admin-btn admin-btn--plans">Add Your First Plan</button>
         </div>
       <% end %>
     </div>
@@ -358,8 +358,10 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Open Add Plan Modal
-    document.getElementById('add-plan-btn').addEventListener('click', () => {
-      document.getElementById('add-plan-modal').style.display = 'block';
+    document.querySelectorAll('.add-plan-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        document.getElementById('add-plan-modal').style.display = 'block';
+      });
     });
 
     // Close Modal

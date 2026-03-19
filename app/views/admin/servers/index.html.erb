@@ -67,8 +67,8 @@
                   <td>
                     <% status = @server_statuses[server.id] %>
                     <% if status %>
-                      <span class="status-badge status-<%= status['status'].downcase %>" data-status='<%= status.to_json %>' data-server-name='<%= server.name %>'>
-                        <%= status['status'] == 'OK' ? 'Operational' : status['status'].capitalize %>
+                      <span class="status-badge status-<%= status&.[]('status')&.downcase || 'unknown' %>" data-status='<%= status.to_json %>' data-server-name='<%= server.name %>'>
+                        <%= status&.[]('status') == 'OK' ? 'Operational' : status&.[]('status')&.capitalize || 'Unknown' %>
                       </span>
                     <% else %>
                       <span class="status-badge status-unknown">Unknown</span>
