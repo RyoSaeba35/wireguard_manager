@@ -1,6 +1,7 @@
 # app/controllers/api/devices_controller.rb
 class Api::DevicesController < ApplicationController
   protect_from_forgery with: :null_session
+  skip_before_action :authenticate_user!
   before_action :authenticate_api_user!, only: [:register]
   before_action :authenticate_device!, only: [:connect, :disconnect, :heartbeat, :credentials]
 
