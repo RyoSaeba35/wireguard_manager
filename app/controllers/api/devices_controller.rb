@@ -8,6 +8,7 @@ class Api::DevicesController < ApplicationController
   MAX_DEVICES = 3
 
   # POST api/devices/register
+  # No limit on registered devices — only active connections are limited
   def register
     subscription = @current_api_user.subscriptions.active.first
 
@@ -16,17 +17,10 @@ class Api::DevicesController < ApplicationController
       return
     end
 
-    # Find existing device first
-    device = subscription.devices.find_by(device_id: params[:device_id])
-
-    # Only check limit for new devices
-    unless device
-      if subscription.devices.count >= MAX_DEVICES
-        render json: { error: "Maximum of #{MAX_DEVICES} devices allowed per subscription" }, status: :forbidden
-        return
-      end
-      device = subscription.devices.new(device_id: params[:device_id])
-    end
+    # Find or create — unlimited registered devices per subscription
+    device = subscription.devices.find_or_initialize_by(
+      device_id: params[:device_id]
+    )
 
     device.assign_attributes(
       user: @current_api_user,
@@ -46,6 +40,7 @@ class Api::DevicesController < ApplicationController
   end
 
   # POST api/connect/:device_id
+  # Checks 3-active-session limit, assigns clients, marks device active
   def connect
     subscription = current_subscription
 
@@ -55,7 +50,10 @@ class Api::DevicesController < ApplicationController
                                .count
 
     if active_count >= MAX_DEVICES
-      render json: { error: "Maximum #{MAX_DEVICES} simultaneous connections reached" }, status: :too_many_requests
+      render json: {
+        error: "Maximum #{MAX_DEVICES} simultaneous connections reached",
+        active_devices: active_count
+      }, status: :too_many_requests
       return
     end
 
@@ -66,9 +64,10 @@ class Api::DevicesController < ApplicationController
       last_seen_at: Time.current
     )
 
+    # assign: true — assigns clients to this device if not already assigned
     render json: {
       message: "Connected successfully",
-      credentials: build_credentials(current_device)
+      credentials: build_credentials(current_device, assign: true)
     }, status: :ok
   end
 
@@ -98,9 +97,11 @@ class Api::DevicesController < ApplicationController
   end
 
   # GET api/credentials/:device_id
+  # Returns already-assigned credentials only — never assigns
+  # Use /connect to get credentials assigned for the first time
   def credentials
     render json: {
-      credentials: build_credentials(current_device)
+      credentials: build_credentials(current_device, assign: false)
     }, status: :ok
   end
 
@@ -115,9 +116,9 @@ class Api::DevicesController < ApplicationController
     end
 
     begin
-      secret = ENV['DEVISE_JWT_SECRET_KEY']  # ← ADD THIS
+      secret = ENV['DEVISE_JWT_SECRET_KEY']
 
-      payload = JWT.decode(                   # ← REPLACE the existing JWT.decode block
+      payload = JWT.decode(
         token,
         secret,
         true,
@@ -153,6 +154,7 @@ class Api::DevicesController < ApplicationController
 
     unless @current_device.subscription.active?
       render json: { error: "Subscription is not active" }, status: :forbidden
+      return
     end
   end
 
@@ -164,24 +166,33 @@ class Api::DevicesController < ApplicationController
     @current_device.subscription
   end
 
-  def build_credentials(device)
+  def build_credentials(device, assign:)
     subscription = device.subscription
     server = subscription.server
 
     {
-      wireguard: build_wireguard_credentials(device, subscription, server),
-      hysteria2: build_hysteria2_credentials(device, subscription, server),
-      shadowsocks: build_shadowsocks_credentials(device, subscription, server)
+      wireguard: build_wireguard_credentials(device, subscription, server, assign: assign),
+      hysteria2: build_hysteria2_credentials(device, subscription, server, assign: assign),
+      shadowsocks: build_shadowsocks_credentials(device, subscription, server, assign: assign)
     }
   end
 
-  def build_wireguard_credentials(device, subscription, server)
-    client = subscription.wireguard_clients.find_by(device_id: device.id) ||
-             subscription.wireguard_clients.where(device_id: nil).lock.first
+  def build_wireguard_credentials(device, subscription, server, assign:)
+    client = nil
+
+    ActiveRecord::Base.transaction do
+      client = subscription.wireguard_clients.find_by(device_id: device.id)
+
+      if client.nil? && assign
+        client = subscription.wireguard_clients
+                             .where(device_id: nil)
+                             .lock("FOR UPDATE SKIP LOCKED")
+                             .first
+        client&.update!(device_id: device.id)
+      end
+    end
 
     return nil unless client
-
-    client.update!(device_id: device.id) if client.device_id.nil?
 
     {
       server_ip: server.ip_address,
@@ -193,15 +204,24 @@ class Api::DevicesController < ApplicationController
     }
   end
 
-  def build_hysteria2_credentials(device, subscription, server)
+  def build_hysteria2_credentials(device, subscription, server, assign:)
     return nil unless server.singbox_active?
 
-    client = subscription.hysteria2_clients.find_by(device_id: device.id) ||
-             subscription.hysteria2_clients.where(device_id: nil).lock.first
+    client = nil
+
+    ActiveRecord::Base.transaction do
+      client = subscription.hysteria2_clients.find_by(device_id: device.id)
+
+      if client.nil? && assign
+        client = subscription.hysteria2_clients
+                             .where(device_id: nil)
+                             .lock("FOR UPDATE SKIP LOCKED")
+                             .first
+        client&.update!(device_id: device.id)
+      end
+    end
 
     return nil unless client
-
-    client.update!(device_id: device.id) if client.device_id.nil?
 
     {
       server: server.singbox_server_name,
@@ -213,15 +233,24 @@ class Api::DevicesController < ApplicationController
     }
   end
 
-  def build_shadowsocks_credentials(device, subscription, server)
+  def build_shadowsocks_credentials(device, subscription, server, assign:)
     return nil unless server.singbox_active?
 
-    client = subscription.shadowsocks_clients.find_by(device_id: device.id) ||
-             subscription.shadowsocks_clients.where(device_id: nil).lock.first
+    client = nil
+
+    ActiveRecord::Base.transaction do
+      client = subscription.shadowsocks_clients.find_by(device_id: device.id)
+
+      if client.nil? && assign
+        client = subscription.shadowsocks_clients
+                             .where(device_id: nil)
+                             .lock("FOR UPDATE SKIP LOCKED")
+                             .first
+        client&.update!(device_id: device.id)
+      end
+    end
 
     return nil unless client
-
-    client.update!(device_id: device.id) if client.device_id.nil?
 
     {
       server: server.ip_address,
