@@ -74,10 +74,15 @@ class Api::DevicesController < ApplicationController
 
   # POST api/disconnect/:device_id
   def disconnect
-    current_device.update!(
-      active: false,
-      connected_at: nil
-    )
+    device = current_device
+    subscription = device.subscription
+
+    # Free all protocol clients back to the pool
+    subscription.wireguard_clients.where(device_id: device.id).update_all(device_id: nil)
+    subscription.hysteria2_clients.where(device_id: device.id).update_all(device_id: nil)
+    subscription.shadowsocks_clients.where(device_id: device.id).update_all(device_id: nil)
+
+    device.update!(active: false, connected_at: nil)
 
     render json: { message: "Disconnected successfully" }, status: :ok
   end
