@@ -1,6 +1,7 @@
 # app/controllers/api/subscriptions_controller.rb
 class Api::SubscriptionsController < Api::BaseController
-
+  skip_before_action :authenticate_user!
+  
   # GET api/subscription
   def show
     subscription = current_subscription
