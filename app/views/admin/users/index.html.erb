@@ -46,7 +46,7 @@
                   <%= user.subscriptions.active.count %> <span class="toggle-span">(Show)</span>
                 </button>
               <% else %>
-                <span class="count-display"><%= user.subscriptions.active.count %></span>
+                <span class="count-display">0</span>
               <% end %>
             </td>
             <td>
@@ -62,14 +62,18 @@
                   <%= user.subscriptions.expired.count %> <span class="toggle-span">(Show)</span>
                 </button>
               <% else %>
-                <span class="count-display"><%= user.subscriptions.expired.count %></span>
+                <span class="count-display">0</span>
               <% end %>
             </td>
             <td class="actions-cell">
               <div class="dropdown">
                 <button class="dropdown-btn">Actions</button>
                 <div class="dropdown-menu">
-                  <a href="#" class="dropdown-item add-subscription-btn" data-user-id="<%= user.id %>">Add Subscription</a>
+                  <% unless user.subscriptions.active.any? %>
+                    <a href="#" class="dropdown-item add-subscription-btn" data-user-id="<%= user.id %>">Add Subscription</a>
+                  <% else %>
+                    <span class="dropdown-item disabled">Has active subscription</span>
+                  <% end %>
                   <% if user.id != current_user.id %>
                     <%= form_with(
                           url: admin_user_path(user),
@@ -104,7 +108,7 @@
                         <th>Plan</th>
                         <th>Server</th>
                         <th>Expires At</th>
-                        <th>WireGuard Clients</th>
+                        <th>Devices</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -115,11 +119,7 @@
                           <td><%= subscription.plan.name %></td>
                           <td><%= subscription.server.name %></td>
                           <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
-                          <td>
-                            <% subscription.wireguard_clients.each do |client| %>
-                              <div class="wireguard-clients"><%= client.name %></div>
-                            <% end %>
-                          </td>
+                          <td><%= subscription.devices.count %> / 3</td>
                           <td>
                             <button class="cancel-subscription-btn admin-btn--servers"
                                     data-subscription-id="<%= subscription.id %>"
@@ -150,7 +150,7 @@
                         <th>Plan</th>
                         <th>Server</th>
                         <th>Expired At</th>
-                        <th>WireGuard Clients</th>
+                        <th>Devices</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -160,11 +160,7 @@
                           <td><%= subscription.plan.name %></td>
                           <td><%= subscription.server&.name || 'N/A' %></td>
                           <td><%= subscription.expires_at.strftime("%d %b %Y") %></td>
-                          <td>
-                            <% subscription.wireguard_clients.each do |client| %>
-                              <div class="wireguard-clients"><%= client.name %></div>
-                            <% end %>
-                          </td>
+                          <td><%= subscription.devices.count %> / 3</td>
                         </tr>
                       <% end %>
                     </tbody>
@@ -559,328 +555,328 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Toggle Details
-  document.querySelectorAll('.toggle-details').forEach(button => {
-    button.addEventListener('click', () => {
-      const targetId = button.getAttribute('data-target');
-      const detailsRow = document.getElementById(targetId);
-      const isExpanded = detailsRow.getAttribute('aria-expanded') === 'true';
-      button.setAttribute('aria-expanded', !isExpanded);
-      detailsRow.setAttribute('aria-expanded', !isExpanded);
-      detailsRow.style.display = isExpanded ? 'none' : 'table-row';
-      button.querySelector('.toggle-span').textContent = isExpanded ? '(Show)' : '(Hide)';
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle Details
+    document.querySelectorAll('.toggle-details').forEach(button => {
+      button.addEventListener('click', () => {
+        const targetId = button.getAttribute('data-target');
+        const detailsRow = document.getElementById(targetId);
+        const isExpanded = detailsRow.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', !isExpanded);
+        detailsRow.setAttribute('aria-expanded', !isExpanded);
+        detailsRow.style.display = isExpanded ? 'none' : 'table-row';
+        button.querySelector('.toggle-span').textContent = isExpanded ? '(Show)' : '(Hide)';
+      });
     });
-  });
 
-  // Search and Filter
-  document.getElementById('search-input').addEventListener('keyup', filterUsers);
-  document.getElementById('hide-inactive').addEventListener('change', filterUsers);
+    // Search and Filter
+    document.getElementById('search-input').addEventListener('keyup', filterUsers);
+    document.getElementById('hide-inactive').addEventListener('change', filterUsers);
 
-  function filterUsers() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const hideInactive = document.getElementById('hide-inactive').checked;
-    document.querySelectorAll('.user-row').forEach(row => {
-      const email = row.getAttribute('data-email');
-      const hasActive = row.getAttribute('data-has-active') === 'true';
-      const emailMatch = email.includes(searchTerm);
-      if ((searchTerm === '' || emailMatch) && (!hideInactive || hasActive)) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-  }
-
-  // Dropdown functionality
-  document.addEventListener('click', function(event) {
-    // Close all dropdowns when clicking outside
-    if (!event.target.closest('.dropdown-btn') && !event.target.closest('.dropdown-menu')) {
-      document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
-        dropdown.classList.remove('show');
+    function filterUsers() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const hideInactive = document.getElementById('hide-inactive').checked;
+      document.querySelectorAll('.user-row').forEach(row => {
+        const email = row.getAttribute('data-email');
+        const hasActive = row.getAttribute('data-has-active') === 'true';
+        const emailMatch = email.includes(searchTerm);
+        if ((searchTerm === '' || emailMatch) && (!hideInactive || hasActive)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
       });
     }
 
-    // Toggle dropdown when clicking the button
-    if (event.target.closest('.dropdown-btn')) {
-      const dropdown = event.target.closest('.dropdown').querySelector('.dropdown-menu');
-      dropdown.classList.toggle('show');
-    }
-  });
-
-  // Close dropdown when clicking an action
-  document.querySelectorAll('.dropdown-item').forEach(link => {
-    link.addEventListener('click', function(e) {
-      // For add-subscription-btn, we need to prevent default to handle it separately
-      if (this.classList.contains('add-subscription-btn')) {
-        e.preventDefault();
+    // Dropdown functionality
+    document.addEventListener('click', function(event) {
+      // Close all dropdowns when clicking outside
+      if (!event.target.closest('.dropdown-btn') && !event.target.closest('.dropdown-menu')) {
+        document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
+          dropdown.classList.remove('show');
+        });
       }
-      // Close the dropdown
-      this.closest('.dropdown-menu').classList.remove('show');
+
+      // Toggle dropdown when clicking the button
+      if (event.target.closest('.dropdown-btn')) {
+        const dropdown = event.target.closest('.dropdown').querySelector('.dropdown-menu');
+        dropdown.classList.toggle('show');
+      }
     });
-  });
 
-  // Delete User
-  document.addEventListener('submit', function(e) {
-    // Handle delete user form submissions
-    if (e.target.classList.contains('delete-user-form')) {
-      e.preventDefault();
-      const form = e.target;
-      const button = form.querySelector('.delete-user-btn');
-      const userId = button.dataset.userId;
-      const userRow = document.querySelector(`[data-user-id="${userId}"]`);
+    // Close dropdown when clicking an action
+    document.querySelectorAll('.dropdown-item').forEach(link => {
+      link.addEventListener('click', function(e) {
+        // For add-subscription-btn, we need to prevent default to handle it separately
+        if (this.classList.contains('add-subscription-btn')) {
+          e.preventDefault();
+        }
+        // Close the dropdown
+        this.closest('.dropdown-menu').classList.remove('show');
+      });
+    });
 
-      // Show confirmation dialog
-      if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    // Delete User
+    document.addEventListener('submit', function(e) {
+      // Handle delete user form submissions
+      if (e.target.classList.contains('delete-user-form')) {
+        e.preventDefault();
+        const form = e.target;
+        const button = form.querySelector('.delete-user-btn');
+        const userId = button.dataset.userId;
+        const userRow = document.querySelector(`[data-user-id="${userId}"]`);
+
+        // Show confirmation dialog
+        if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+          return false;
+        }
+
+        // Show loading state
+        const originalText = button.textContent;
+        button.textContent = 'Deleting...';
+        button.disabled = true;
+        button.style.opacity = '0.7';
+
+        // Submit the form via fetch
+        fetch(form.action, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.text().then(text => {
+              try {
+                return JSON.parse(text);
+              } catch (e) {
+                return { success: false, error: text || 'Unknown server error', code: 'non_json_response' };
+              }
+            });
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Remove the user row from the table
+            if (userRow) {
+              userRow.remove();
+            }
+
+            // Update the user stats
+            const statsElement = document.querySelector('.users-stats');
+            if (statsElement) {
+              const totalUsersMatch = statsElement.textContent.match(/Total Users: (\d+)/);
+              if (totalUsersMatch) {
+                const currentTotal = parseInt(totalUsersMatch[1]);
+                const activeUsersCount = document.querySelectorAll('.user-row[data-has-active="true"]').length;
+                statsElement.textContent = `Total Users: ${currentTotal - 1} - Total Active Users: ${activeUsersCount}`;
+              }
+            }
+
+            // Show success message
+            alert('User deleted successfully!');
+          } else {
+            throw new Error(data.error || 'Failed to delete user');
+          }
+        })
+        .catch(error => {
+          // Reset button state
+          button.textContent = originalText;
+          button.disabled = false;
+          button.style.opacity = '1';
+
+          // Show error message
+          let errorMessage = error.message;
+          if (errorMessage.includes('<!DOCTYPE html>')) {
+            errorMessage = 'An unexpected error occurred. Please try again.';
+          }
+
+          alert('Error: ' + errorMessage);
+          console.error('Delete user error:', error);
+        });
+
         return false;
       }
+    });
 
-      // Show loading state
-      const originalText = button.textContent;
-      button.textContent = 'Deleting...';
-      button.disabled = true;
-      button.style.opacity = '0.7';
+    // Modals
+    document.querySelectorAll('.add-subscription-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const userId = button.getAttribute('data-user-id');
 
-      // Submit the form via fetch
-      fetch(form.action, {
-        method: 'DELETE',
-        headers: {
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+        // Set the user ID in the modal form
+        document.getElementById('subscription-user-id').value = userId;
+
+        // Reset form fields with better defaults
+        document.getElementById('subscription-plan').selectedIndex = 0;
+
+        // Select first server by default if available
+        const serverSelect = document.getElementById('subscription-server');
+        if (serverSelect.options.length > 0) {
+          serverSelect.selectedIndex = 0;
         }
+
+        // Set default expiration date (1 month from now)
+        const defaultExpiresAt = new Date();
+        defaultExpiresAt.setMonth(defaultExpiresAt.getMonth() + 1);
+        // Format the date and time for the input field
+        const formattedDateTime = defaultExpiresAt.toISOString().slice(0, 16);
+        document.getElementById('subscription-expires-at').value = formattedDateTime;
+
+        // Show the modal
+        document.getElementById('add-subscription-modal').style.display = 'block';
+
+        // Close dropdown after clicking
+        const dropdown = button.closest('.dropdown-menu');
+        if (dropdown) {
+          dropdown.classList.remove('show');
+        }
+      });
+    });
+
+    // Close Modal
+    document.querySelectorAll('.close-modal').forEach(span => {
+      span.addEventListener('click', () => {
+        document.querySelectorAll('.modal').forEach(modal => {
+          modal.style.display = 'none';
+        });
+      });
+    });
+
+    // Cancel Subscription Button in Modal
+    document.getElementById('cancel-subscription-btn').addEventListener('click', () => {
+      document.getElementById('add-subscription-modal').style.display = 'none';
+    });
+
+    // Add Subscription Form Submission with Validation
+    document.getElementById('add-subscription-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const submitButton = form.querySelector('button[type="submit"]');
+      // Show loading state
+      const originalText = submitButton.textContent;
+      submitButton.textContent = 'Adding...';
+      submitButton.disabled = true;
+      submitButton.style.opacity = '0.7';
+
+      // Get form values (no need for 'name')
+      const userId = document.getElementById('subscription-user-id').value;
+      const planId = document.getElementById('subscription-plan').value;
+      const serverId = document.getElementById('subscription-server').value;
+      const expiresAt = document.getElementById('subscription-expires-at').value;
+
+      // Validate form (no need to check 'name')
+      if (!planId) {
+        alert('Please select a plan');
+        resetSubmitButton(submitButton, originalText);
+        return;
+      }
+      if (!serverId) {
+        alert('Please select a server');
+        resetSubmitButton(submitButton, originalText);
+        return;
+      }
+      if (!expiresAt) {
+        alert('Please select an expiration date');
+        resetSubmitButton(submitButton, originalText);
+        return;
+      }
+
+      // Submit the form (no 'name' in the payload)
+      fetch(`/admin/users/${userId}/subscriptions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          subscription: {
+            plan_id: planId,
+            server_id: serverId,
+            expires_at: expiresAt
+          }
+        })
       })
       .then(response => {
         if (!response.ok) {
-          return response.text().then(text => {
-            try {
-              return JSON.parse(text);
-            } catch (e) {
-              return { success: false, error: text || 'Unknown server error', code: 'non_json_response' };
-            }
+          return response.json().catch(() => {
+            throw new Error('Unknown server error');
           });
         }
         return response.json();
       })
       .then(data => {
         if (data.success) {
-          // Remove the user row from the table
-          if (userRow) {
-            userRow.remove();
-          }
-
-          // Update the user stats
-          const statsElement = document.querySelector('.users-stats');
-          if (statsElement) {
-            const totalUsersMatch = statsElement.textContent.match(/Total Users: (\d+)/);
-            if (totalUsersMatch) {
-              const currentTotal = parseInt(totalUsersMatch[1]);
-              const activeUsersCount = document.querySelectorAll('.user-row[data-has-active="true"]').length;
-              statsElement.textContent = `Total Users: ${currentTotal - 1} - Total Active Users: ${activeUsersCount}`;
-            }
-          }
-
+          // Close the modal
+          document.getElementById('add-subscription-modal').style.display = 'none';
           // Show success message
-          alert('User deleted successfully!');
+          alert('Subscription added successfully!');
+          // Reload the page to show the new subscription
+          window.location.reload();
         } else {
-          throw new Error(data.error || 'Failed to delete user');
+          throw new Error(data.error || 'Failed to add subscription');
         }
       })
       .catch(error => {
-        // Reset button state
-        button.textContent = originalText;
-        button.disabled = false;
-        button.style.opacity = '1';
-
         // Show error message
-        let errorMessage = error.message;
-        if (errorMessage.includes('<!DOCTYPE html>')) {
-          errorMessage = 'An unexpected error occurred. Please try again.';
-        }
-
-        alert('Error: ' + errorMessage);
-        console.error('Delete user error:', error);
-      });
-
-      return false;
-    }
-  });
-
-  // Modals
-  document.querySelectorAll('.add-subscription-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
-      const userId = button.getAttribute('data-user-id');
-
-      // Set the user ID in the modal form
-      document.getElementById('subscription-user-id').value = userId;
-
-      // Reset form fields with better defaults
-      document.getElementById('subscription-plan').selectedIndex = 0;
-
-      // Select first server by default if available
-      const serverSelect = document.getElementById('subscription-server');
-      if (serverSelect.options.length > 0) {
-        serverSelect.selectedIndex = 0;
-      }
-
-      // Set default expiration date (1 month from now)
-      const defaultExpiresAt = new Date();
-      defaultExpiresAt.setMonth(defaultExpiresAt.getMonth() + 1);
-      // Format the date and time for the input field
-      const formattedDateTime = defaultExpiresAt.toISOString().slice(0, 16);
-      document.getElementById('subscription-expires-at').value = formattedDateTime;
-
-      // Show the modal
-      document.getElementById('add-subscription-modal').style.display = 'block';
-
-      // Close dropdown after clicking
-      const dropdown = button.closest('.dropdown-menu');
-      if (dropdown) {
-        dropdown.classList.remove('show');
-      }
-    });
-  });
-
-  // Close Modal
-  document.querySelectorAll('.close-modal').forEach(span => {
-    span.addEventListener('click', () => {
-      document.querySelectorAll('.modal').forEach(modal => {
-        modal.style.display = 'none';
-      });
-    });
-  });
-
-  // Cancel Subscription Button in Modal
-  document.getElementById('cancel-subscription-btn').addEventListener('click', () => {
-    document.getElementById('add-subscription-modal').style.display = 'none';
-  });
-
-  // Add Subscription Form Submission with Validation
-  document.getElementById('add-subscription-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const submitButton = form.querySelector('button[type="submit"]');
-    // Show loading state
-    const originalText = submitButton.textContent;
-    submitButton.textContent = 'Adding...';
-    submitButton.disabled = true;
-    submitButton.style.opacity = '0.7';
-
-    // Get form values (no need for 'name')
-    const userId = document.getElementById('subscription-user-id').value;
-    const planId = document.getElementById('subscription-plan').value;
-    const serverId = document.getElementById('subscription-server').value;
-    const expiresAt = document.getElementById('subscription-expires-at').value;
-
-    // Validate form (no need to check 'name')
-    if (!planId) {
-      alert('Please select a plan');
-      resetSubmitButton(submitButton, originalText);
-      return;
-    }
-    if (!serverId) {
-      alert('Please select a server');
-      resetSubmitButton(submitButton, originalText);
-      return;
-    }
-    if (!expiresAt) {
-      alert('Please select an expiration date');
-      resetSubmitButton(submitButton, originalText);
-      return;
-    }
-
-    // Submit the form (no 'name' in the payload)
-    fetch(`/admin/users/${userId}/subscriptions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({
-        subscription: {
-          plan_id: planId,
-          server_id: serverId,
-          expires_at: expiresAt
-        }
+        alert('Error: ' + error.message);
+        console.error('Add subscription error:', error);
       })
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().catch(() => {
-          throw new Error('Unknown server error');
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.success) {
-        // Close the modal
-        document.getElementById('add-subscription-modal').style.display = 'none';
-        // Show success message
-        alert('Subscription added successfully!');
-        // Reload the page to show the new subscription
-        window.location.reload();
-      } else {
-        throw new Error(data.error || 'Failed to add subscription');
-      }
-    })
-    .catch(error => {
-      // Show error message
-      alert('Error: ' + error.message);
-      console.error('Add subscription error:', error);
-    })
-    .finally(() => {
-      // Reset button state
-      resetSubmitButton(submitButton, originalText);
+      .finally(() => {
+        // Reset button state
+        resetSubmitButton(submitButton, originalText);
+      });
+    });
+
+    // Helper function to reset submit button
+    function resetSubmitButton(button, originalText) {
+      button.textContent = originalText;
+      button.disabled = false;
+      button.style.opacity = '1';
+    }
+
+    // Cancel Subscription (from the table)
+    document.querySelectorAll('.cancel-subscription-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const subscriptionId = button.getAttribute('data-subscription-id');
+        const userId = button.getAttribute('data-user-id');
+
+        if (confirm('Are you sure you want to cancel this subscription?')) {
+          const originalText = button.textContent;
+          button.textContent = 'Cancelling...';
+          button.disabled = true;
+          button.style.opacity = '0.7';
+
+          fetch(`/admin/users/${userId}/subscriptions/${subscriptionId}/cancel`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('Subscription cancelled successfully!');
+              window.location.reload();
+            } else {
+              throw new Error(data.error || 'Failed to cancel subscription');
+            }
+          })
+          .catch(error => {
+            alert('Error: ' + error.message);
+            console.error('Cancel subscription error:', error);
+          })
+          .finally(() => {
+            button.textContent = originalText;
+            button.disabled = false;
+            button.style.opacity = '1';
+          });
+        }
+      });
     });
   });
-
-  // Helper function to reset submit button
-  function resetSubmitButton(button, originalText) {
-    button.textContent = originalText;
-    button.disabled = false;
-    button.style.opacity = '1';
-  }
-
-  // Cancel Subscription (from the table)
-  document.querySelectorAll('.cancel-subscription-btn').forEach(button => {
-    button.addEventListener('click', () => {
-      const subscriptionId = button.getAttribute('data-subscription-id');
-      const userId = button.getAttribute('data-user-id');
-
-      if (confirm('Are you sure you want to cancel this subscription?')) {
-        const originalText = button.textContent;
-        button.textContent = 'Cancelling...';
-        button.disabled = true;
-        button.style.opacity = '0.7';
-
-        fetch(`/admin/users/${userId}/subscriptions/${subscriptionId}/cancel`, {
-          method: 'POST',
-          headers: {
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            alert('Subscription cancelled successfully!');
-            window.location.reload();
-          } else {
-            throw new Error(data.error || 'Failed to cancel subscription');
-          }
-        })
-        .catch(error => {
-          alert('Error: ' + error.message);
-          console.error('Cancel subscription error:', error);
-        })
-        .finally(() => {
-          button.textContent = originalText;
-          button.disabled = false;
-          button.style.opacity = '1';
-        });
-      }
-    });
-  });
-});
 </script>
