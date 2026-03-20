@@ -13,23 +13,39 @@ Sidekiq.configure_server do |config|
   config.on(:startup) do
     Sidekiq::Cron::Job.load_from_hash(
       {
+        # Every 2 minutes — expire dead VPN sessions
+        'heartbeat_monitor' => {
+          'cron'  => '*/2 * * * *',
+          'class' => 'HeartbeatMonitorJob',
+          'queue' => 'default'
+        },
+        # Every minute — kill unauthorized sing-box connections
+        'clash_api_monitor' => {
+          'cron'  => '* * * * *',
+          'class' => 'ClashApiMonitorJob',
+          'queue' => 'default'
+        },
+        # Every 15 minutes — revoke expired subscriptions
         'revoke_expired_subscriptions' => {
-          'cron'  => '0 */6 * * *',   # Every 6 hours
+          'cron'  => '*/15 * * * *',
           'class' => 'RevokeExpiredSubscriptionsJob',
           'queue' => 'default'
         },
+        # Every 30 minutes — reclaim abandoned payment sessions
         'expire_abandoned_subscriptions' => {
-          'cron'  => '0 */1 * * *',   # Every 1 hours
+          'cron'  => '*/30 * * * *',
           'class' => 'ExpireAbandonedSubscriptionsJob',
           'queue' => 'default'
         },
+        # Daily at 3am — top up preallocated subscription pool
         'preallocate_subscriptions' => {
-          'cron'  => '0 2 * * *',     # Every day at 2 AM
+          'cron'  => '0 3 * * *',
           'class' => 'PreallocateSubscriptionsJob',
           'queue' => 'default'
         },
+        # Daily at 2am — backup database to Wasabi
         'backup_database' => {
-          'cron'  => '0 3 * * *',     # Every day at 3 AM
+          'cron'  => '0 2 * * *',
           'class' => 'BackupDatabaseJob',
           'queue' => 'default'
         }
