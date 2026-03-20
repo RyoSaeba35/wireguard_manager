@@ -110,9 +110,11 @@ class Api::DevicesController < ApplicationController
     end
 
     begin
-      payload = JWT.decode(
+      secret = ENV['DEVISE_JWT_SECRET_KEY']  # ← ADD THIS
+
+      payload = JWT.decode(                   # ← REPLACE the existing JWT.decode block
         token,
-        Devise.jwt.secret,  # ← CHANGE THIS (was Rails.application.credentials.devise_jwt_secret_key)
+        secret,
         true,
         algorithm: 'HS256'
       ).first
@@ -128,7 +130,6 @@ class Api::DevicesController < ApplicationController
       render json: { error: "Invalid or expired token" }, status: :unauthorized
     end
   end
-
 
   def authenticate_device!
     api_key = request.headers['X-Api-Key']
