@@ -40,32 +40,25 @@ class StripeWebhooksController < ApplicationController
   def handle_checkout_session_completed(session)
     subscription = Subscription.find_by(stripe_session_id: session.id)
     return unless subscription
+    return unless subscription.payment_pending?
 
-    # Update subscription status to 'active' if it's pending or payment_pending
-    if ['pending', 'payment_pending'].include?(subscription.status)
-      subscription.update!(status: 'pending')
-      if subscription.wireguard_clients.any?
-        UserMailer.vpn_config_ready(subscription.user, subscription).deliver_later
-        subscription.update!(status: 'active')
-      else
-        WireguardClientCreationJob.perform_later(subscription.id)
-        # Wait for 1.5 seconds before redirecting
-        sleep(2.5)
-        subscription.update!(status: 'active')
-      end
-      Rails.logger.info "Subscription #{subscription.id} activated via webhook"
-    end
+    subscription.update!(status: "active")
+    UserMailer.vpn_config_ready(subscription.user, subscription).deliver_later
+    Rails.logger.info "Subscription #{subscription.name} activated via webhook"
   end
 
   def handle_checkout_session_expired(session)
     subscription = Subscription.find_by(stripe_session_id: session.id)
     return unless subscription
+    return unless subscription.payment_pending?
 
-    # Update subscription status to 'canceled' if it's pending or payment_pending
-    if ['pending', 'payment_pending'].include?(subscription.status)
-      subscription.update!(status: 'canceled')
-      Rails.logger.info "Subscription #{subscription.id} canceled due to session expiration"
-    end
+    # Return to pool — never paid, clients untouched
+    subscription.update!(
+      user_id: nil,
+      status: "preallocated",
+      stripe_session_id: nil
+    )
+    Rails.logger.info "Subscription #{subscription.name} returned to pool via webhook"
   end
 
   def handle_payment_failed(payment_intent)
@@ -74,12 +67,15 @@ class StripeWebhooksController < ApplicationController
 
     subscription = Subscription.find_by(stripe_session_id: session_id)
     return unless subscription
+    return unless subscription.payment_pending?
 
-    # Update subscription status to 'failed' if it's pending or payment_pending
-    if ['pending', 'payment_pending'].include?(subscription.status)
-      subscription.update!(status: 'failed')
-      Rails.logger.info "Subscription #{subscription.id} marked as failed due to payment failure"
-      UserMailer.payment_failed(subscription.user, subscription).deliver_later
-    end
+    # Return to pool — payment failed, never activated
+    subscription.update!(
+      user_id: nil,
+      status: "preallocated",
+      stripe_session_id: nil
+    )
+    UserMailer.payment_failed(subscription.user, subscription).deliver_later
+    Rails.logger.info "Subscription #{subscription.name} returned to pool — payment failed"
   end
 end

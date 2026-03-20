@@ -20,6 +20,11 @@ class SubscriptionsController < ApplicationController
 
     @plans = Plan.all.order(:price)
     @subscription = current_user.subscriptions.new
+    @available_server = Server.where(active: true)
+                              .where("current_subscriptions < max_subscriptions")
+                              .order(:current_subscriptions)
+                              .first
+    @pool_available = @available_server&.subscriptions&.preallocated&.exists?
   end
 
   def create_checkout_session

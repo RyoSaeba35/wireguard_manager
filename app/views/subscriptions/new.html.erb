@@ -5,7 +5,12 @@
     <!-- Desktop Grid -->
     <div class="plan-grid">
       <% @plans.each do |plan| %>
-        <div class="plan <%= !plan.active || Subscription.where(status: 'active').count >= Setting.max_active_subscriptions ? 'unavailable' : '' %>">
+        <%
+          plan_available = plan.active &&
+                          Subscription.where(status: 'active').count < Setting.max_active_subscriptions &&
+                          @pool_available
+        %>
+        <div class="plan <%= !plan_available ? 'unavailable' : '' %>">
           <% if plan.name.include?("Month") %>
             <div class="popular-badge">Popular</div>
           <% end %>
@@ -24,7 +29,7 @@
               <% end %>
             <% end %>
           </div>
-          <% if plan.active && Subscription.where(status: 'active').count < Setting.max_active_subscriptions %>
+          <% if plan_available %>
             <%= form_with(model: [current_user, @subscription], id: "subscribe-form-#{plan.id}") do |form| %>
               <div class="form-group" style="margin: 0;">
                 <%= form.hidden_field :price, value: plan.price %>
@@ -34,29 +39,20 @@
             <% end %>
             <!-- Desktop Success Message -->
             <div id="subscribe-success-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
-              <% if server = Server.where(active: true).where("current_subscriptions < max_subscriptions").order(:current_subscriptions).first %>
-                <% if server.subscriptions.preallocated.exists? %>
-                  Success! Your subscription is active and your VPN config is ready to use.
-                <% else %>
-                  Success! Your subscription is active. We’re setting up your VPN—you’ll receive an email with your config in a few minutes.
-                <% end %>
-              <% end %>
+              Success! Your subscription is being processed. You'll receive an email shortly.
             </div>
 
             <!-- Mobile Success Message -->
             <div id="subscribe-success-mobile-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
-              <% if server = Server.where(active: true).where("current_subscriptions < max_subscriptions").order(:current_subscriptions).first %>
-                <% if server.subscriptions.preallocated.exists? %>
-                  Success! Your subscription is active and your VPN config is ready to use.
-                <% else %>
-                  Success! Your subscription is active. We’re setting up your VPN—you’ll receive an email with your config in a few minutes.
-                <% end %>
-              <% end %>
+              Success! Your subscription is being processed. You'll receive an email shortly.
             </div>
           <% else %>
             <div class="plan-unavailable">
-              <% if !plan.active && Subscription.where(status: 'active').count < Setting.max_active_subscriptions %>
+              <% if !plan.active %>
                 <p>This plan is currently not available.</p>
+              <% elsif !@pool_available %>
+                <p>Sold Out</p>
+                <p>We're preparing new slots — check back in a few minutes.</p>
               <% else %>
                 <p>Plan Sold Out</p>
                 <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>
@@ -73,7 +69,12 @@
         <div class="splide__list">
           <% @plans.each do |plan| %>
             <div class="splide__slide">
-              <div class="plan <%= !plan.active || Subscription.where(status: 'active').count >= Setting.max_active_subscriptions ? 'unavailable' : '' %>">
+              <%
+                plan_available = plan.active &&
+                                Subscription.where(status: 'active').count < Setting.max_active_subscriptions &&
+                                @pool_available
+              %>
+              <div class="plan <%= !plan_available ? 'unavailable' : '' %>">
                 <% if plan.name.include?("Month") %>
                   <div class="popular-badge">Popular</div>
                 <% end %>
@@ -92,7 +93,7 @@
                     <% end %>
                   <% end %>
                 </div>
-                <% if plan.active && Subscription.where(status: 'active').count < Setting.max_active_subscriptions %>
+                <% if plan_available %>
                   <%= form_with(model: [current_user, @subscription], id: "subscribe-form-mobile-#{plan.id}") do |form| %>
                     <div class="form-group" style="margin: 0;">
                       <%= form.hidden_field :price, value: plan.price %>
@@ -101,12 +102,15 @@
                     <%= form.submit "Subscribe Now", class: "plan-btn", data: { disable_with: "Processing..." } %>
                   <% end %>
                   <div id="subscribe-success-mobile-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
-                    Success! Your subscription is active. We’re setting up your VPN—you’ll get an email with your config in a few minutes.
+                    Success! Your subscription is being processed. You'll receive an email shortly.
                   </div>
                 <% else %>
                   <div class="plan-unavailable">
-                    <% if !plan.active && Subscription.where(status: 'active').count < Setting.max_active_subscriptions %>
+                    <% if !plan.active %>
                       <p>This plan is currently not available.</p>
+                    <% elsif !@pool_available %>
+                      <p>Sold Out</p>
+                      <p>We're preparing new slots — check back in a few minutes.</p>
                     <% else %>
                       <p>Plan Sold Out</p>
                       <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>
