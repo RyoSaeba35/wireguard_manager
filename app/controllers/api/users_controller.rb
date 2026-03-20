@@ -1,7 +1,5 @@
 # app/controllers/api/users_controller.rb
 class Api::UsersController < Api::BaseController
-  skip_before_action :authenticate_user!
-  
   # GET api/status
   def status
     subscription = current_subscription
