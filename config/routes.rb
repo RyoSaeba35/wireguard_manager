@@ -82,11 +82,26 @@ Rails.application.routes.draw do
   # API namespace for Flutter app
   constraints subdomain: 'api' do
     namespace :api do
-      post 'login', to: 'sessions#create'
-      delete 'logout', to: 'sessions#destroy'
-      get 'status', to: 'users#status'      # optional: to check subscription/device status
-      get 'config/:device_id', to: 'wireguard_clients#config'  # fetch sing-box config
-      post 'revoke/:device_id', to: 'wireguard_clients#revoke' # revoke device
+      # Auth
+      post   'login',   to: 'sessions#create'
+      delete 'logout',  to: 'sessions#destroy'
+
+      # Device registration
+      post 'devices/register', to: 'devices#register'
+
+      # Session management
+      post 'connect/:device_id',    to: 'devices#connect'
+      post 'disconnect/:device_id', to: 'devices#disconnect'
+      post 'heartbeat/:device_id',  to: 'devices#heartbeat'
+
+      # Credentials
+      get 'credentials/:device_id', to: 'devices#credentials'
+
+      # Subscription status
+      get 'subscription', to: 'subscriptions#show'
+
+      # User status
+      get 'status', to: 'users#status'
     end
   end
 end

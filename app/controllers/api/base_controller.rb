@@ -1,58 +1,40 @@
-module Api
-  class BaseController < ActionController::API
-    before_action :ensure_json_request
-    before_action :authenticate_request!
+# app/controllers/api/base_controller.rb
+class Api::BaseController < ApplicationController
+  protect_from_forgery with: :null_session
+  before_action :authenticate_device!
 
-    attr_reader :current_user, :current_device
+  private
 
-    private
+  def authenticate_device!
+    api_key = request.headers['X-Api-Key']
 
-    # ----------------------------
-    # JSON only
-    # ----------------------------
-    def ensure_json_request
-      request.format = :json
+    unless api_key.present?
+      render json: { error: "API key required" }, status: :unauthorized
+      return
     end
 
-    # ----------------------------
-    # Authentication dispatcher
-    # ----------------------------
-    def authenticate_request!
-      authenticate_with_jwt || authenticate_with_api_key || render_unauthorized
+    @current_device = Device.find_by(api_key: api_key)
+
+    unless @current_device
+      render json: { error: "Invalid API key" }, status: :unauthorized
+      return
     end
 
-    # ----------------------------
-    # JWT auth (Flutter app)
-    # ----------------------------
-    def authenticate_with_jwt
-      authenticate_user!
-      @current_user = current_user
-      @current_user.present?
-    rescue JWT::DecodeError, JWT::ExpiredSignature
-      false
+    unless @current_device.subscription.active?
+      render json: { error: "Subscription is not active" }, status: :forbidden
+      return
     end
+  end
 
-    # ----------------------------
-    # API key auth (devices / servers)
-    # ----------------------------
-    def authenticate_with_api_key
-      api_key = request.headers['X-API-KEY']
-      return false if api_key.blank?
+  def current_device
+    @current_device
+  end
 
-      @current_device = Device.find_by(api_key: api_key)
-      @current_user = @current_device&.user
+  def current_subscription
+    @current_device.subscription
+  end
 
-      @current_user.present?
-    end
-
-    # ----------------------------
-    # Unauthorized response
-    # ----------------------------
-    def render_unauthorized
-      render json: {
-        success: false,
-        error: 'Unauthorized'
-      }, status: :unauthorized
-    end
+  def current_user
+    @current_device.user
   end
 end

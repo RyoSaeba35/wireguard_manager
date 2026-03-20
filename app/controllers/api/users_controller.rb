@@ -1,37 +1,26 @@
-module Api
-  class UsersController < Api::BaseController
-    # GET /api/status
-    def status
-      subscription = @current_user.subscriptions.find_by(status: 'active')
-      active_devices = @current_user.devices.where(active: true)
+# app/controllers/api/users_controller.rb
+class Api::UsersController < Api::BaseController
 
-      active_devices_count = active_devices.count
-      max_devices = subscription ? 3 : 0
-      remaining_slots = [max_devices - active_devices_count, 0].max
+  # GET api/status
+  def status
+    subscription = current_subscription
 
-      render json: {
-        success: true,
-        active_subscription: subscription.present?,
-        expires_at: subscription&.expires_at,
-        active_devices_count: active_devices_count,
-        max_devices: max_devices,
-        remaining_slots: remaining_slots,
-        devices: active_devices.map { |d| device_json(d) }
+    render json: {
+      user: {
+        email: current_user.email
+      },
+      subscription: {
+        active: subscription.active?,
+        expires_at: subscription.expires_at,
+        days_remaining: [((subscription.expires_at - Time.current) / 1.day).floor, 0].max
+      },
+      device: {
+        id: current_device.device_id,
+        name: current_device.name,
+        platform: current_device.platform,
+        active: current_device.active,
+        last_seen_at: current_device.last_seen_at
       }
-    end
-
-    private
-
-    def device_json(device)
-      {
-        id: device.id,
-        device_id: device.device_id,
-        platform: device.platform,
-        name: device.name,
-        last_seen_at: device.last_seen_at,
-        active: device.active,
-        has_api_key: device.api_key.present?
-      }
-    end
+    }, status: :ok
   end
 end

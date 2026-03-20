@@ -1,68 +1,65 @@
-module Api
-  class SessionsController < Api::BaseController
-    skip_before_action :authenticate_request!, only: [:create] # login doesn’t need JWT
+# app/controllers/api/sessions_controller.rb
+class Api::SessionsController < ApplicationController
+  protect_from_forgery with: :null_session
 
-    # POST /api/login
-    def create
-      user = User.find_for_database_authentication(email: params[:email])
+  # POST api/login
+  def create
+    user = User.find_by(email: params[:email]&.downcase)
 
-      if user&.valid_password?(params[:password])
-        token = Warden::JWTAuth::UserEncoder
-          .new
-          .call(user, :user, nil)
-          .first
+    unless user&.valid_password?(params[:password])
+      render json: { error: "Invalid email or password" }, status: :unauthorized
+      return
+    end
 
-        subscription = user.subscriptions.find_by(status: 'active')
-        active_devices_count = user.devices.where(active: true).count
-        max_devices = subscription ? 3 : 0
-        remaining_slots = [max_devices - active_devices_count, 0].max
+    unless user.confirmed?
+      render json: { error: "Please confirm your email before logging in" }, status: :forbidden
+      return
+    end
 
-        device = nil
-        api_key = nil
+    if user.locked_at.present?
+      render json: { error: "Account is locked. Please contact support." }, status: :forbidden
+      return
+    end
 
-        if params[:device_id].present? && subscription.present?
-          device = user.devices.find_or_create_by(
-            device_id: params[:device_id],
-            subscription: subscription
-          ) do |d|
-            d.platform = params[:platform] || "mobile"
-            d.name = params[:name] || "Flutter app"
-            d.active = true
-          end
+    # Use Devise JWT to generate token — respects JwtDenylist automatically
+    token, _payload = Warden::JWTAuth::UserEncoder.new.call(
+      user,
+      :user,
+      nil
+    )
 
-          if device.api_key.blank?
-            device.update!(api_key: SecureRandom.hex(32))
-          end
+    render json: {
+      token: token,
+      user: {
+        id: user.id,
+        email: user.email
+      }
+    }, status: :ok
+  end
 
-          api_key = device.api_key
-        end
+  # DELETE api/logout
+  def destroy
+    token = request.headers['Authorization']&.split(' ')&.last
 
-        render json: {
-          success: true,
-          jwt: token,
-          api_key: api_key,
-          user: {
-            id: user.id,
-            email: user.email,
-            admin: user.admin,
-            active_subscription: subscription.present?,
-            subscription_expires_at: subscription&.expires_at,
-            active_devices_count: active_devices_count,
-            max_devices: max_devices,
-            remaining_slots: remaining_slots
-          }
-        }
-      else
-        render json: {
-          success: false,
-          error: "Invalid email or password"
-        }, status: :unauthorized
+    if token.present?
+      begin
+        payload = JWT.decode(
+          token,
+          Rails.application.credentials.devise_jwt_secret_key,
+          true,
+          algorithm: 'HS256'
+        ).first
+
+        JwtDenylist.create!(
+          jti: payload['jti'],
+          exp: Time.at(payload['exp'])
+        )
+      rescue JWT::DecodeError
+        # Token already invalid — fine, just log out
+        Rails.logger.warn "Logout with invalid JWT token"
       end
     end
 
-    # DELETE /api/logout
-    def destroy
-      render json: { success: true }
-    end
+    render json: { message: "Logged out successfully" }, status: :ok
   end
 end
