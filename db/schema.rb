@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_20_084848) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_21_083641) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -115,6 +115,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_20_084848) do
     t.integer "singbox_ss_port", default: 443
     t.integer "singbox_hysteria2_port", default: 8443
     t.integer "wireguard_port", default: 53050
+    t.string "clash_api_secret"
   end
 
   create_table "settings", force: :cascade do |t|

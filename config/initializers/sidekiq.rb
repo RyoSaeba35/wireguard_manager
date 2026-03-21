@@ -21,7 +21,7 @@ Sidekiq.configure_server do |config|
         },
         # Every minute — kill unauthorized sing-box connections
         'clash_api_monitor' => {
-          'cron'  => '* * * * *',
+          'cron'  => '*/30 * * * *',
           'class' => 'ClashApiMonitorJob',
           'queue' => 'default'
         },
