@@ -49,8 +49,14 @@ module Admin
 
     def update
       @server = Server.find(params[:id])
+
+      # Remove blank password fields so they don't overwrite existing values
+      %i[ssh_password singbox_salamander_password singbox_ss_master_password clash_api_secret].each do |field|
+        params[:server].delete(field) if params[:server][field].blank?
+      end
+
       if @server.update(server_params)
-        WireguardClientCreationJob.perform_later(@server.id)  # Enqueue the job after saving
+        WireguardClientCreationJob.perform_later(@server.id)
         redirect_to admin_servers_path, notice: "Server updated successfully."
       else
         render :edit, status: :unprocessable_entity
@@ -81,7 +87,11 @@ module Admin
       params.require(:server).permit(
         :name, :ip_address, :ssh_user, :ssh_password,
         :wireguard_server_ip, :wireguard_public_key, :max_subscriptions, :active,
-        :ssh_private_key, :ssh_public_key  # <-- Add these two lines
+        :ssh_private_key, :ssh_public_key,
+        :singbox_active, :singbox_server_name,
+        :singbox_salamander_password, :singbox_ss_master_password,
+        :singbox_ss_port, :singbox_hysteria2_port,
+        :wireguard_port, :clash_api_secret
       )
     end
   end

@@ -41,6 +41,61 @@
         <%= form.text_field :wireguard_server_ip, class: "form-input", placeholder: "e.g., 10.8.0.1" %>
       </div>
 
+      <%# SingBox Settings %>
+      <div class="form-group form-group--full-width">
+        <h3 class="form-section-title">SingBox Settings</h3>
+      </div>
+
+      <div class="form-group form-group--checkbox">
+        <%= form.check_box :singbox_active, class: "form-checkbox" %>
+        <%= form.label :singbox_active, "SingBox is active", class: "form-checkbox-label" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :singbox_server_name, class: "form-label" %>
+        <%= form.text_field :singbox_server_name, class: "form-input", placeholder: "e.g., example.com" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :singbox_salamander_password, class: "form-label" do %>
+          Salamander Password <%= @server.persisted? ? "(leave blank to keep current)" : "" %>
+        <% end %>
+        <%= form.password_field :singbox_salamander_password, class: "form-input", placeholder: "Hysteria2 obfuscation password", value: "" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :singbox_ss_master_password, class: "form-label" do %>
+          Shadowsocks Master Password <%= @server.persisted? ? "(leave blank to keep current)" : "" %>
+        <% end %>
+        <%= form.password_field :singbox_ss_master_password, class: "form-input", placeholder: "Shadowsocks master password", value: "" %>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :singbox_ss_port, class: "form-label" %>
+        <%= form.number_field :singbox_ss_port, class: "form-input", min: 1, max: 65535 %>
+        <div class="form-hint">Default: 443</div>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :singbox_hysteria2_port, class: "form-label" %>
+        <%= form.number_field :singbox_hysteria2_port, class: "form-input", min: 1, max: 65535 %>
+        <div class="form-hint">Default: 8443</div>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :wireguard_port, class: "form-label" %>
+        <%= form.number_field :wireguard_port, class: "form-input", min: 1, max: 65535 %>
+        <div class="form-hint">Default: 53050</div>
+      </div>
+
+      <div class="form-group">
+        <%= form.label :clash_api_secret, class: "form-label" do %>
+          Clash API Secret <%= @server.persisted? ? "(leave blank to keep current)" : "" %>
+        <% end %>
+        <%= form.password_field :clash_api_secret, class: "form-input", placeholder: "Clash API secret token", value: "" %>
+        <div class="form-hint">Secret for Clash external controller API (port 9090)</div>
+      </div>
+
       <div class="form-group">
         <%= form.label :ssh_user, class: "form-label" do %>
           SSH Username <span class="required-indicator">*</span>
