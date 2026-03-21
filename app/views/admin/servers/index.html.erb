@@ -103,7 +103,6 @@
               <tr>
                 <th>Name</th>
                 <th>IP Address</th>
-                <th>WireGuard IP</th>
                 <th>Capacity</th>
                 <th>Actions</th>
               </tr>
@@ -113,7 +112,6 @@
                 <tr class="server-row">
                   <td><%= server.name %></td>
                   <td><%= server.ip_address %></td>
-                  <td><%= server.wireguard_server_ip %></td>
                   <td><%= server.max_subscriptions %></td>
                   <td class="server-actions">
                     <%= button_to "Activate", admin_server_path(server, server: { active: true }), method: :patch,
