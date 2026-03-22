@@ -1,6 +1,7 @@
 # app/controllers/api/base_controller.rb
 class Api::BaseController < ApplicationController
   protect_from_forgery with: :null_session
+  skip_before_action :authenticate_user!
   before_action :authenticate_device!
 
   private
