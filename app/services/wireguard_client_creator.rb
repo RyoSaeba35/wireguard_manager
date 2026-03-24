@@ -22,7 +22,7 @@ module WireguardClientCreator
     ssh.exec!("chmod 644 /home/#{server.ssh_user}/configs/#{client_name}.conf")
 
     # Fetch client details
-    private_key, public_key, ip_address = fetch_client_details(ssh, client_name, server)
+    private_key, public_key, preshared_key, ip_address = fetch_client_details(ssh, client_name, server)
 
     unless ip_address && ip_address.match?(/\A(\d{1,3}\.){3}\d{1,3}\z/)
       Rails.logger.error "Invalid IP address for #{client_name}: #{ip_address.inspect}"
@@ -41,6 +41,7 @@ module WireguardClientCreator
       name: client_name,
       private_key: private_key,
       public_key: public_key,
+      preshared_key: preshared_key,
       ip_address: ip_address,
       expires_at: subscription.expires_at,
       status: "active"
@@ -54,13 +55,16 @@ module WireguardClientCreator
   end
 
   def fetch_client_details(ssh, client_name, server)
+    config_path = "/home/#{server.ssh_user}/configs/#{client_name}.conf"
+
     private_key = ssh.exec!("cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'PrivateKey'").chomp.split(' = ').last.strip
     public_key = ssh.exec!("cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep -A 5 '[Peer]' | grep 'PublicKey' | head -n 1").chomp.split(' = ').last.strip
+    preshared_key = ssh.exec!("cat #{config_path} | grep -A 5 '[Peer]' | grep 'PresharedKey' | head -n 1").chomp.split(' = ').last.strip
     ip_address = ssh.exec!("cat /home/#{server.ssh_user}/configs/#{client_name}.conf | grep 'Address' | cut -d'=' -f2 | cut -d',' -f1 | cut -d'/' -f1 | tr -d ' '").chomp.strip
 
     Rails.logger.info "Fetched details for #{client_name} — IP: #{ip_address}, pubkey: #{public_key}"
 
-    [private_key, public_key, ip_address]
+    [private_key, public_key, preshared_key, ip_address]
   end
 
   def download_and_attach_config_file(ssh, wireguard_client, server)

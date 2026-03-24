@@ -200,6 +200,7 @@ class Api::DevicesController < ApplicationController
       server_public_key: server.wireguard_public_key,
       client_private_key: client.private_key,
       client_public_key: client.public_key,
+      client_preshared_key: client.preshared_key,
       client_ip: client.ip_address
     }
   end
