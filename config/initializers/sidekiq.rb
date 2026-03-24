@@ -43,6 +43,12 @@ Sidekiq.configure_server do |config|
           'class' => 'PreallocateSubscriptionsJob',
           'queue' => 'default'
         },
+        # Daily at 4am — clean up expired tokens
+        'cleanup_expired_tokens' => {
+          'cron'  => '0 4 * * *',
+          'class' => 'CleanupExpiredTokensJob',
+          'queue' => 'default'
+        },
         # Daily at 2am — backup database to Wasabi
         'backup_database' => {
           'cron'  => '0 2 * * *',

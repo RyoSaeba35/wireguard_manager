@@ -84,6 +84,7 @@ Rails.application.routes.draw do
     namespace :api do
       # Auth
       post   'login',   to: 'sessions#create'
+      post   'refresh', to: 'sessions#refresh'
       delete 'logout',  to: 'sessions#destroy'
 
       # Device registration

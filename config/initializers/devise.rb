@@ -315,7 +315,8 @@ Devise.setup do |config|
 
   config.jwt do |jwt|
     jwt.secret = ENV['DEVISE_JWT_SECRET_KEY']
-    jwt.dispatch_requests = [['POST', %r{^/api/users/sign_in$}]]
-    jwt.revocation_requests = [['DELETE', %r{^/api/users/sign_out$}]]
+    jwt.dispatch_requests = [['POST', %r{^/api/login$}]]        # ⭐ Changed to match your route
+    jwt.revocation_requests = [['DELETE', %r{^/api/logout$}]]   # ⭐ Changed to match your route
+    jwt.expiration_time = 30.minutes.to_i                       # ⭐ Added expiration time
   end
 end
