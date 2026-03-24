@@ -45,7 +45,7 @@ class Api::SessionsController < ApplicationController
     }, status: :ok
   end
 
-  # POST api/refresh - NEW ACTION
+  # POST api/refresh
   def refresh
     refresh_token = params[:refresh_token]
 
@@ -58,7 +58,7 @@ class Api::SessionsController < ApplicationController
       # Decode refresh token
       decoded = JWT.decode(
         refresh_token,
-        Rails.application.credentials.devise_jwt_secret_key,
+        ENV['DEVISE_JWT_SECRET_KEY'],
         true,
         { algorithm: 'HS256' }
       ).first
@@ -111,7 +111,7 @@ class Api::SessionsController < ApplicationController
       begin
         payload = JWT.decode(
           token,
-          Rails.application.credentials.devise_jwt_secret_key,
+          ENV['DEVISE_JWT_SECRET_KEY'],
           true,
           algorithm: 'HS256'
         ).first
