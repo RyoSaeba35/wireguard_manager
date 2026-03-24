@@ -31,7 +31,7 @@ class User < ApplicationRecord
         exp: exp.to_i,
         type: 'refresh' # Mark as refresh token
       },
-      Rails.application.credentials.devise_jwt_secret_key,
+      ENV['DEVISE_JWT_SECRET_KEY'],
       'HS256'
     )
   end
