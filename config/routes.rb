@@ -90,13 +90,13 @@ Rails.application.routes.draw do
       # Device registration
       post 'devices/register', to: 'devices#register'
 
-      # Session management
-      post 'connect/:device_id',    to: 'devices#connect'
-      post 'disconnect/:device_id', to: 'devices#disconnect'
-      post 'heartbeat/:device_id',  to: 'devices#heartbeat'
+      # Session management (⭐ Added constraints to allow dots in device_id)
+      post 'connect/:device_id',    to: 'devices#connect',    constraints: { device_id: /[^\/]+/ }
+      post 'disconnect/:device_id', to: 'devices#disconnect', constraints: { device_id: /[^\/]+/ }
+      post 'heartbeat/:device_id',  to: 'devices#heartbeat',  constraints: { device_id: /[^\/]+/ }
 
-      # Credentials
-      get 'credentials/:device_id', to: 'devices#credentials'
+      # Credentials (⭐ Added constraint)
+      get 'credentials/:device_id', to: 'devices#credentials', constraints: { device_id: /[^\/]+/ }
 
       # Subscription status
       get 'subscription', to: 'subscriptions#show'
