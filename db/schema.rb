@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_21_083641) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_24_081534) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -92,6 +92,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_21_083641) do
     t.datetime "updated_at", null: false
     t.string "stripe_price_id"
     t.integer "position"
+  end
+
+  create_table "refresh_tokens", force: :cascade do |t|
+    t.string "jti", null: false
+    t.integer "user_id", null: false
+    t.datetime "exp", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exp"], name: "index_refresh_tokens_on_exp"
+    t.index ["jti"], name: "index_refresh_tokens_on_jti", unique: true
+    t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
   end
 
   create_table "servers", force: :cascade do |t|
@@ -206,6 +217,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_21_083641) do
   add_foreign_key "devices", "users"
   add_foreign_key "hysteria2_clients", "devices"
   add_foreign_key "hysteria2_clients", "subscriptions"
+  add_foreign_key "refresh_tokens", "users"
   add_foreign_key "shadowsocks_clients", "devices"
   add_foreign_key "shadowsocks_clients", "subscriptions"
   add_foreign_key "subscriptions", "plans"
