@@ -20,109 +20,109 @@ namespace :wireguard do
     puts "Starting PSK backfill for WireGuard clients..."
     puts "="*60
 
-    # Get first client to test with
-    test_client = WireguardClient.where(preshared_key: nil).first
+    # Group clients by server to reuse SSH connections
+    clients_by_server = WireguardClient.where(preshared_key: nil)
+                                       .includes(:subscription)
+                                       .group_by { |c| c.subscription.server }
 
-    unless test_client
+    if clients_by_server.empty?
       puts "✅ All clients already have PSKs!"
       exit 0
     end
 
-    server = test_client.subscription.server
-    private_key_path = write_private_key(server)
+    # Process each server's clients in one SSH session
+    clients_by_server.each do |server, clients|
+      puts "\n🔧 Processing #{clients.count} clients on #{server.name}..."
+      puts "   Server: #{server.ip_address}"
 
-    puts "Testing SSH connection to #{server.ip_address} as #{server.ssh_user}..."
-
-    begin
-      Net::SSH.start(
-        server.ip_address,
-        server.ssh_user,
-        keys: [private_key_path],
-        verify_host_key: :never,
-        non_interactive: true,
-        timeout: 30,
-        auth_methods: ['publickey']
-      ) do |ssh|
-        result = ssh.exec!("whoami")
-        puts "✅ SSH connection successful! Logged in as: #{result.strip}"
-      end
-    rescue Net::SSH::AuthenticationFailed => e
-      puts "❌ SSH Authentication Failed!"
-      puts "   The private key in the database doesn't match the server's authorized_keys"
-      puts "   Error: #{e.message}"
-      File.delete(private_key_path)
-      exit 1
-    rescue => e
-      puts "❌ SSH Connection Error: #{e.class}"
-      puts "   #{e.message}"
-      File.delete(private_key_path)
-      exit 1
-    end
-
-    File.delete(private_key_path)
-    puts "="*60
-
-    # Now backfill all clients
-    WireguardClient.where(preshared_key: nil).find_each do |client|
-      total += 1
-      server = client.subscription.server
-      private_key_path = nil
+      private_key_path = write_private_key(server)
 
       begin
-        private_key_path = write_private_key(server)
-
-        puts "📡 #{client.name}..."
-
+        # ⭐ Single SSH connection for all clients on this server
         Net::SSH.start(
           server.ip_address,
           server.ssh_user,
           keys: [private_key_path],
           verify_host_key: :never,
           non_interactive: true,
-          auth_methods: ['publickey']
+          auth_methods: ['publickey'],
+          keepalive: true,
+          keepalive_interval: 60
         ) do |ssh|
-          config_path = "/home/#{server.ssh_user}/configs/#{client.name}.conf"
 
-          # Check if file exists
-          file_check = ssh.exec!("test -f #{config_path} && echo 'yes' || echo 'no'").strip
+          puts "   ✅ SSH connected as #{ssh.exec!('whoami').strip}"
+          puts "   " + "-"*56
 
-          if file_check == 'no'
-            puts "   ⚠️  Config file not found"
-            errors += 1
-            next
-          end
+          # Process all clients for this server in this single connection
+          clients.each do |client|
+            total += 1
 
-          # Fetch PSK
-          psk_line = ssh.exec!("grep 'PresharedKey' #{config_path} 2>/dev/null || true").strip
+            begin
+              print "   📡 #{client.name.ljust(20)}"
 
-          if psk_line.empty?
-            puts "   ⚠️  No PresharedKey in config"
-            errors += 1
-            next
-          end
+              config_path = "/home/#{server.ssh_user}/configs/#{client.name}.conf"
 
-          preshared_key = psk_line.split('=').last.strip
+              # Check if file exists
+              file_check = ssh.exec!("test -f #{config_path} && echo 'yes' || echo 'no'").strip
 
-          if preshared_key.length > 20  # Sanity check
-            client.update!(preshared_key: preshared_key)
-            puts "   ✅ #{preshared_key[0..15]}..."
-            updated += 1
-          else
-            puts "   ⚠️  Invalid PSK format"
-            errors += 1
+              if file_check == 'no'
+                puts "⚠️  Config not found"
+                errors += 1
+                next
+              end
+
+              # Fetch PSK
+              psk_line = ssh.exec!("grep 'PresharedKey' #{config_path} 2>/dev/null || true").strip
+
+              if psk_line.empty?
+                puts "⚠️  No PSK in config"
+                errors += 1
+                next
+              end
+
+              preshared_key = psk_line.split('=').last.strip
+
+              if preshared_key.length > 20
+                client.update!(preshared_key: preshared_key)
+                puts "✅ #{preshared_key[0..15]}..."
+                updated += 1
+              else
+                puts "⚠️  Invalid PSK"
+                errors += 1
+              end
+
+            rescue => e
+              puts "❌ #{e.message[0..40]}"
+              errors += 1
+            end
           end
         end
 
+        puts "   " + "-"*56
+        puts "   ✅ Completed #{server.name}\n"
+
+      rescue Net::SSH::AuthenticationFailed => e
+        puts "   ❌ Authentication failed for #{server.name}"
+        puts "      Error: #{e.message}"
+        errors += clients.count
       rescue => e
-        puts "   ❌ #{e.message}"
-        errors += 1
+        puts "   ❌ Connection error for #{server.name}"
+        puts "      #{e.class}: #{e.message}"
+        errors += clients.count
       ensure
-        File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
+        File.delete(private_key_path) if File.exist?(private_key_path)
       end
     end
 
     puts "="*60
-    puts "Total: #{total} | Updated: #{updated} | Errors: #{errors}"
+    puts "📊 Summary:"
+    puts "   Total clients: #{total}"
+    puts "   ✅ Updated: #{updated}"
+    puts "   ❌ Errors: #{errors}"
     puts "="*60
+
+    if errors > 0
+      puts "\n💡 Tip: Re-run this task to retry failed clients"
+    end
   end
 end
