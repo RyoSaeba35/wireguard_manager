@@ -1,8 +1,15 @@
 # app/controllers/api/subscriptions_controller.rb
-class Api::SubscriptionsController < Api::BaseController
-  # GET api/subscription
+class Api::SubscriptionsController < ApplicationController
+  protect_from_forgery with: :null_session
+  before_action :authenticate_user!  # ⭐ Use JWT instead
+
   def show
-    subscription = current_subscription
+    subscription = current_user.subscriptions.last
+
+    unless subscription
+      render json: { error: "No subscription found" }, status: :not_found
+      return
+    end
 
     render json: {
       subscription: {
