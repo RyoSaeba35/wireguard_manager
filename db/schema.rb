@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_24_081534) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_24_110644) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -207,6 +207,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_24_081534) do
     t.string "status", default: "active"
     t.integer "subscription_id", null: false
     t.integer "device_id"
+    t.text "preshared_key"
     t.index ["device_id"], name: "index_wireguard_clients_on_device_id"
     t.index ["subscription_id"], name: "index_wireguard_clients_on_subscription_id"
   end
