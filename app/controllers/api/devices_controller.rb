@@ -197,7 +197,6 @@ class Api::DevicesController < ApplicationController
     {
       server_ip: server.ip_address,
       server_port: server.wireguard_port,
-      server_public_key: server.wireguard_public_key,
       client_private_key: client.private_key,
       client_public_key: client.public_key,
       client_preshared_key: client.preshared_key,

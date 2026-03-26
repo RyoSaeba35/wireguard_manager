@@ -80,7 +80,7 @@ namespace :wireguard do
                 next
               end
 
-              preshared_key = psk_line.split('=').last.strip
+              preshared_key = psk_line.split('=', 2).last
 
               if preshared_key.length > 20
                 client.update!(preshared_key: preshared_key)
