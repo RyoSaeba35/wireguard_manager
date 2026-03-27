@@ -89,6 +89,7 @@ class Api::DevicesController < ApplicationController
   # POST api/heartbeat/:device_id
   def heartbeat
     current_device.update!(
+      active: true,
       last_heartbeat_at: Time.current,
       last_seen_at: Time.current
     )
