@@ -3,27 +3,24 @@ class ClashApiMonitorJob < ApplicationJob
   queue_as :default
 
   CLASH_API_PORT = 9090
-  ACTIVITY_THRESHOLD = 2.minutes  # User must have log activity within 2 minutes
 
   def perform
-    devices_with_real_activity = Set.new
+    devices_with_real_connections = Set.new
 
     Server.where(active: true, singbox_active: true).find_each do |server|
       active_device_ids = monitor_server(server)
-      devices_with_real_activity.merge(active_device_ids)
+      devices_with_real_connections.merge(active_device_ids)
     end
 
-    # Mark devices WITH real activity as active
-    if devices_with_real_activity.any?
-      Device.where(id: devices_with_real_activity).update_all(
+    if devices_with_real_connections.any?
+      Device.where(id: devices_with_real_connections).update_all(
         active: true,
         last_seen_at: Time.current
       )
     end
 
-    # Mark devices WITHOUT real activity as inactive
     currently_active_device_ids = Device.where(active: true).pluck(:id)
-    devices_to_deactivate = currently_active_device_ids - devices_with_real_activity.to_a
+    devices_to_deactivate = currently_active_device_ids - devices_with_real_connections.to_a
 
     if devices_to_deactivate.any?
       free_clients_for_devices(devices_to_deactivate)
@@ -32,50 +29,60 @@ class ClashApiMonitorJob < ApplicationJob
         active: false,
         last_seen_at: Time.current
       )
-      Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices with no real activity"
+      Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices with no real connections"
     end
   end
 
   private
 
   def monitor_server(server)
-    # Get recent logs
-    response = HTTParty.get(
-      "http://#{server.ip_address}:#{CLASH_API_PORT}/logs",
-      headers: { "Authorization" => "Bearer #{server.clash_api_secret}" },
-      timeout: 5
-    )
+    # Step 1: Build username → source_port mapping from recent logs
+    username_to_port = build_username_port_mapping(server)
 
-    return [] unless response.success?
+    Rails.logger.info "📊 Username mapping on #{server.name}: #{username_to_port.inspect}"
 
-    # Parse the streaming log response (each line is a JSON object)
-    log_lines = response.body.split("\n").map do |line|
-      JSON.parse(line) rescue nil
-    end.compact
+    # Step 2: Get active connections
+    connections = get_active_connections(server)
 
-    # Extract usernames from logs
-    active_usernames = extract_active_usernames(log_lines)
-
-    Rails.logger.info "📊 Active users on #{server.name}: #{active_usernames.to_a.join(', ')}"
-
-    # Find devices for these usernames
+    # Step 3: Match connections to usernames using source port
     active_device_ids = Set.new
 
-    active_usernames.each do |username|
-      client = find_client(username)
-      next unless client
+    connections.each do |conn|
+      source_ip = conn.dig("metadata", "sourceIP")
+      source_port = conn.dig("metadata", "sourcePort")
+      protocol_type = extract_protocol_type(conn.dig("metadata", "type"))
 
-      device = client.device
-      next unless device
+      # Find username for this source port
+      username = username_to_port["#{source_ip}:#{source_port}"]
 
-      # Check authorization
-      unless device.subscription&.active?
-        Rails.logger.warn "❌ Unauthorized user still active: #{username}"
-        # Note: We can't kill specific connections via logs, but marking inactive will help
-        next
+      if username
+        Rails.logger.info "✅ Matched connection #{source_ip}:#{source_port} → #{username}"
+
+        # Find device for this username
+        client = find_client(username)
+        next unless client
+
+        device = client.device
+        next unless device
+
+        # Check authorization
+        unless device.subscription&.active?
+          kill_connection(server, conn["id"])
+          Rails.logger.warn "❌ Killed unauthorized: #{username}"
+          next
+        end
+
+        active_device_ids << device.id
+      else
+        # No username found in logs - try to infer from database
+        Rails.logger.warn "⚠️ Connection #{source_ip}:#{source_port} has no username in logs"
+
+        # Fallback: match by IP + protocol type
+        device = match_device_by_ip_and_protocol(source_ip, protocol_type, server)
+        if device && device.subscription&.active?
+          active_device_ids << device.id
+        end
       end
-
-      active_device_ids << device.id
     end
 
     active_device_ids.to_a
@@ -85,29 +92,97 @@ class ClashApiMonitorJob < ApplicationJob
     []
   end
 
-  def extract_active_usernames(log_lines)
-    usernames = Set.new
+  def build_username_port_mapping(server)
+    response = HTTParty.get(
+      "http://#{server.ip_address}:#{CLASH_API_PORT}/logs",
+      headers: { "Authorization" => "Bearer #{server.clash_api_secret}" },
+      timeout: 2,
+      read_timeout: 2
+    )
 
-    log_lines.each do |log|
-      payload = log["payload"]
-      next unless payload
+    return {} unless response.success?
 
-      # Match pattern: [USERNAME] in the log message
-      # Example: "[NAUIZ_2] inbound connection to push.prod.netflix.com:443"
-      match = payload.match(/\[([A-Z0-9_]+)\]/)
-      if match
-        username = match[1]
-        usernames << username
+    mapping = {}
+
+    # Parse log lines (each line is JSON)
+    response.body.split("\n").each do |line|
+      begin
+        log = JSON.parse(line)
+        payload = log["payload"]
+        next unless payload
+
+        # Extract: "inbound connection from 176.143.53.46:65201" and "[NAUIZ_2]"
+        # Pattern: inbound connection from IP:PORT ... [USERNAME]
+        ip_port_match = payload.match(/from\s+([\d\.]+):(\d+)/)
+        username_match = payload.match(/\[([A-Z0-9_]+)\]/)
+
+        if ip_port_match && username_match
+          ip = ip_port_match[1]
+          port = ip_port_match[2]
+          username = username_match[1]
+
+          mapping["#{ip}:#{port}"] = username
+        end
+      rescue JSON::ParserError
+        next
       end
     end
 
-    usernames
+    mapping
+
+  rescue => e
+    Rails.logger.error "Failed to build username mapping: #{e.message}"
+    {}
+  end
+
+  def get_active_connections(server)
+    response = HTTParty.get(
+      "http://#{server.ip_address}:#{CLASH_API_PORT}/connections",
+      headers: { "Authorization" => "Bearer #{server.clash_api_secret}" },
+      timeout: 5
+    )
+
+    return [] unless response.success?
+
+    response.parsed_response["connections"] || []
+  end
+
+  def match_device_by_ip_and_protocol(source_ip, protocol_type, server)
+    # Fallback: if we can't identify from logs, match by IP + protocol
+    Device.where(active: true)
+          .where(last_connection_ip: source_ip)
+          .where(last_protocol_type: protocol_type)
+          .joins(:subscription)
+          .where(subscriptions: { server_id: server.id })
+          .first
+  end
+
+  def extract_protocol_type(type_string)
+    return nil unless type_string
+
+    if type_string.include?("shadowsocks")
+      "shadowsocks"
+    elsif type_string.include?("hysteria2")
+      "hysteria2"
+    else
+      "unknown"
+    end
   end
 
   def find_client(username)
     Hysteria2Client.find_by(name: username) ||
       ShadowsocksClient.find_by(name: username) ||
       WireguardClient.find_by(name: username)
+  end
+
+  def kill_connection(server, connection_id)
+    HTTParty.delete(
+      "http://#{server.ip_address}:#{CLASH_API_PORT}/connections/#{connection_id}",
+      headers: { "Authorization" => "Bearer #{server.clash_api_secret}" },
+      timeout: 5
+    )
+  rescue => e
+    Rails.logger.error "Failed to kill connection: #{e.message}"
   end
 
   def free_clients_for_devices(device_ids)
