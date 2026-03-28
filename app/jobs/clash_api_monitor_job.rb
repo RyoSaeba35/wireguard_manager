@@ -1,4 +1,7 @@
 # app/jobs/clash_api_monitor_job.rb
+
+require 'httparty'
+
 class ClashApiMonitorJob < ApplicationJob
   queue_as :default
 

@@ -71,6 +71,7 @@ gem "rails_12factor", group: :production
 gem 'stripe'
 
 gem 'net-http'
+gem 'httparty'
 
 group :development, :test do
   gem "sqlite3", ">= 1.4" # Only for development/test
