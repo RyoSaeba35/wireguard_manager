@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_24_110644) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_28_104516) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -39,24 +39,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_24_110644) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "devices", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "subscription_id", null: false
-    t.string "device_id", null: false
-    t.string "platform", null: false
-    t.string "name"
-    t.boolean "active", default: false, null: false
-    t.datetime "last_seen_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "api_key"
-    t.datetime "connected_at"
-    t.datetime "last_heartbeat_at"
-    t.index ["api_key"], name: "index_devices_on_api_key", unique: true
-    t.index ["subscription_id"], name: "index_devices_on_subscription_id"
-    t.index ["user_id", "device_id"], name: "index_devices_on_user_id_and_device_id", unique: true
-    t.index ["user_id"], name: "index_devices_on_user_id"
-  end
+# Could not dump table "devices" because of following StandardError
+#   Unknown type 'inet' for column 'last_connection_ip'
+
 
   create_table "hysteria2_clients", force: :cascade do |t|
     t.integer "subscription_id", null: false
