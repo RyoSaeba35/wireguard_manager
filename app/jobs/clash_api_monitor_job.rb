@@ -6,6 +6,7 @@ class ClashApiMonitorJob < ApplicationJob
   queue_as :default
 
   CLASH_API_PORT = 9090
+  CACHE_EXPIRY = 10.minutes
 
   def perform
     devices_with_real_connections = Set.new
@@ -38,17 +39,29 @@ class ClashApiMonitorJob < ApplicationJob
   private
 
   def monitor_server(server)
-    # Step 1: Read streaming logs for 2 seconds to get recent activity
-    username_to_port = read_streaming_logs(server)
+    # Step 1: Get fresh mappings from logs (if any)
+    fresh_mappings = read_streaming_logs(server)
 
-    Rails.logger.info "📊 Found #{username_to_port.size} username mappings on #{server.name}"
+    # Step 2: Get cached mappings
+    cached_mappings = get_cached_mappings(server)
 
-    # Step 2: Get active connections
+    # Step 3: Merge fresh + cached (fresh takes precedence)
+    username_to_port = cached_mappings.merge(fresh_mappings)
+
+    # Step 4: Update cache with fresh mappings
+    if fresh_mappings.any?
+      update_cached_mappings(server, fresh_mappings)
+      Rails.logger.info "📊 Fresh: #{fresh_mappings.size}, Cached: #{cached_mappings.size}, Total: #{username_to_port.size} mappings"
+    else
+      Rails.logger.info "📊 Using cached mappings: #{username_to_port.size} entries"
+    end
+
+    # Step 5: Get active connections
     connections = get_active_connections(server)
 
-    Rails.logger.info "🔌 Found #{connections.size} active connections on #{server.name}"
+    Rails.logger.info "🔌 Found #{connections.size} active connections"
 
-    # Step 3: Match connections to usernames
+    # Step 6: Match connections to usernames
     active_device_ids = Set.new
 
     connections.each do |conn|
@@ -73,15 +86,15 @@ class ClashApiMonitorJob < ApplicationJob
 
         active_device_ids << device.id
       else
-        Rails.logger.warn "⚠️ No username for connection: #{source_ip}:#{source_port}"
+        Rails.logger.warn "⚠️ No username for: #{source_ip}:#{source_port}"
       end
     end
 
-    Rails.logger.info "✅ #{active_device_ids.size} active devices on #{server.name}"
+    Rails.logger.info "✅ #{active_device_ids.size} active devices"
     active_device_ids.to_a
 
   rescue => e
-    Rails.logger.error "Monitor failed for #{server.name}: #{e.message}"
+    Rails.logger.error "Monitor failed: #{e.message}"
     Rails.logger.error e.backtrace.first(3).join("\n")
     []
   end
@@ -92,30 +105,25 @@ class ClashApiMonitorJob < ApplicationJob
     uri = URI("http://#{server.ip_address}:#{CLASH_API_PORT}/logs")
 
     begin
-      Net::HTTP.start(uri.host, uri.port, read_timeout: 5, open_timeout: 5) do |http|  # ⭐ Changed from 2 to 5
+      Net::HTTP.start(uri.host, uri.port, read_timeout: 5, open_timeout: 5) do |http|
         request = Net::HTTP::Get.new(uri)
         request['Authorization'] = "Bearer #{server.clash_api_secret}"
 
         http.request(request) do |response|
           buffer = ""
-          lines_processed = 0
 
-          # Read chunks for up to 5 seconds
           begin
             response.read_body do |chunk|
               buffer << chunk
 
-              # Process complete lines
               while buffer.include?("\n")
                 line, buffer = buffer.split("\n", 2)
-                lines_processed += 1
 
                 begin
                   log = JSON.parse(line)
                   payload = log["payload"]
                   next unless payload
 
-                  # Extract IP:port and username
                   ip_port_match = payload.match(/from\s+([\d\.]+):(\d+)/)
                   username_match = payload.match(/\[([A-Z0-9_]+)\]/)
 
@@ -132,20 +140,38 @@ class ClashApiMonitorJob < ApplicationJob
               end
             end
           rescue Net::ReadTimeout
-            # This is expected - we read for 5 seconds then timeout
-            Rails.logger.info "Logs read complete (timeout after 5s) - processed #{lines_processed} lines, collected #{mapping.size} mappings"
+            # Expected after 5 seconds
           end
         end
       end
-    rescue Net::OpenTimeout, Errno::ECONNREFUSED => e
-      Rails.logger.error "Cannot connect to logs endpoint: #{e.message}"
     rescue => e
       unless e.is_a?(Net::ReadTimeout)
-        Rails.logger.error "Unexpected logs read error: #{e.class} - #{e.message}"
+        Rails.logger.error "Logs read error: #{e.class} - #{e.message}"
       end
     end
 
     mapping
+  end
+
+  def get_cached_mappings(server)
+    cached = Rails.cache.read("username_mappings_#{server.id}") || {}
+
+    # Remove stale entries (older than 10 minutes)
+    now = Time.current
+    cached.select { |_key, data| data[:updated_at] > now - CACHE_EXPIRY }
+          .transform_values { |data| data[:username] }
+  end
+
+  def update_cached_mappings(server, new_mappings)
+    cached = Rails.cache.read("username_mappings_#{server.id}") || {}
+
+    # Add new mappings with timestamp
+    now = Time.current
+    new_mappings.each do |key, username|
+      cached[key] = { username: username, updated_at: now }
+    end
+
+    Rails.cache.write("username_mappings_#{server.id}", cached, expires_in: CACHE_EXPIRY)
   end
 
   def get_active_connections(server)
