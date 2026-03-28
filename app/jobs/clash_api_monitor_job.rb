@@ -92,14 +92,15 @@ class ClashApiMonitorJob < ApplicationJob
     uri = URI("http://#{server.ip_address}:#{CLASH_API_PORT}/logs")
 
     begin
-      Net::HTTP.start(uri.host, uri.port, read_timeout: 2, open_timeout: 5) do |http|
+      Net::HTTP.start(uri.host, uri.port, read_timeout: 5, open_timeout: 5) do |http|  # ⭐ Changed from 2 to 5
         request = Net::HTTP::Get.new(uri)
         request['Authorization'] = "Bearer #{server.clash_api_secret}"
 
         http.request(request) do |response|
           buffer = ""
+          lines_processed = 0
 
-          # Read chunks for up to 2 seconds
+          # Read chunks for up to 5 seconds
           begin
             response.read_body do |chunk|
               buffer << chunk
@@ -107,6 +108,7 @@ class ClashApiMonitorJob < ApplicationJob
               # Process complete lines
               while buffer.include?("\n")
                 line, buffer = buffer.split("\n", 2)
+                lines_processed += 1
 
                 begin
                   log = JSON.parse(line)
@@ -130,22 +132,20 @@ class ClashApiMonitorJob < ApplicationJob
               end
             end
           rescue Net::ReadTimeout
-            # This is expected - we read for 2 seconds then timeout
-            # Don't re-raise - we want to keep the mapping we've built
-            Rails.logger.info "Logs read complete (timeout after 2s) - collected #{mapping.size} mappings"
+            # This is expected - we read for 5 seconds then timeout
+            Rails.logger.info "Logs read complete (timeout after 5s) - processed #{lines_processed} lines, collected #{mapping.size} mappings"
           end
         end
       end
     rescue Net::OpenTimeout, Errno::ECONNREFUSED => e
       Rails.logger.error "Cannot connect to logs endpoint: #{e.message}"
     rescue => e
-      # Only catch OTHER errors, not ReadTimeout
       unless e.is_a?(Net::ReadTimeout)
         Rails.logger.error "Unexpected logs read error: #{e.class} - #{e.message}"
       end
     end
 
-    mapping  # Return the mapping we built, even if we timed out
+    mapping
   end
 
   def get_active_connections(server)
