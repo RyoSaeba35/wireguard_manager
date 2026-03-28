@@ -91,58 +91,61 @@ class ClashApiMonitorJob < ApplicationJob
 
     uri = URI("http://#{server.ip_address}:#{CLASH_API_PORT}/logs")
 
-    Net::HTTP.start(uri.host, uri.port, read_timeout: 2, open_timeout: 5) do |http|
-      request = Net::HTTP::Get.new(uri)
-      request['Authorization'] = "Bearer #{server.clash_api_secret}"
+    begin
+      Net::HTTP.start(uri.host, uri.port, read_timeout: 2, open_timeout: 5) do |http|
+        request = Net::HTTP::Get.new(uri)
+        request['Authorization'] = "Bearer #{server.clash_api_secret}"
 
-      http.request(request) do |response|
-        buffer = ""
+        http.request(request) do |response|
+          buffer = ""
 
-        # Read chunks for up to 2 seconds
-        begin
-          response.read_body do |chunk|
-            buffer << chunk
+          # Read chunks for up to 2 seconds
+          begin
+            response.read_body do |chunk|
+              buffer << chunk
 
-            # Process complete lines
-            while buffer.include?("\n")
-              line, buffer = buffer.split("\n", 2)
+              # Process complete lines
+              while buffer.include?("\n")
+                line, buffer = buffer.split("\n", 2)
 
-              begin
-                log = JSON.parse(line)
-                payload = log["payload"]
-                next unless payload
+                begin
+                  log = JSON.parse(line)
+                  payload = log["payload"]
+                  next unless payload
 
-                # Extract IP:port and username
-                ip_port_match = payload.match(/from\s+([\d\.]+):(\d+)/)
-                username_match = payload.match(/\[([A-Z0-9_]+)\]/)
+                  # Extract IP:port and username
+                  ip_port_match = payload.match(/from\s+([\d\.]+):(\d+)/)
+                  username_match = payload.match(/\[([A-Z0-9_]+)\]/)
 
-                if ip_port_match && username_match
-                  ip = ip_port_match[1]
-                  port = ip_port_match[2]
-                  username = username_match[1]
+                  if ip_port_match && username_match
+                    ip = ip_port_match[1]
+                    port = ip_port_match[2]
+                    username = username_match[1]
 
-                  mapping["#{ip}:#{port}"] = username
+                    mapping["#{ip}:#{port}"] = username
+                  end
+                rescue JSON::ParserError
+                  next
                 end
-              rescue JSON::ParserError
-                next
               end
             end
+          rescue Net::ReadTimeout
+            # This is expected - we read for 2 seconds then timeout
+            # Don't re-raise - we want to keep the mapping we've built
+            Rails.logger.info "Logs read complete (timeout after 2s) - collected #{mapping.size} mappings"
           end
-        rescue Net::ReadTimeout
-          # This is expected - we read for 2 seconds then timeout
-          Rails.logger.info "Logs read complete (timeout after 2s)"
         end
+      end
+    rescue Net::OpenTimeout, Errno::ECONNREFUSED => e
+      Rails.logger.error "Cannot connect to logs endpoint: #{e.message}"
+    rescue => e
+      # Only catch OTHER errors, not ReadTimeout
+      unless e.is_a?(Net::ReadTimeout)
+        Rails.logger.error "Unexpected logs read error: #{e.class} - #{e.message}"
       end
     end
 
-    mapping
-
-  rescue Net::OpenTimeout, Errno::ECONNREFUSED => e
-    Rails.logger.error "Cannot connect to logs endpoint: #{e.message}"
-    {}
-  rescue => e
-    Rails.logger.error "Logs read error: #{e.class} - #{e.message}"
-    {}
+    mapping  # Return the mapping we built, even if we timed out
   end
 
   def get_active_connections(server)
