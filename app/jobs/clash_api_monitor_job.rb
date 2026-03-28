@@ -101,19 +101,42 @@ class ClashApiMonitorJob < ApplicationJob
       Net::SSH.start(server.ip_address, server.ssh_user, keys: [private_key_path], verify_host_key: :never) do |ssh|
         log_content = ssh.exec!("tail -n #{LINES_TO_READ} #{LOG_FILE_PATH}")
 
+        # Group lines by connection ID
+        connections_by_id = {}
+
         log_content.each_line do |line|
-          # Parse format: inbound connection from 176.143.53.46:56082
-          # And: [NAUIZ_1] inbound connection to ip-api.com:80
+          # Extract connection ID: [648946030 9ms]
+          conn_id_match = line.match(/\[(\d+)\s+\d+ms\]/)
+          next unless conn_id_match
 
-          ip_port_match = line.match(/from\s+([\d\.]+):(\d+)/)
-          username_match = line.match(/\[([A-Z0-9_]+)\]/)
+          conn_id = conn_id_match[1]
+          connections_by_id[conn_id] ||= []
+          connections_by_id[conn_id] << line
+        end
 
-          if ip_port_match && username_match
-            ip = ip_port_match[1]
-            port = ip_port_match[2]
-            username = username_match[1]
+        # Now match IP:PORT with USERNAME for same connection ID
+        connections_by_id.each do |conn_id, lines|
+          ip = nil
+          port = nil
+          username = nil
 
+          lines.each do |line|
+            # Look for: inbound connection from 176.143.53.46:60132
+            if ip_port_match = line.match(/from\s+([\d\.]+):(\d+)/)
+              ip = ip_port_match[1]
+              port = ip_port_match[2]
+            end
+
+            # Look for: [NAUIZ_1]
+            if username_match = line.match(/\[([A-Z0-9_]+)\]/)
+              username = username_match[1]
+            end
+          end
+
+          # If we have both IP:PORT and USERNAME for this connection, map them
+          if ip && port && username
             mapping["#{ip}:#{port}"] = username
+            Rails.logger.debug "Mapped #{ip}:#{port} → #{username} (conn_id: #{conn_id})"
           end
         end
       end
