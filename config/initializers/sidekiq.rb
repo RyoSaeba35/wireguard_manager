@@ -14,11 +14,11 @@ Sidekiq.configure_server do |config|
     Sidekiq::Cron::Job.load_from_hash(
       {
         # Every 2 minutes — expire dead VPN sessions
-        'heartbeat_monitor' => {
-          'cron'  => '*/2 * * * *',
-          'class' => 'HeartbeatMonitorJob',
-          'queue' => 'default'
-        },
+        # 'heartbeat_monitor' => {
+        #   'cron'  => '*/2 * * * *',
+        #   'class' => 'HeartbeatMonitorJob',
+        #   'queue' => 'default'
+        # },
         # Every minute — kill unauthorized sing-box connections
         'clash_api_monitor' => {
           'cron'  => '*/30 * * * *',
