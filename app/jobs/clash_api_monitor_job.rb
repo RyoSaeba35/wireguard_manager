@@ -44,30 +44,23 @@ class ClashApiMonitorJob < ApplicationJob
 
   def monitor_server(server)
     username_to_port = read_log_file(server)
-
-    Rails.logger.info "📊 Found #{username_to_port.size} username mappings from logs"
-
     connections = get_active_connections(server)
 
-    Rails.logger.info "🔌 Found #{connections.size} active connections"
-
-    # NEW: Detect password theft BEFORE matching devices
     detect_password_theft(username_to_port, connections, server)
 
-    # Match connections to devices
     active_device_ids = Set.new
 
     connections.each do |conn|
       source_ip = conn.dig("metadata", "sourceIP")
       source_port = conn.dig("metadata", "sourcePort")
-
       username = username_to_port["#{source_ip}:#{source_port}"]
 
       if username
-        # Skip locked clients
         client = find_client(username)
-        if client&.locked_at
-          Rails.logger.warn "⚠️ Skipping locked client: #{username}"
+
+        # NEW: Kill orphan connections (explicitly disconnected)
+        if client && client.device_id.nil?
+          Rails.logger.warn "🧹 Killing orphan connection: #{username} (user disconnected but connection alive)"
           kill_connection(server, conn["id"])
           next
         end
@@ -89,13 +82,28 @@ class ClashApiMonitorJob < ApplicationJob
       end
     end
 
-    Rails.logger.info "✅ #{active_device_ids.size} active devices"
-    active_device_ids.to_a
+    # Mark devices with real connections as active
+    if active_device_ids.any?
+      Device.where(id: active_device_ids).update_all(
+        active: true,
+        last_seen_at: Time.current
+      )
+    end
 
-  rescue => e
-    Rails.logger.error "Monitor failed for #{server.name}: #{e.message}"
-    Rails.logger.error e.backtrace.first(3).join("\n")
-    []
+    # Deactivate devices claiming to be active but with no connection
+    currently_active_device_ids = Device.where(active: true).pluck(:id)
+    devices_to_deactivate = currently_active_device_ids - active_device_ids.to_a
+
+    if devices_to_deactivate.any?
+      free_clients_for_devices(devices_to_deactivate)
+      Device.where(id: devices_to_deactivate).update_all(
+        active: false,
+        last_seen_at: Time.current
+      )
+      Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices"
+    end
+
+    active_device_ids.to_a
   end
 
   def detect_password_theft(username_to_port, connections, server)
