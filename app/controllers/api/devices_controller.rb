@@ -41,13 +41,15 @@ class Api::DevicesController < ApplicationController
 
   # POST api/connect/:device_id
   # Checks 3-active-session limit, assigns clients, marks device active
+# app/controllers/api/devices_controller.rb
+
   def connect
     subscription = current_subscription
 
     active_count = subscription.devices
-                               .where(active: true)
-                               .where.not(id: current_device.id)
-                               .count
+                              .where(active: true)
+                              .where.not(id: current_device.id)
+                              .count
 
     if active_count >= MAX_DEVICES
       render json: {
@@ -57,17 +59,31 @@ class Api::DevicesController < ApplicationController
       return
     end
 
+    # Build credentials first to determine protocol
+    credentials = build_credentials(current_device, assign: true)
+
+    # Determine which protocol was assigned
+    protocol_type = if credentials[:hysteria2]
+      "hysteria2"
+    elsif credentials[:shadowsocks]
+      "shadowsocks"
+    elsif credentials[:wireguard]
+      "wireguard"
+    else
+      "unknown"
+    end
+
     current_device.update!(
       active: true,
       connected_at: Time.current,
-      last_heartbeat_at: Time.current,
-      last_seen_at: Time.current
+      last_seen_at: Time.current,
+      last_connection_ip: request.remote_ip,      # ⭐ NEW
+      last_protocol_type: protocol_type            # ⭐ NEW
     )
 
-    # assign: true — assigns clients to this device if not already assigned
     render json: {
       message: "Connected successfully",
-      credentials: build_credentials(current_device, assign: true)
+      credentials: credentials
     }, status: :ok
   end
 
