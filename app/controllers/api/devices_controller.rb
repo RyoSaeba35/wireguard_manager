@@ -41,15 +41,14 @@ class Api::DevicesController < ApplicationController
 
   # POST api/connect/:device_id
   # Checks 3-active-session limit, assigns clients, marks device active
-# app/controllers/api/devices_controller.rb
 
   def connect
     subscription = current_subscription
 
     active_count = subscription.devices
-                              .where(active: true)
-                              .where.not(id: current_device.id)
-                              .count
+                                .where(active: true)
+                                .where.not(id: current_device.id)
+                                .count
 
     if active_count >= MAX_DEVICES
       render json: {
@@ -59,26 +58,18 @@ class Api::DevicesController < ApplicationController
       return
     end
 
-    # Build credentials first to determine protocol
+    # Build credentials (assigns clients)
     credentials = build_credentials(current_device, assign: true)
 
-    # Determine which protocol was assigned
-    protocol_type = if credentials[:hysteria2]
-      "hysteria2"
-    elsif credentials[:shadowsocks]
-      "shadowsocks"
-    elsif credentials[:wireguard]
-      "wireguard"
-    else
-      "unknown"
-    end
+    # Determine which protocol was ACTUALLY assigned by checking which client got assigned
+    protocol_type = determine_assigned_protocol(current_device, subscription)
 
     current_device.update!(
       active: true,
       connected_at: Time.current,
       last_seen_at: Time.current,
-      last_connection_ip: request.remote_ip,      # ⭐ NEW
-      last_protocol_type: protocol_type            # ⭐ NEW
+      last_connection_ip: request.remote_ip,
+      last_protocol_type: protocol_type
     )
 
     render json: {
@@ -86,6 +77,21 @@ class Api::DevicesController < ApplicationController
       credentials: credentials
     }, status: :ok
   end
+
+private
+
+def determine_assigned_protocol(device, subscription)
+  # Check which client is actually assigned to this device
+  if subscription.hysteria2_clients.exists?(device_id: device.id)
+    "hysteria2"
+  elsif subscription.shadowsocks_clients.exists?(device_id: device.id)
+    "shadowsocks"
+  elsif subscription.wireguard_clients.exists?(device_id: device.id)
+    "wireguard"
+  else
+    "unknown"
+  end
+end
 
   # POST api/disconnect/:device_id
   def disconnect
