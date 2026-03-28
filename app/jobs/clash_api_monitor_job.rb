@@ -44,23 +44,44 @@ class ClashApiMonitorJob < ApplicationJob
 
   def monitor_server(server)
     username_to_port = read_log_file(server)
+
+    Rails.logger.info "📊 Found #{username_to_port.size} username mappings from logs"
+
     connections = get_active_connections(server)
+
+    Rails.logger.info "🔌 Found #{connections.size} active connections"
 
     detect_password_theft(username_to_port, connections, server)
 
     active_device_ids = Set.new
+    matched_connections = Set.new  # NEW: Track unique IP:port combinations
 
     connections.each do |conn|
       source_ip = conn.dig("metadata", "sourceIP")
       source_port = conn.dig("metadata", "sourcePort")
-      username = username_to_port["#{source_ip}:#{source_port}"]
+      source_key = "#{source_ip}:#{source_port}"  # NEW: Unique key
+
+      username = username_to_port[source_key]
 
       if username
+        # NEW: Skip if we already processed this IP:port
+        if matched_connections.include?(source_key)
+          next
+        end
+        matched_connections.add(source_key)  # NEW: Mark as processed
+
         client = find_client(username)
 
-        # NEW: Kill orphan connections (explicitly disconnected)
+        # Kill orphan connections (explicitly disconnected)
         if client && client.device_id.nil?
-          Rails.logger.warn "🧹 Killing orphan connection: #{username} (user disconnected but connection alive)"
+          Rails.logger.warn "🧹 Killing orphan connection: #{username} (user disconnected)"
+          kill_connection(server, conn["id"])
+          next
+        end
+
+        # Skip locked clients
+        if client&.locked_at
+          Rails.logger.warn "⚠️ Skipping locked client: #{username}"
           kill_connection(server, conn["id"])
           next
         end
@@ -75,12 +96,18 @@ class ClashApiMonitorJob < ApplicationJob
           next
         end
 
-        Rails.logger.info "✅ Matched: #{source_ip}:#{source_port} → #{username}"
+        Rails.logger.info "✅ Matched: #{source_key} → #{username}"  # Now logs once per unique connection
         active_device_ids << device.id
       else
-        Rails.logger.warn "⚠️ No username for: #{source_ip}:#{source_port}"
+        # Also deduplicate "No username" warnings
+        unless matched_connections.include?(source_key)
+          Rails.logger.warn "⚠️ No username for: #{source_key}"
+          matched_connections.add(source_key)
+        end
       end
     end
+
+    Rails.logger.info "✅ #{active_device_ids.size} active devices"
 
     # Mark devices with real connections as active
     if active_device_ids.any?
