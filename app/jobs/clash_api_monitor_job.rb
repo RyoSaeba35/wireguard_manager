@@ -6,7 +6,8 @@ class ClashApiMonitorJob < ApplicationJob
   queue_as :default
 
   CLASH_API_PORT = 9090
-  CACHE_EXPIRY = 10.minutes
+  LOG_FILE_PATH = "/var/log/sing-box/connections.log"
+  LINES_TO_READ = 5000  # Read last 5000 lines (covers ~5-10 minutes of activity)
 
   def perform
     devices_with_real_connections = Set.new
@@ -39,29 +40,17 @@ class ClashApiMonitorJob < ApplicationJob
   private
 
   def monitor_server(server)
-    # Step 1: Get fresh mappings from logs (if any)
-    fresh_mappings = read_streaming_logs(server)
+    # Read recent log entries from file (FAST - no waiting!)
+    username_to_port = read_log_file(server)
 
-    # Step 2: Get cached mappings
-    cached_mappings = get_cached_mappings(server)
+    Rails.logger.info "📊 Found #{username_to_port.size} username mappings from log file"
 
-    # Step 3: Merge fresh + cached (fresh takes precedence)
-    username_to_port = cached_mappings.merge(fresh_mappings)
-
-    # Step 4: Update cache with fresh mappings
-    if fresh_mappings.any?
-      update_cached_mappings(server, fresh_mappings)
-      Rails.logger.info "📊 Fresh: #{fresh_mappings.size}, Cached: #{cached_mappings.size}, Total: #{username_to_port.size} mappings"
-    else
-      Rails.logger.info "📊 Using cached mappings: #{username_to_port.size} entries"
-    end
-
-    # Step 5: Get active connections
+    # Get active connections
     connections = get_active_connections(server)
 
     Rails.logger.info "🔌 Found #{connections.size} active connections"
 
-    # Step 6: Match connections to usernames
+    # Match connections to usernames
     active_device_ids = Set.new
 
     connections.each do |conn|
@@ -99,79 +88,53 @@ class ClashApiMonitorJob < ApplicationJob
     []
   end
 
-  def read_streaming_logs(server)
+  def read_log_file(server)
     mapping = {}
 
-    uri = URI("http://#{server.ip_address}:#{CLASH_API_PORT}/logs")
+    # Use SSH to read last N lines from remote log file
+    # Or if Rails is on same server: just read directly
+    log_content = ssh_read_log_tail(server)
 
-    begin
-      Net::HTTP.start(uri.host, uri.port, read_timeout: 5, open_timeout: 5) do |http|
-        request = Net::HTTP::Get.new(uri)
-        request['Authorization'] = "Bearer #{server.clash_api_secret}"
+    log_content.each_line do |line|
+      # Parse log format (adjust based on your actual format)
+      # Example: [2026-03-28 14:30:45] [info] inbound/hysteria2[hysteria2-in]: inbound connection from 176.143.53.46:54657
+      # Example: [2026-03-28 14:30:45] [info] inbound/hysteria2[hysteria2-in]: [NAUIZ_1] inbound connection to www.google.com:443
 
-        http.request(request) do |response|
-          buffer = ""
+      ip_port_match = line.match(/from\s+([\d\.]+):(\d+)/)
+      username_match = line.match(/\[([A-Z0-9_]+)\]/)
 
-          begin
-            response.read_body do |chunk|
-              buffer << chunk
+      if ip_port_match && username_match
+        ip = ip_port_match[1]
+        port = ip_port_match[2]
+        username = username_match[1]
 
-              while buffer.include?("\n")
-                line, buffer = buffer.split("\n", 2)
-
-                begin
-                  log = JSON.parse(line)
-                  payload = log["payload"]
-                  next unless payload
-
-                  ip_port_match = payload.match(/from\s+([\d\.]+):(\d+)/)
-                  username_match = payload.match(/\[([A-Z0-9_]+)\]/)
-
-                  if ip_port_match && username_match
-                    ip = ip_port_match[1]
-                    port = ip_port_match[2]
-                    username = username_match[1]
-
-                    mapping["#{ip}:#{port}"] = username
-                  end
-                rescue JSON::ParserError
-                  next
-                end
-              end
-            end
-          rescue Net::ReadTimeout
-            # Expected after 5 seconds
-          end
-        end
-      end
-    rescue => e
-      unless e.is_a?(Net::ReadTimeout)
-        Rails.logger.error "Logs read error: #{e.class} - #{e.message}"
+        mapping["#{ip}:#{port}"] = username
       end
     end
 
     mapping
+  rescue => e
+    Rails.logger.error "Failed to read log file: #{e.message}"
+    {}
   end
 
-  def get_cached_mappings(server)
-    cached = Rails.cache.read("username_mappings_#{server.id}") || {}
+  def ssh_read_log_tail(server)
+    # Option 1: If Rails runs ON the sing-box server (same machine)
+    if server.ip_address == "127.0.0.1" || server.ip_address == "localhost"
+      `tail -n #{LINES_TO_READ} #{LOG_FILE_PATH} 2>/dev/null` || ""
+    else
+      # Option 2: If Rails is remote, use SSH
+      require 'net/ssh'
 
-    # Remove stale entries (older than 10 minutes)
-    now = Time.current
-    cached.select { |_key, data| data[:updated_at] > now - CACHE_EXPIRY }
-          .transform_values { |data| data[:username] }
-  end
-
-  def update_cached_mappings(server, new_mappings)
-    cached = Rails.cache.read("username_mappings_#{server.id}") || {}
-
-    # Add new mappings with timestamp
-    now = Time.current
-    new_mappings.each do |key, username|
-      cached[key] = { username: username, updated_at: now }
+      log_content = ""
+      Net::SSH.start(server.ip_address, 'root', keys: ['/path/to/ssh/key']) do |ssh|
+        log_content = ssh.exec!("tail -n #{LINES_TO_READ} #{LOG_FILE_PATH}")
+      end
+      log_content
     end
-
-    Rails.cache.write("username_mappings_#{server.id}", cached, expires_in: CACHE_EXPIRY)
+  rescue => e
+    Rails.logger.error "SSH read failed: #{e.message}"
+    ""
   end
 
   def get_active_connections(server)
@@ -215,7 +178,7 @@ class ClashApiMonitorJob < ApplicationJob
   def free_clients_for_devices(device_ids)
     return if device_ids.empty?
 
-    Hysteria2Client.where(device_id: device_ids).update_all(device_id: nil)
+    Hystparty2Client.where(device_id: device_ids).update_all(device_id: nil)
     ShadowsocksClient.where(device_id: device_ids).update_all(device_id: nil)
     WireguardClient.where(device_id: device_ids).update_all(device_id: nil)
 
