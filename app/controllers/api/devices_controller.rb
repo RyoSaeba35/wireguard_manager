@@ -86,16 +86,16 @@ class Api::DevicesController < ApplicationController
     render json: { message: "Disconnected successfully" }, status: :ok
   end
 
-  # POST api/heartbeat/:device_id
-  def heartbeat
-    current_device.update!(
-      active: true,
-      last_heartbeat_at: Time.current,
-      last_seen_at: Time.current
-    )
+  # # POST api/heartbeat/:device_id
+  # def heartbeat
+  #   current_device.update!(
+  #     active: true,
+  #     last_heartbeat_at: Time.current,
+  #     last_seen_at: Time.current
+  #   )
 
-    render json: { message: "OK" }, status: :ok
-  end
+  #   render json: { message: "OK" }, status: :ok
+  # end
 
   # GET api/credentials/:device_id
   # Returns already-assigned credentials only — never assigns
