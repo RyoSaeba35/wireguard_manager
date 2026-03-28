@@ -1,5 +1,4 @@
 # app/jobs/clash_api_monitor_job.rb
-
 require 'httparty'
 
 class ClashApiMonitorJob < ApplicationJob
@@ -39,15 +38,21 @@ class ClashApiMonitorJob < ApplicationJob
   private
 
   def monitor_server(server)
-    # Step 1: Build username → source_port mapping from recent logs
+    # Step 1: Build username → source_port mapping from recent logs (OPTIONAL)
     username_to_port = build_username_port_mapping(server)
 
-    Rails.logger.info "📊 Username mapping on #{server.name}: #{username_to_port.inspect}"
+    if username_to_port.any?
+      Rails.logger.info "📊 Username mapping on #{server.name}: #{username_to_port.size} entries"
+    else
+      Rails.logger.info "📊 No username mapping available for #{server.name}, using fallback"
+    end
 
     # Step 2: Get active connections
     connections = get_active_connections(server)
 
-    # Step 3: Match connections to usernames using source port
+    Rails.logger.info "🔌 Found #{connections.size} active connections on #{server.name}"
+
+    # Step 3: Match connections to devices
     active_device_ids = Set.new
 
     connections.each do |conn|
@@ -55,43 +60,46 @@ class ClashApiMonitorJob < ApplicationJob
       source_port = conn.dig("metadata", "sourcePort")
       protocol_type = extract_protocol_type(conn.dig("metadata", "type"))
 
-      # Find username for this source port
+      # Try to find username from logs first
       username = username_to_port["#{source_ip}:#{source_port}"]
 
       if username
         Rails.logger.info "✅ Matched connection #{source_ip}:#{source_port} → #{username}"
 
-        # Find device for this username
         client = find_client(username)
-        next unless client
+        if client && client.device
+          device = client.device
 
-        device = client.device
-        next unless device
-
-        # Check authorization
-        unless device.subscription&.active?
-          kill_connection(server, conn["id"])
-          Rails.logger.warn "❌ Killed unauthorized: #{username}"
-          next
+          if device.subscription&.active?
+            active_device_ids << device.id
+          else
+            kill_connection(server, conn["id"])
+            Rails.logger.warn "❌ Killed unauthorized: #{username}"
+          end
         end
-
-        active_device_ids << device.id
       else
-        # No username found in logs - try to infer from database
-        Rails.logger.warn "⚠️ Connection #{source_ip}:#{source_port} has no username in logs"
-
         # Fallback: match by IP + protocol type
         device = match_device_by_ip_and_protocol(source_ip, protocol_type, server)
-        if device && device.subscription&.active?
-          active_device_ids << device.id
+        if device
+          if device.subscription&.active?
+            active_device_ids << device.id
+            Rails.logger.info "✅ Matched by fallback: #{source_ip}:#{source_port} → Device #{device.id}"
+          else
+            kill_connection(server, conn["id"])
+            Rails.logger.warn "❌ Killed unauthorized device #{device.id}"
+          end
+        else
+          Rails.logger.warn "⚠️ Unmatched connection: #{source_ip}:#{source_port} (#{protocol_type})"
         end
       end
     end
 
+    Rails.logger.info "✅ #{active_device_ids.size} active devices on #{server.name}"
     active_device_ids.to_a
 
   rescue => e
     Rails.logger.error "ClashApiMonitorJob failed for #{server.name}: #{e.message}"
+    Rails.logger.error e.backtrace.first(5).join("\n")
     []
   end
 
@@ -99,23 +107,20 @@ class ClashApiMonitorJob < ApplicationJob
     response = HTTParty.get(
       "http://#{server.ip_address}:#{CLASH_API_PORT}/logs",
       headers: { "Authorization" => "Bearer #{server.clash_api_secret}" },
-      timeout: 2,
-      read_timeout: 2
+      timeout: 3,
+      read_timeout: 3
     )
 
     return {} unless response.success?
 
     mapping = {}
 
-    # Parse log lines (each line is JSON)
     response.body.split("\n").each do |line|
       begin
         log = JSON.parse(line)
         payload = log["payload"]
         next unless payload
 
-        # Extract: "inbound connection from 176.143.53.46:65201" and "[NAUIZ_2]"
-        # Pattern: inbound connection from IP:PORT ... [USERNAME]
         ip_port_match = payload.match(/from\s+([\d\.]+):(\d+)/)
         username_match = payload.match(/\[([A-Z0-9_]+)\]/)
 
@@ -133,8 +138,11 @@ class ClashApiMonitorJob < ApplicationJob
 
     mapping
 
+  rescue Net::ReadTimeout, Net::OpenTimeout => e
+    Rails.logger.warn "Logs endpoint timeout (expected for streaming endpoint): #{e.message}"
+    {}
   rescue => e
-    Rails.logger.error "Failed to build username mapping: #{e.message}"
+    Rails.logger.error "Failed to build username mapping: #{e.class} - #{e.message}"
     {}
   end
 
@@ -142,16 +150,18 @@ class ClashApiMonitorJob < ApplicationJob
     response = HTTParty.get(
       "http://#{server.ip_address}:#{CLASH_API_PORT}/connections",
       headers: { "Authorization" => "Bearer #{server.clash_api_secret}" },
-      timeout: 5
+      timeout: 10
     )
 
     return [] unless response.success?
 
     response.parsed_response["connections"] || []
+  rescue => e
+    Rails.logger.error "Failed to get connections: #{e.class} - #{e.message}"
+    []
   end
 
   def match_device_by_ip_and_protocol(source_ip, protocol_type, server)
-    # Fallback: if we can't identify from logs, match by IP + protocol
     Device.where(active: true)
           .where(last_connection_ip: source_ip)
           .where(last_protocol_type: protocol_type)
