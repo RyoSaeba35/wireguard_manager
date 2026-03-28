@@ -4,7 +4,7 @@ require 'net/ssh'
 require 'json'
 
 class ClashApiMonitorJob < ApplicationJob
-  include SshKeyManager  # ⭐ Reuse existing SSH infrastructure
+  include SshKeyManager
 
   queue_as :default
 
@@ -43,17 +43,18 @@ class ClashApiMonitorJob < ApplicationJob
   private
 
   def monitor_server(server)
-    # Read recent log entries from file
     username_to_port = read_log_file(server)
 
     Rails.logger.info "📊 Found #{username_to_port.size} username mappings from logs"
 
-    # Get active connections
     connections = get_active_connections(server)
 
     Rails.logger.info "🔌 Found #{connections.size} active connections"
 
-    # Match connections to usernames
+    # NEW: Detect password theft BEFORE matching devices
+    detect_password_theft(username_to_port, connections, server)
+
+    # Match connections to devices
     active_device_ids = Set.new
 
     connections.each do |conn|
@@ -63,9 +64,14 @@ class ClashApiMonitorJob < ApplicationJob
       username = username_to_port["#{source_ip}:#{source_port}"]
 
       if username
-        Rails.logger.info "✅ Matched: #{source_ip}:#{source_port} → #{username}"
-
+        # Skip locked clients
         client = find_client(username)
+        if client&.locked_at
+          Rails.logger.warn "⚠️ Skipping locked client: #{username}"
+          kill_connection(server, conn["id"])
+          next
+        end
+
         next unless client&.device
 
         device = client.device
@@ -76,6 +82,7 @@ class ClashApiMonitorJob < ApplicationJob
           next
         end
 
+        Rails.logger.info "✅ Matched: #{source_ip}:#{source_port} → #{username}"
         active_device_ids << device.id
       else
         Rails.logger.warn "⚠️ No username for: #{source_ip}:#{source_port}"
@@ -89,6 +96,106 @@ class ClashApiMonitorJob < ApplicationJob
     Rails.logger.error "Monitor failed for #{server.name}: #{e.message}"
     Rails.logger.error e.backtrace.first(3).join("\n")
     []
+  end
+
+  def detect_password_theft(username_to_port, connections, server)
+    connections_by_username = {}
+
+    connections.each do |conn|
+      source_ip = conn.dig("metadata", "sourceIP")
+      source_port = conn.dig("metadata", "sourcePort")
+      username = username_to_port["#{source_ip}:#{source_port}"]
+
+      next unless username
+
+      connections_by_username[username] ||= []
+      connections_by_username[username] << {
+        ip: source_ip,
+        port: source_port,
+        connection_id: conn["id"]
+      }
+    end
+
+    connections_by_username.each do |username, conns|
+      unique_ips = conns.map { |c| c[:ip] }.uniq
+
+      # Skip if only 1 IP (normal case)
+      next if unique_ips.size == 1
+
+      Rails.logger.info "🔍 Checking #{username}: #{unique_ips.size} different IPs"
+
+      # Get geolocation for each IP
+      geolocations = unique_ips.map do |ip|
+        geo = get_geolocation(ip)
+        { ip: ip, geo: geo }
+      end
+
+      countries = geolocations.map { |g| g[:geo][:country] }.uniq.compact
+
+      if countries.size > 1
+        # CRITICAL: Password used in multiple countries simultaneously!
+        Rails.logger.error "🚨 CRITICAL PASSWORD THEFT: #{username} used in #{countries.join(' + ')} simultaneously!"
+        Rails.logger.error "   IPs: #{geolocations.map { |g| "#{g[:ip]} (#{g[:geo][:country]}, #{g[:geo][:city]})" }.join(' | ')}"
+
+        # Kill all connections for this username
+        conns.each do |c|
+          kill_connection_by_connection_id(server, c[:connection_id])
+        end
+
+        # Lock the client
+        client = find_client(username)
+        if client
+          client.update!(
+            locked_at: Time.current,
+            locked_reason: "Password used from #{countries.join(', ')} simultaneously at #{Time.current.strftime('%Y-%m-%d %H:%M UTC')}"
+          )
+
+          # Send critical alert
+          AdminMailer.password_theft_alert(
+            username: username,
+            geolocations: geolocations,
+            client: client
+          ).deliver_now
+
+          Rails.logger.error "🔒 Locked client #{username}"
+        end
+      else
+        # Same country, different IPs - probably legitimate (WiFi switching)
+        Rails.logger.info "ℹ️ #{username} using #{unique_ips.size} IPs in #{countries.first || 'Unknown'} (likely network switching)"
+      end
+    end
+  rescue => e
+    Rails.logger.error "Password theft detection failed: #{e.message}"
+  end
+
+  def get_geolocation(ip)
+    # Skip private/local IPs
+    return { country: 'Local', city: 'Private Network' } if ip.start_with?('192.168.', '10.', '172.16.', '127.')
+
+    # Check cache first (avoid API rate limits)
+    cache_key = "geolocation:#{ip}"
+    cached = Rails.cache.read(cache_key)
+    return cached if cached
+
+    # Use ipapi.co (free tier: 1000 requests/day)
+    response = HTTParty.get("https://ipapi.co/#{ip}/json/", timeout: 3)
+
+    geo = if response.success? && response['country']
+      {
+        country: response['country_name'] || 'Unknown',
+        city: response['city'] || 'Unknown',
+        country_code: response['country'] || 'XX'
+      }
+    else
+      { country: 'Unknown', city: 'Unknown', country_code: 'XX' }
+    end
+
+    # Cache for 24 hours
+    Rails.cache.write(cache_key, geo, expires_in: 24.hours)
+    geo
+  rescue => e
+    Rails.logger.warn "Geolocation failed for #{ip}: #{e.message}"
+    { country: 'Unknown', city: 'Unknown', country_code: 'XX' }
   end
 
   def read_log_file(server)
@@ -105,7 +212,6 @@ class ClashApiMonitorJob < ApplicationJob
         connections_by_id = {}
 
         log_content.each_line do |line|
-          # Extract connection ID: [648946030 9ms]
           conn_id_match = line.match(/\[(\d+)\s+\d+ms\]/)
           next unless conn_id_match
 
@@ -114,29 +220,25 @@ class ClashApiMonitorJob < ApplicationJob
           connections_by_id[conn_id] << line
         end
 
-        # Now match IP:PORT with USERNAME for same connection ID
+        # Match IP:PORT with USERNAME for same connection ID
         connections_by_id.each do |conn_id, lines|
           ip = nil
           port = nil
           username = nil
 
           lines.each do |line|
-            # Look for: inbound connection from 176.143.53.46:60132
             if ip_port_match = line.match(/from\s+([\d\.]+):(\d+)/)
               ip = ip_port_match[1]
               port = ip_port_match[2]
             end
 
-            # Look for: [NAUIZ_1]
             if username_match = line.match(/\[([A-Z0-9_]+)\]/)
               username = username_match[1]
             end
           end
 
-          # If we have both IP:PORT and USERNAME for this connection, map them
           if ip && port && username
             mapping["#{ip}:#{port}"] = username
-            Rails.logger.debug "Mapped #{ip}:#{port} → #{username} (conn_id: #{conn_id})"
           end
         end
       end
@@ -186,6 +288,8 @@ class ClashApiMonitorJob < ApplicationJob
   rescue => e
     Rails.logger.error "Failed to kill connection: #{e.message}"
   end
+
+  alias_method :kill_connection_by_connection_id, :kill_connection
 
   def free_clients_for_devices(device_ids)
     return if device_ids.empty?
