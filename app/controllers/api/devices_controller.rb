@@ -58,23 +58,16 @@ class Api::DevicesController < ApplicationController
       return
     end
 
-    # Build credentials (assigns clients)
-    credentials = build_credentials(current_device, assign: true)
-
-    # Determine which protocol was ACTUALLY assigned by checking which client got assigned
-    protocol_type = determine_assigned_protocol(current_device, subscription)
-
     current_device.update!(
       active: true,
       connected_at: Time.current,
       last_seen_at: Time.current,
-      last_connection_ip: request.remote_ip,
-      last_protocol_type: protocol_type
+      last_connection_ip: request.remote_ip
     )
 
     render json: {
       message: "Connected successfully",
-      credentials: credentials
+      credentials: build_credentials(current_device, assign: true)
     }, status: :ok
   end
 
