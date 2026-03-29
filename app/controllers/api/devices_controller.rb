@@ -41,7 +41,6 @@ class Api::DevicesController < ApplicationController
 
   # POST api/connect/:device_id
   # Checks 3-active-session limit, assigns clients, marks device active
-
   def connect
     subscription = current_subscription
 
@@ -71,21 +70,6 @@ class Api::DevicesController < ApplicationController
     }, status: :ok
   end
 
-private
-
-def determine_assigned_protocol(device, subscription)
-  # Check which client is actually assigned to this device
-  if subscription.hysteria2_clients.exists?(device_id: device.id)
-    "hysteria2"
-  elsif subscription.shadowsocks_clients.exists?(device_id: device.id)
-    "shadowsocks"
-  elsif subscription.wireguard_clients.exists?(device_id: device.id)
-    "wireguard"
-  else
-    "unknown"
-  end
-end
-
   # POST api/disconnect/:device_id
   def disconnect
     device = current_device
@@ -100,17 +84,6 @@ end
 
     render json: { message: "Disconnected successfully" }, status: :ok
   end
-
-  # # POST api/heartbeat/:device_id
-  # def heartbeat
-  #   current_device.update!(
-  #     active: true,
-  #     last_heartbeat_at: Time.current,
-  #     last_seen_at: Time.current
-  #   )
-
-  #   render json: { message: "OK" }, status: :ok
-  # end
 
   # GET api/credentials/:device_id
   # Returns already-assigned credentials only — never assigns
@@ -168,9 +141,19 @@ end
       return
     end
 
+    # NEW: Auto-link to active subscription if current one is expired/inactive
     unless @current_device.subscription.active?
-      render json: { error: "Subscription is not active" }, status: :forbidden
-      return
+      active_subscription = @current_device.user.subscriptions.active.first
+
+      if active_subscription
+        Rails.logger.info "🔄 Auto-linking device #{@current_device.device_id} from subscription #{@current_device.subscription_id} (#{@current_device.subscription.status}) to active subscription #{active_subscription.id}"
+        @current_device.update!(subscription: active_subscription, active: false)
+      else
+        render json: {
+          error: "No active subscription found. Please purchase or renew your subscription."
+        }, status: :forbidden
+        return
+      end
     end
   end
 
@@ -180,6 +163,19 @@ end
 
   def current_subscription
     @current_device.subscription
+  end
+
+  def determine_assigned_protocol(device, subscription)
+    # Check which client is actually assigned to this device
+    if subscription.hysteria2_clients.exists?(device_id: device.id)
+      "hysteria2"
+    elsif subscription.shadowsocks_clients.exists?(device_id: device.id)
+      "shadowsocks"
+    elsif subscription.wireguard_clients.exists?(device_id: device.id)
+      "wireguard"
+    else
+      "unknown"
+    end
   end
 
   def build_credentials(device, assign:)
