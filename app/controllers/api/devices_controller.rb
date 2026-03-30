@@ -17,10 +17,19 @@ class Api::DevicesController < ApplicationController
       return
     end
 
-    # Find or create — unlimited registered devices per subscription
-    device = subscription.devices.find_or_initialize_by(
-      device_id: params[:device_id]
-    )
+    # ✅ NEW: Look for device ANYWHERE first (not scoped to subscription)
+    device = Device.find_by(device_id: params[:device_id])
+
+    if device
+      # Device exists - link it to the active subscription if needed
+      if device.subscription_id != subscription.id
+        Rails.logger.info "🔄 Auto-linking existing device #{device.device_id} from subscription #{device.subscription_id} to active subscription #{subscription.id}"
+        device.update!(subscription: subscription, active: false)
+      end
+    else
+      # Device doesn't exist - create new one
+      device = subscription.devices.new(device_id: params[:device_id])
+    end
 
     device.assign_attributes(
       user: @current_api_user,
