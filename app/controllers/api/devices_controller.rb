@@ -20,7 +20,7 @@ class Api::DevicesController < ApplicationController
         error: "No subscription found",
         message: "You need to purchase a subscription first.",
         action_required: "subscribe",
-        renewal_url: "https://vulcainvpn.com/pricing"
+        renewal_url: "https://www.vulcainvpn.com/dashboard/"
       }, status: :forbidden
       return
     end
@@ -223,7 +223,7 @@ class Api::DevicesController < ApplicationController
           subscription_status: current_subscription.status,
           expires_at: current_subscription.expires_at,
           action_required: "renew",
-          renewal_url: "https://vulcainvpn.com/pricing"
+          renewal_url: "https://www.vulcainvpn.com/dashboard/"
         }, status: :forbidden  # 403
         return
       end
