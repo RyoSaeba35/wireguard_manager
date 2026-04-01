@@ -10,14 +10,19 @@ class Api::DevicesController < ApplicationController
   # POST api/devices/register
   # No limit on registered devices — only active connections are limited
   def register
+    # ✅ STEP 1: Check subscription FIRST (before registering device)
     subscription = @current_api_user.subscriptions.active.first
 
     unless subscription
-      render json: { error: "No active subscription found" }, status: :forbidden
+      render json: {
+        error: "No active subscription found",
+        action_required: "subscribe",
+        renewal_url: "https://vulcainvpn.com/pricing"
+      }, status: :forbidden
       return
     end
 
-    # ✅ NEW: Look for device ANYWHERE first (not scoped to subscription)
+    # ✅ Look for device ANYWHERE first (not scoped to subscription)
     device = Device.find_by(device_id: params[:device_id])
 
     if device
@@ -49,33 +54,66 @@ class Api::DevicesController < ApplicationController
   end
 
   # POST api/connect/:device_id
-  # Checks 3-active-session limit, assigns clients, marks device active
+  # ✅ Check order: Subscription (via before_action) → Device Limit → Assign Credentials
   def connect
     subscription = current_subscription
+    device = current_device
 
+    # ✅ STEP 2: Check active device limit (subscription already checked in before_action)
     active_count = subscription.devices
                                 .where(active: true)
-                                .where.not(id: current_device.id)
+                                .where.not(id: device.id)
                                 .count
 
     if active_count >= MAX_DEVICES
       render json: {
-        error: "Maximum #{MAX_DEVICES} simultaneous connections reached",
-        active_devices: active_count
-      }, status: :too_many_requests
+        error: "Maximum active devices reached",
+        message: "You can only have #{MAX_DEVICES} devices connected simultaneously. Please disconnect another device first.",
+        max_devices: MAX_DEVICES,
+        active_devices: active_count,
+        action_required: "disconnect_device"
+      }, status: :too_many_requests  # 429
       return
     end
 
-    current_device.update!(
+    # ✅ STEP 3: Check if WireGuard slots available (before marking device active)
+    available_wg_client = subscription.wireguard_clients.where(device_id: nil).exists?
+    already_has_wg = subscription.wireguard_clients.exists?(device_id: device.id)
+
+    unless available_wg_client || already_has_wg
+      render json: {
+        error: "Maximum active devices reached",
+        message: "All WireGuard connection slots are in use. Please disconnect another device first.",
+        action_required: "disconnect_device"
+      }, status: :too_many_requests  # 429
+      return
+    end
+
+    # ✅ STEP 4: Mark device as active and assign credentials
+    device.update!(
       active: true,
       connected_at: Time.current,
       last_seen_at: Time.current,
       last_connection_ip: request.remote_ip
     )
 
+    # ✅ STEP 5: Build and return credentials (with assignment)
+    credentials = build_credentials(device, assign: true)
+
+    # Double-check that WireGuard credentials were successfully assigned
+    unless credentials[:wireguard].present?
+      device.update!(active: false, connected_at: nil)  # Roll back active status
+      render json: {
+        error: "Maximum active devices reached",
+        message: "Failed to assign connection credentials. Please try again or disconnect another device.",
+        action_required: "disconnect_device"
+      }, status: :too_many_requests
+      return
+    end
+
     render json: {
       message: "Connected successfully",
-      credentials: build_credentials(current_device, assign: true)
+      credentials: credentials
     }, status: :ok
   end
 
@@ -135,32 +173,51 @@ class Api::DevicesController < ApplicationController
     end
   end
 
+  # ✅ UPDATED: Better error messages with renewal URL
   def authenticate_device!
     api_key = request.headers['X-Api-Key']
 
     unless api_key.present?
-      render json: { error: "API key required" }, status: :unauthorized
+      render json: {
+        error: "API key required",
+        message: "Device not registered. Please login again."
+      }, status: :unauthorized  # 401
       return
     end
 
     @current_device = Device.find_by(api_key: api_key)
 
     unless @current_device
-      render json: { error: "Invalid API key" }, status: :unauthorized
+      render json: {
+        error: "Invalid API key",
+        message: "Device not registered. Please login again."
+      }, status: :unauthorized  # 401
       return
     end
 
-    # NEW: Auto-link to active subscription if current one is expired/inactive
-    unless @current_device.subscription.active?
+    # ✅ CRITICAL: Check subscription status BEFORE allowing any action
+    current_subscription = @current_device.subscription
+
+    # Try to auto-link to active subscription if current one is expired/inactive
+    unless current_subscription.active?
       active_subscription = @current_device.user.subscriptions.active.first
 
       if active_subscription
-        Rails.logger.info "🔄 Auto-linking device #{@current_device.device_id} from subscription #{@current_device.subscription_id} (#{@current_device.subscription.status}) to active subscription #{active_subscription.id}"
+        Rails.logger.info "🔄 Auto-linking device #{@current_device.device_id} from subscription #{current_subscription.id} (#{current_subscription.status}) to active subscription #{active_subscription.id}"
         @current_device.update!(subscription: active_subscription, active: false)
+
+        # Reload to use the new subscription
+        @current_device.reload
       else
+        # ✅ NO ACTIVE SUBSCRIPTION - Return 403 with renewal info
         render json: {
-          error: "No active subscription found. Please purchase or renew your subscription."
-        }, status: :forbidden
+          error: "No active subscription",
+          message: "Your subscription has expired. Please renew to continue using VulcainVPN.",
+          subscription_status: current_subscription.status,
+          expires_at: current_subscription.expires_at,
+          action_required: "renew",
+          renewal_url: "https://vulcainvpn.com/pricing"
+        }, status: :forbidden  # 403
         return
       end
     end
