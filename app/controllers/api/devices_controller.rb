@@ -8,27 +8,33 @@ class Api::DevicesController < ApplicationController
   MAX_DEVICES = 3
 
   # POST api/devices/register
-  # No limit on registered devices — only active connections are limited
+  # ✅ CHANGED: Allow registration even without active subscription
+  # Device stays registered, but can't connect without subscription
   def register
-    # ✅ STEP 1: Check subscription FIRST (before registering device)
-    subscription = @current_api_user.subscriptions.active.first
+    # ✅ Look for ANY subscription (active or not)
+    subscription = @current_api_user.subscriptions.last
 
     unless subscription
+      # User has never had a subscription
       render json: {
-        error: "No active subscription found",
+        error: "No subscription found",
+        message: "You need to purchase a subscription first.",
         action_required: "subscribe",
         renewal_url: "https://vulcainvpn.com/pricing"
       }, status: :forbidden
       return
     end
 
-    # ✅ Look for device ANYWHERE first (not scoped to subscription)
+    # ✅ Allow registration even if subscription is expired
+    # Just use the most recent subscription (active or not)
+
+    # Look for device ANYWHERE first (not scoped to subscription)
     device = Device.find_by(device_id: params[:device_id])
 
     if device
-      # Device exists - link it to the active subscription if needed
+      # Device exists - link it to the current subscription
       if device.subscription_id != subscription.id
-        Rails.logger.info "🔄 Auto-linking existing device #{device.device_id} from subscription #{device.subscription_id} to active subscription #{subscription.id}"
+        Rails.logger.info "🔄 Auto-linking existing device #{device.device_id} from subscription #{device.subscription_id} to subscription #{subscription.id}"
         device.update!(subscription: subscription, active: false)
       end
     else
@@ -59,7 +65,10 @@ class Api::DevicesController < ApplicationController
     subscription = current_subscription
     device = current_device
 
-    # ✅ STEP 2: Check active device limit (subscription already checked in before_action)
+    # Subscription is already checked in authenticate_device! before_action
+    # If we're here, subscription is active
+
+    # ✅ STEP 2: Check active device limit
     active_count = subscription.devices
                                 .where(active: true)
                                 .where.not(id: device.id)
@@ -76,7 +85,7 @@ class Api::DevicesController < ApplicationController
       return
     end
 
-    # ✅ STEP 3: Check if WireGuard slots available (before marking device active)
+    # ✅ STEP 3: Check if WireGuard slots available
     available_wg_client = subscription.wireguard_clients.where(device_id: nil).exists?
     already_has_wg = subscription.wireguard_clients.exists?(device_id: device.id)
 
@@ -102,7 +111,7 @@ class Api::DevicesController < ApplicationController
 
     # Double-check that WireGuard credentials were successfully assigned
     unless credentials[:wireguard].present?
-      device.update!(active: false, connected_at: nil)  # Roll back active status
+      device.update!(active: false, connected_at: nil)
       render json: {
         error: "Maximum active devices reached",
         message: "Failed to assign connection credentials. Please try again or disconnect another device.",
@@ -133,8 +142,6 @@ class Api::DevicesController < ApplicationController
   end
 
   # GET api/credentials/:device_id
-  # Returns already-assigned credentials only — never assigns
-  # Use /connect to get credentials assigned for the first time
   def credentials
     render json: {
       credentials: build_credentials(current_device, assign: false)
@@ -173,7 +180,7 @@ class Api::DevicesController < ApplicationController
     end
   end
 
-  # ✅ UPDATED: Better error messages with renewal URL
+  # ✅ CRITICAL: Check subscription status in authenticate_device! (not register!)
   def authenticate_device!
     api_key = request.headers['X-Api-Key']
 
@@ -195,7 +202,7 @@ class Api::DevicesController < ApplicationController
       return
     end
 
-    # ✅ CRITICAL: Check subscription status BEFORE allowing any action
+    # ✅ STEP 1: Check subscription status (ONLY for /connect, /disconnect, etc.)
     current_subscription = @current_device.subscription
 
     # Try to auto-link to active subscription if current one is expired/inactive
@@ -229,19 +236,6 @@ class Api::DevicesController < ApplicationController
 
   def current_subscription
     @current_device.subscription
-  end
-
-  def determine_assigned_protocol(device, subscription)
-    # Check which client is actually assigned to this device
-    if subscription.hysteria2_clients.exists?(device_id: device.id)
-      "hysteria2"
-    elsif subscription.shadowsocks_clients.exists?(device_id: device.id)
-      "shadowsocks"
-    elsif subscription.wireguard_clients.exists?(device_id: device.id)
-      "wireguard"
-    else
-      "unknown"
-    end
   end
 
   def build_credentials(device, assign:)
