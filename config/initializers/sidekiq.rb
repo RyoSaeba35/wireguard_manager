@@ -27,7 +27,7 @@ Sidekiq.configure_server do |config|
         },
         # Every 15 minutes — revoke expired subscriptions
         'revoke_expired_subscriptions' => {
-          'cron'  => '*/15 * * * *',
+          'cron'  => '*/2 * * * *',
           'class' => 'RevokeExpiredSubscriptionsJob',
           'queue' => 'default'
         },
