@@ -6,7 +6,7 @@ module Admin
 
     def index
       @users = User.includes(subscriptions: [:plan, :server, :wireguard_clients]).order(:email)
-      @plans = Plan.all
+      @plans = Plan.order(price: :asc)
       @servers = Server.all
     end
 
