@@ -5,7 +5,7 @@ module Admin
     before_action :set_user, only: [:destroy]
 
     def index
-      @users = User.includes(subscriptions: [:plan, :server, :wireguard_clients]).all
+      @users = User.includes(subscriptions: [:plan, :server, :wireguard_clients]).order(:email)
       @plans = Plan.all
       @servers = Server.all
     end
