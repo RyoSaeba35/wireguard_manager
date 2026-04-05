@@ -12,6 +12,10 @@ class ClashApiMonitorJob < ApplicationJob
   LOG_FILE_PATH = "/var/log/sing-box/connections.log"
   LINES_TO_READ = 1000
 
+  # ✅ NEW: Grace period before deactivating devices
+  # This allows users to go through tunnels, switch networks, airplane mode, etc.
+  DEACTIVATION_GRACE_PERIOD = 5.minutes  # Adjust as needed (5-10 minutes recommended)
+
   def perform
     devices_with_real_connections = Set.new
 
@@ -20,6 +24,7 @@ class ClashApiMonitorJob < ApplicationJob
       devices_with_real_connections.merge(active_device_ids)
     end
 
+    # ✅ Mark devices with real connections as active
     if devices_with_real_connections.any?
       Device.where(id: devices_with_real_connections).update_all(
         active: true,
@@ -27,16 +32,31 @@ class ClashApiMonitorJob < ApplicationJob
       )
     end
 
+    # ✅ CHANGED: Only deactivate devices that have been inactive for > grace period
     currently_active_device_ids = Device.where(active: true).pluck(:id)
-    devices_to_deactivate = currently_active_device_ids - devices_with_real_connections.to_a
+    potentially_inactive_device_ids = currently_active_device_ids - devices_with_real_connections.to_a
 
-    if devices_to_deactivate.any?
-      free_clients_for_devices(devices_to_deactivate)
-      Device.where(id: devices_to_deactivate).update_all(
-        active: false,
-        last_seen_at: Time.current
-      )
-      Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices"
+    if potentially_inactive_device_ids.any?
+      # ✅ NEW: Check last_seen_at and only deactivate if grace period exceeded
+      devices_to_deactivate = Device
+        .where(id: potentially_inactive_device_ids)
+        .where('last_seen_at < ?', DEACTIVATION_GRACE_PERIOD.ago)
+        .pluck(:id)
+
+      if devices_to_deactivate.any?
+        free_clients_for_devices(devices_to_deactivate)
+        Device.where(id: devices_to_deactivate).update_all(
+          active: false,
+          last_seen_at: Time.current
+        )
+        Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices (inactive > #{DEACTIVATION_GRACE_PERIOD.inspect})"
+      end
+
+      # ✅ NEW: Log devices in grace period (for debugging)
+      devices_in_grace = potentially_inactive_device_ids - devices_to_deactivate
+      if devices_in_grace.any?
+        Rails.logger.info "⏳ #{devices_in_grace.size} devices in grace period (tunnel/network switch/airplane mode)"
+      end
     end
   end
 
@@ -54,21 +74,21 @@ class ClashApiMonitorJob < ApplicationJob
     detect_password_theft(username_to_port, connections, server)
 
     active_device_ids = Set.new
-    matched_connections = Set.new  # NEW: Track unique IP:port combinations
+    matched_connections = Set.new  # Track unique IP:port combinations
 
     connections.each do |conn|
       source_ip = conn.dig("metadata", "sourceIP")
       source_port = conn.dig("metadata", "sourcePort")
-      source_key = "#{source_ip}:#{source_port}"  # NEW: Unique key
+      source_key = "#{source_ip}:#{source_port}"  # Unique key
 
       username = username_to_port[source_key]
 
       if username
-        # NEW: Skip if we already processed this IP:port
+        # Skip if we already processed this IP:port
         if matched_connections.include?(source_key)
           next
         end
-        matched_connections.add(source_key)  # NEW: Mark as processed
+        matched_connections.add(source_key)  # Mark as processed
 
         client = find_client(username)
 
@@ -109,7 +129,7 @@ class ClashApiMonitorJob < ApplicationJob
 
     Rails.logger.info "✅ #{active_device_ids.size} active devices"
 
-    # Mark devices with real connections as active
+    # ✅ Mark devices with real connections as active
     if active_device_ids.any?
       Device.where(id: active_device_ids).update_all(
         active: true,
@@ -117,17 +137,31 @@ class ClashApiMonitorJob < ApplicationJob
       )
     end
 
-    # Deactivate devices claiming to be active but with no connection
+    # ✅ CHANGED: Deactivate devices claiming to be active but with no connection (WITH GRACE PERIOD)
     currently_active_device_ids = Device.where(active: true).pluck(:id)
-    devices_to_deactivate = currently_active_device_ids - active_device_ids.to_a
+    potentially_inactive_device_ids = currently_active_device_ids - active_device_ids.to_a
 
-    if devices_to_deactivate.any?
-      free_clients_for_devices(devices_to_deactivate)
-      Device.where(id: devices_to_deactivate).update_all(
-        active: false,
-        last_seen_at: Time.current
-      )
-      Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices"
+    if potentially_inactive_device_ids.any?
+      # ✅ NEW: Only deactivate if grace period exceeded
+      devices_to_deactivate = Device
+        .where(id: potentially_inactive_device_ids)
+        .where('last_seen_at < ?', DEACTIVATION_GRACE_PERIOD.ago)
+        .pluck(:id)
+
+      if devices_to_deactivate.any?
+        free_clients_for_devices(devices_to_deactivate)
+        Device.where(id: devices_to_deactivate).update_all(
+          active: false,
+          last_seen_at: Time.current
+        )
+        Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices (inactive > #{DEACTIVATION_GRACE_PERIOD.inspect})"
+      end
+
+      # ✅ NEW: Log devices in grace period
+      devices_in_grace = potentially_inactive_device_ids - devices_to_deactivate
+      if devices_in_grace.any?
+        Rails.logger.info "⏳ #{devices_in_grace.size} devices in grace period (server: #{server.name})"
+      end
     end
 
     active_device_ids.to_a
