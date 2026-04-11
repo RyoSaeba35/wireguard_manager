@@ -5,7 +5,7 @@ module Admin
     before_action :require_admin
 
     def index
-      @servers = Server.all
+      @servers = Server.order(name: :asc)
       @server_statuses = {}
 
       @servers.where(active: true).each do |server|
