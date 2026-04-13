@@ -100,6 +100,7 @@ Rails.application.routes.draw do
 
       # Subscription status
       get 'subscription', to: 'subscriptions#show'
+      get 'subscription/:device_id', to: 'subscriptions#show_by_device', constraints: { device_id: /[^\/]+/ }
 
       # User status
       get 'status', to: 'users#status'
