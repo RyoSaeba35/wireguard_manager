@@ -105,12 +105,12 @@ module WireguardClientCreator
 
     peer_entries = configs.map do |config|
       <<~PEER
-        ### begin #{config[:name]} ###
+        # #{config[:name]}
         [Peer]
         PublicKey = #{config[:public_key]}
         PresharedKey = #{config[:preshared_key]}
         AllowedIPs = #{config[:ip_address]}/32
-        ### end #{config[:name]} ###
+
       PEER
     end.join
 
@@ -120,7 +120,13 @@ module WireguardClientCreator
       WIREGUARD_EOF
     BASH
 
-    ssh.exec!("sudo wg syncconf wg0 <(wg-quick strip wg0)")
+    # ⭐ FIX: Use a more reliable reload method
+    # Option 1: Strip to temp file, then sync
+    reload_output = ssh.exec!(<<~BASH)
+      sudo wg-quick strip wg0 > /tmp/wg0-stripped.conf
+      sudo wg syncconf wg0 /tmp/wg0-stripped.conf
+      rm /tmp/wg0-stripped.conf
+    BASH
 
     Rails.logger.info "✅ Added #{configs.size} peer(s) to WireGuard and reloaded"
   end
