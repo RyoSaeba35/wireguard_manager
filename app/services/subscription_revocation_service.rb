@@ -1,5 +1,6 @@
 # app/services/subscription_revocation_service.rb
 class SubscriptionRevocationService
+  include WireguardClientCreator  # ✅ Now has remove_wireguard_peer method
   include SingboxClientCreator
   include SshKeyManager
 
@@ -62,8 +63,9 @@ class SubscriptionRevocationService
   end
 
   def revoke_wireguard_client_with_retries(ssh, client, attempts = 0)
-    output = ssh.exec!("LC_ALL=C echo 'y' | LC_ALL=C pivpn -r #{client.name}")
-    Rails.logger.info "pivpn -r output for #{client.name}: #{output}"
+    # ⭐ NEW: Use direct WireGuard command (replaces pivpn -r)
+    remove_wireguard_peer(ssh, client.public_key)
+    Rails.logger.info "Removed WireGuard peer for #{client.name}"
   rescue => e
     attempts += 1
     if attempts < MAX_RETRIES
