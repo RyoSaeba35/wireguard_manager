@@ -155,14 +155,14 @@ module WireguardClientCreator
     <<~CONFIG
       [Interface]
       PrivateKey = #{client.private_key}
-      Address = #{client.ip_address}/16
+      Address = #{client.ip_address}/32
       DNS = 1.1.1.1
 
       [Peer]
       PublicKey = #{server.wireguard_public_key}
       PresharedKey = #{client.preshared_key}
       Endpoint = #{server.ip_address}:#{server.wireguard_port}
-      AllowedIPs = 0.0.0.0/0, ::0/0
+      AllowedIPs = 0.0.0.0/0, ::/0
       PersistentKeepalive = 25
     CONFIG
   end
