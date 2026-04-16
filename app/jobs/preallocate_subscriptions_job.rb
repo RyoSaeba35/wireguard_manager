@@ -42,10 +42,49 @@ class PreallocateSubscriptionsJob < ApplicationJob
     private_key_path = write_private_key(server)
 
     Net::SSH.start(server.ip_address, server.ssh_user, keys: [private_key_path], verify_host_key: :never) do |ssh|
+
+      # ⭐ NEW: Collect ALL WireGuard configs first (no restart yet)
+      all_wg_configs = []
+      allocated_ips = Set.new
+
       (current_preallocated...target_pool_size).each do
-        preallocate_one(ssh, server, default_plan)
+        subscription_name = unique_subscription_name(server)
+
+        subscription = server.subscriptions.create!(
+          name: subscription_name,
+          status: "preallocated",
+          plan: default_plan,
+          price: default_plan.price,
+          expires_at: 1.month.from_now,
+          user_id: nil
+        )
+
+        # Generate WireGuard configs but DON'T add to server yet
+        client_names = CLIENTS_PER_SUBSCRIPTION.times.map { |i| "#{subscription_name}_#{i + 1}" }
+        configs = generate_clients_configs(client_names, subscription, server, allocated_ips)
+        all_wg_configs.concat(configs)
+
+        # Create sing-box clients (but don't reload yet)
+        if server.singbox_active?
+          create_singbox_clients(ssh, subscription, server)
+        end
+
+        Rails.logger.info "Prepared subscription #{subscription_name} (configs pending)"
       end
 
+      # ⭐ Add ALL WireGuard peers in one write + one restart
+      if all_wg_configs.any?
+        add_peers_to_wireguard_batch_only(ssh, all_wg_configs)
+        ssh.exec!("sudo systemctl restart wg-quick@wg0")
+        Rails.logger.info "✅ Added #{all_wg_configs.size} total peer(s) and restarted WireGuard ONCE"
+      end
+
+      # ⭐ Save all to database after server update
+      all_wg_configs.each do |config|
+        save_client_to_db(config, config[:subscription], server)
+      end
+
+      # ⭐ Reload sing-box once at the end
       if server.singbox_active?
         validate_and_reload_singbox(ssh, server)
         singbox_reloaded = true
@@ -58,36 +97,6 @@ class PreallocateSubscriptionsJob < ApplicationJob
     Rails.logger.error "SSH failed for #{server.name}: #{e.message}"
   ensure
     File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
-  end
-
-  def preallocate_one(ssh, server, plan)
-    subscription_name = unique_subscription_name(server)
-
-    subscription = server.subscriptions.create!(
-      name: subscription_name,
-      status: "preallocated",
-      plan: plan,
-      price: plan.price,
-      expires_at: 1.month.from_now,
-      user_id: nil
-    )
-
-    # ⭐ NEW: Batch create all clients at once (FAST!)
-    client_names = CLIENTS_PER_SUBSCRIPTION.times.map do |i|
-      "#{subscription_name}_#{i + 1}"
-    end
-
-    create_clients_batch(ssh, client_names, subscription, server)
-
-    if server.singbox_active?
-      create_singbox_clients(ssh, subscription, server)
-    end
-
-    Rails.logger.info "Pre-allocated subscription #{subscription_name} with WireGuard + sing-box clients"
-
-  rescue => e
-    Rails.logger.error "Failed to preallocate #{subscription_name}: #{e.message}"
-    subscription&.destroy!
   end
 
   def ensure_singbox_matches_wireguard(server)

@@ -30,6 +30,18 @@ module WireguardClientCreator
     configs.size
   end
 
+  # ⭐ NEW: Generate configs without adding to server (for mega-batch)
+  def generate_clients_configs(client_names, subscription, server, allocated_ips = Set.new)
+    configs = client_names.map do |name|
+      ip = allocate_next_ip(server, allocated_ips)
+      allocated_ips << ip
+      config = generate_client_config(name, ip)
+      config[:subscription] = subscription  # Track which subscription
+      config
+    end
+    configs
+  end
+
   # ⭐ Single client creation (kept for backward compatibility)
   def create_client_on_server(ssh, client_name, subscription, server)
     Rails.logger.info "Creating client #{client_name} on #{server.name}..."
@@ -99,7 +111,7 @@ module WireguardClientCreator
     raise "No available IPs in #{base}.0.0/16 range for server #{server.name}"
   end
 
-  # Add peers to WireGuard config (replaces pivpn -a)
+  # ⭐ Add peers to WireGuard and restart (normal method)
   def add_peers_to_wireguard(ssh, configs)
     return if configs.empty?
 
@@ -120,10 +132,33 @@ module WireguardClientCreator
       WIREGUARD_EOF
     BASH
 
-    # ⭐ Option 2: Full restart (2-3 second downtime)
     ssh.exec!("sudo systemctl restart wg-quick@wg0")
 
     Rails.logger.info "✅ Added #{configs.size} peer(s) to WireGuard and restarted"
+  end
+
+  # ⭐ NEW: Add peers WITHOUT restart (for mega-batching)
+  def add_peers_to_wireguard_batch_only(ssh, configs)
+    return if configs.empty?
+
+    peer_entries = configs.map do |config|
+      <<~PEER
+        # #{config[:name]}
+        [Peer]
+        PublicKey = #{config[:public_key]}
+        PresharedKey = #{config[:preshared_key]}
+        AllowedIPs = #{config[:ip_address]}/32
+
+      PEER
+    end.join
+
+    ssh.exec!(<<~BASH)
+      sudo tee -a /etc/wireguard/wg0.conf > /dev/null << 'WIREGUARD_EOF'
+      #{peer_entries}
+      WIREGUARD_EOF
+    BASH
+
+    Rails.logger.info "Added #{configs.size} peer(s) to WireGuard config (restart pending)"
   end
 
   # Save client to database and generate config file
