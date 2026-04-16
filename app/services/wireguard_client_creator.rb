@@ -109,7 +109,7 @@ module WireguardClientCreator
         [Peer]
         PublicKey = #{config[:public_key]}
         PresharedKey = #{config[:preshared_key]}
-        AllowedIPs = #{config[:ip_address]}/16
+        AllowedIPs = #{config[:ip_address]}/32
         ### end #{config[:name]} ###
       PEER
     end.join
@@ -163,7 +163,6 @@ module WireguardClientCreator
       PresharedKey = #{client.preshared_key}
       Endpoint = #{server.ip_address}:#{server.wireguard_port}
       AllowedIPs = 0.0.0.0/0, ::/0
-      PersistentKeepalive = 25
     CONFIG
   end
 
