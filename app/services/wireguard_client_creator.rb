@@ -6,13 +6,18 @@ module WireguardClientCreator
   include SshKeyManager
 
   # ⭐ Batch create multiple clients (FAST)
+  # app/services/wireguard_client_creator.rb
   def create_clients_batch(ssh, client_names, subscription, server)
     Rails.logger.info "Batch creating #{client_names.size} clients for #{subscription.name}"
 
-    # Generate all configs locally (instant, like sing-box passwords)
+    # ⭐ FIX: Track allocated IPs within this batch
+    allocated_ips = Set.new
+
+    # Generate all configs locally
     configs = client_names.map do |name|
-      ip = allocate_next_ip(server)
-      generate_client_config(name, ip)  # ✅ Backend generation
+      ip = allocate_next_ip(server, allocated_ips)  # ✅ Pass allocated_ips
+      allocated_ips << ip  # ✅ Track immediately
+      generate_client_config(name, ip)
     end
 
     # Write all peers to server in ONE operation
@@ -26,6 +31,49 @@ module WireguardClientCreator
     Rails.logger.info "✅ Created #{configs.size} clients successfully"
     configs.size
   end
+
+# ⭐ Updated allocate_next_ip to accept in-progress IPs
+def allocate_next_ip(server, batch_allocated_ips = Set.new)
+  base = "10.155"
+
+  # Get IPs from database + in-progress batch
+  used_ips = WireguardClient
+    .joins(:subscription)
+    .where(subscriptions: { server_id: server.id })
+    .pluck(:ip_address)
+    .to_set
+
+  # ⭐ Merge with batch-allocated IPs
+  used_ips.merge(batch_allocated_ips)
+
+  # Find next available IP in /16 range
+  (0..255).each do |third_octet|
+    (2..254).each do |fourth_octet|
+      ip = "#{base}.#{third_octet}.#{fourth_octet}"
+      return ip unless used_ips.include?(ip)
+    end
+  end
+
+  raise "No available IPs in #{base}.0.0/16 range for server #{server.name}"
+end
+
+# ⭐ Also update single client creation
+def create_client_on_server(ssh, client_name, subscription, server)
+  Rails.logger.info "Creating client #{client_name} on #{server.name}..."
+
+  if subscription.wireguard_clients.exists?(name: client_name)
+    Rails.logger.info "Skipping existing client: #{client_name}"
+    return true
+  end
+
+  ip = allocate_next_ip(server)  # ✅ No batch IPs needed for single creation
+  config = generate_client_config(client_name, ip)
+
+  add_peers_to_wireguard(ssh, [config])
+  save_client_to_db(config, subscription, server)
+
+  true
+end
 
   # ⭐ Single client creation (kept for backward compatibility)
   def create_client_on_server(ssh, client_name, subscription, server)
