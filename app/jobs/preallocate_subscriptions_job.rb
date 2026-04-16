@@ -79,15 +79,15 @@ class PreallocateSubscriptionsJob < ApplicationJob
         Rails.logger.info "✅ Added #{all_wg_configs.size} total peer(s) and restarted WireGuard ONCE"
       end
 
-      # ⭐ Save all to database after server update
-      all_wg_configs.each do |config|
-        save_client_to_db(config, config[:subscription], server)
-      end
-
       # ⭐ Reload sing-box once at the end
       if server.singbox_active?
         validate_and_reload_singbox(ssh, server)
         singbox_reloaded = true
+      end
+
+      # ⭐ Save all to database after server update
+      all_wg_configs.each do |config|
+        save_client_to_db(config, config[:subscription], server)
       end
     end
 
