@@ -72,10 +72,12 @@ class PreallocateSubscriptionsJob < ApplicationJob
       user_id: nil
     )
 
-    CLIENTS_PER_SUBSCRIPTION.times do |i|
-      client_name = "#{subscription_name}_#{i + 1}"
-      create_client_on_server(ssh, client_name, subscription, server)
+    # ⭐ NEW: Batch create all clients at once (FAST!)
+    client_names = CLIENTS_PER_SUBSCRIPTION.times.map do |i|
+      "#{subscription_name}_#{i + 1}"
     end
+
+    create_clients_batch(ssh, client_names, subscription, server)
 
     if server.singbox_active?
       create_singbox_clients(ssh, subscription, server)

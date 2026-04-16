@@ -17,19 +17,21 @@ class WireguardClientCreationJob < ApplicationJob
 
     Net::SSH.start(server.ip_address, server.ssh_user, keys: [private_key_path], verify_host_key: :never) do |ssh|
 
-      CLIENTS_PER_SUBSCRIPTION.times do |i|
-        client_name = "#{subscription.name}_#{i + 1}"
+      # ⭐ NEW: Batch create all WireGuard clients at once
+      client_names = CLIENTS_PER_SUBSCRIPTION.times.map do |i|
+        "#{subscription.name}_#{i + 1}"
+      end
 
-        if subscription.wireguard_clients.exists?(name: client_name)
-          Rails.logger.info "Skipping existing WireGuard client: #{client_name}"
-          wg_clients_created += 1
-          next
-        end
+      # Filter out existing clients
+      existing_names = subscription.wireguard_clients.pluck(:name)
+      new_client_names = client_names - existing_names
 
-        result = create_client_on_server(ssh, client_name, subscription, server)
-        wg_clients_created += 1 if result
-      rescue => e
-        Rails.logger.error "Error creating WireGuard client #{client_name}: #{e.message}"
+      if new_client_names.any?
+        wg_clients_created = create_clients_batch(ssh, new_client_names, subscription, server)
+        Rails.logger.info "Created #{wg_clients_created} new WireGuard clients"
+      else
+        Rails.logger.info "All WireGuard clients already exist"
+        wg_clients_created = CLIENTS_PER_SUBSCRIPTION
       end
 
       # Non-fatal — WireGuard clients still valid if sing-box fails
@@ -43,13 +45,13 @@ class WireguardClientCreationJob < ApplicationJob
       end
     end
 
-    if wg_clients_created == CLIENTS_PER_SUBSCRIPTION
+    if subscription.wireguard_clients.count >= CLIENTS_PER_SUBSCRIPTION
       subscription.update!(status: "active")
       UserMailer.vpn_config_ready(subscription.user, subscription).deliver_later
       Rails.logger.info "All clients created successfully for #{subscription.name}"
     else
       subscription.update!(status: "failed")
-      raise "Expected #{CLIENTS_PER_SUBSCRIPTION} WireGuard clients, created #{wg_clients_created}"
+      raise "Expected #{CLIENTS_PER_SUBSCRIPTION} WireGuard clients, have #{subscription.wireguard_clients.count}"
     end
 
   rescue Net::SSH::Exception => e
