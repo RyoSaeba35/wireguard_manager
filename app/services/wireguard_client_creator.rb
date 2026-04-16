@@ -120,15 +120,10 @@ module WireguardClientCreator
       WIREGUARD_EOF
     BASH
 
-    # ⭐ FIX: Use a more reliable reload method
-    # Option 1: Strip to temp file, then sync
-    reload_output = ssh.exec!(<<~BASH)
-      sudo wg-quick strip wg0 > /tmp/wg0-stripped.conf
-      sudo wg syncconf wg0 /tmp/wg0-stripped.conf
-      rm /tmp/wg0-stripped.conf
-    BASH
+    # ⭐ Option 2: Full restart (2-3 second downtime)
+    ssh.exec!("sudo systemctl restart wg-quick@wg0")
 
-    Rails.logger.info "✅ Added #{configs.size} peer(s) to WireGuard and reloaded"
+    Rails.logger.info "✅ Added #{configs.size} peer(s) to WireGuard and restarted"
   end
 
   # Save client to database and generate config file
