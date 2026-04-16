@@ -1,16 +1,18 @@
+# app/services/wireguard_client_creator.rb
 require 'tempfile'
+require 'rbnacl'
 
 module WireguardClientCreator
   include SshKeyManager
 
-  # ⭐ NEW: Batch create multiple clients (FAST - replaces pivpn)
+  # ⭐ Batch create multiple clients (FAST)
   def create_clients_batch(ssh, client_names, subscription, server)
     Rails.logger.info "Batch creating #{client_names.size} clients for #{subscription.name}"
 
-    # Generate all configs locally (instant, no SSH)
+    # Generate all configs locally (instant, like sing-box passwords)
     configs = client_names.map do |name|
       ip = allocate_next_ip(server)
-      generate_client_config(name, ip)
+      generate_client_config(name, ip)  # ✅ Backend generation
     end
 
     # Write all peers to server in ONE operation
@@ -25,24 +27,19 @@ module WireguardClientCreator
     configs.size
   end
 
-  # ⭐ OLD: Single client creation (kept for backward compatibility)
+  # ⭐ Single client creation (kept for backward compatibility)
   def create_client_on_server(ssh, client_name, subscription, server)
     Rails.logger.info "Creating client #{client_name} on #{server.name}..."
 
-    # Skip if client already exists
     if subscription.wireguard_clients.exists?(name: client_name)
       Rails.logger.info "Skipping existing client: #{client_name}"
       return true
     end
 
-    # Generate config locally
     ip = allocate_next_ip(server)
     config = generate_client_config(client_name, ip)
 
-    # Add to server
     add_peers_to_wireguard(ssh, [config])
-
-    # Save to database
     save_client_to_db(config, subscription, server)
 
     true
@@ -50,11 +47,19 @@ module WireguardClientCreator
 
   private
 
-  # Generate WireGuard keys locally (no SSH needed)
+  # ⭐ Generate WireGuard keys on backend (like sing-box passwords)
   def generate_client_config(name, ip_address)
-    private_key = `wg genkey`.chomp
-    public_key = `echo #{private_key} | wg pubkey`.chomp
-    preshared_key = `wg genpsk`.chomp
+    # Generate private key (32 random bytes)
+    private_key_raw = RbNaCl::Random.random_bytes(32)
+    private_key = Base64.strict_encode64(private_key_raw)
+
+    # Generate public key using Curve25519
+    public_key_raw = RbNaCl::PrivateKey.new(private_key_raw).public_key.to_bytes
+    public_key = Base64.strict_encode64(public_key_raw)
+
+    # Generate preshared key (32 random bytes)
+    preshared_key_raw = RbNaCl::Random.random_bytes(32)
+    preshared_key = Base64.strict_encode64(preshared_key_raw)
 
     {
       name: name,
@@ -69,14 +74,12 @@ module WireguardClientCreator
   def allocate_next_ip(server)
     base = "10.155"
 
-    # Get all used IPs for this server
     used_ips = WireguardClient
       .joins(:subscription)
       .where(subscriptions: { server_id: server.id })
       .pluck(:ip_address)
       .to_set
 
-    # Find next available IP in /16 range
     (0..255).each do |third_octet|
       (2..254).each do |fourth_octet|
         ip = "#{base}.#{third_octet}.#{fourth_octet}"
@@ -91,7 +94,6 @@ module WireguardClientCreator
   def add_peers_to_wireguard(ssh, configs)
     return if configs.empty?
 
-    # Build peer entries
     peer_entries = configs.map do |config|
       <<~PEER
         # #{config[:name]}
@@ -103,14 +105,12 @@ module WireguardClientCreator
       PEER
     end.join
 
-    # Append to wg0.conf in one operation
     ssh.exec!(<<~BASH)
       sudo tee -a /etc/wireguard/wg0.conf > /dev/null << 'WIREGUARD_EOF'
       #{peer_entries}
       WIREGUARD_EOF
     BASH
 
-    # Hot reload WireGuard (no downtime)
     ssh.exec!("sudo wg syncconf wg0 <(wg-quick strip wg0)")
 
     Rails.logger.info "✅ Added #{configs.size} peer(s) to WireGuard and reloaded"
@@ -128,17 +128,14 @@ module WireguardClientCreator
       status: "active"
     )
 
-    # Generate config file content
     config_content = generate_config_file_content(wireguard_client, server)
 
-    # Attach to ActiveStorage
     wireguard_client.config_file.attach(
       io: StringIO.new(config_content),
       filename: "#{wireguard_client.name}.conf",
       content_type: 'application/octet-stream'
     )
 
-    # Generate and attach QR code
     generate_and_attach_qr_code(wireguard_client, config_content)
 
     Rails.logger.info "Saved client #{config[:name]} to database"
@@ -161,7 +158,6 @@ module WireguardClientCreator
     CONFIG
   end
 
-  # Generate and attach QR code
   def generate_and_attach_qr_code(wireguard_client, config_content)
     qr = RQRCode::QRCode.new(config_content)
     png = qr.as_png(size: 300)
