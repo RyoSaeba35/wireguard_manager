@@ -105,12 +105,12 @@ module WireguardClientCreator
 
     peer_entries = configs.map do |config|
       <<~PEER
-        # #{config[:name]}
+        ### begin #{config[:name]} ###
         [Peer]
         PublicKey = #{config[:public_key]}
         PresharedKey = #{config[:preshared_key]}
         AllowedIPs = #{config[:ip_address]}/32
-
+        ### end #{config[:name]} ###
       PEER
     end.join
 
@@ -155,14 +155,14 @@ module WireguardClientCreator
     <<~CONFIG
       [Interface]
       PrivateKey = #{client.private_key}
-      Address = #{client.ip_address}/32
-      DNS = 1.1.1.1, 1.0.0.1
+      Address = #{client.ip_address}/16
+      DNS = 1.1.1.1
 
       [Peer]
       PublicKey = #{server.wireguard_public_key}
       PresharedKey = #{client.preshared_key}
       Endpoint = #{server.ip_address}:#{server.wireguard_port}
-      AllowedIPs = 0.0.0.0/0, ::/0
+      AllowedIPs = 0.0.0.0/0, ::0/0
       PersistentKeepalive = 25
     CONFIG
   end
