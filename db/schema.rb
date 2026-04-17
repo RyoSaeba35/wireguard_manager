@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_17_082102) do
+ActiveRecord::Schema[7.2].define(version: 2026_04_17_134155) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -129,6 +129,24 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_17_082102) do
     t.index ["status"], name: "index_subscriptions_on_status"
     t.index ["stripe_session_id"], name: "index_subscriptions_on_stripe_session_id", unique: true
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
+  end
+
+  create_table "system_settings", force: :cascade do |t|
+    t.boolean "maintenance_mode", default: false, null: false
+    t.boolean "allow_new_registrations", default: true, null: false
+    t.integer "max_devices_per_user", default: 3, null: false
+    t.integer "session_timeout_minutes", default: 1440, null: false
+    t.integer "pool_recycle_hour", default: 3, null: false
+    t.boolean "credential_rotation_enabled", default: true, null: false
+    t.boolean "enable_email_notifications", default: false
+    t.string "smtp_host"
+    t.integer "smtp_port"
+    t.string "smtp_username"
+    t.string "smtp_password"
+    t.string "support_email"
+    t.string "company_name", default: "VulcainVPN"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "users", force: :cascade do |t|

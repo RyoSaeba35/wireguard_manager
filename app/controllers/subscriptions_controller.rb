@@ -32,7 +32,7 @@ class SubscriptionsController < ApplicationController
     selected_plan = Plan.find(subscription_params[:plan_id])
 
     # ⭐ NEW: Check global capacity
-    unless Setting.can_accept_new_subscription?
+    unless SystemSetting.can_accept_new_subscription?
       redirect_to new_user_subscription_path(current_user),
                   alert: "We've reached capacity to ensure the best experience. New subscriptions will be available soon."
       return
