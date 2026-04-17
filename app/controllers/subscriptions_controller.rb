@@ -1,16 +1,19 @@
+# app/controllers/subscriptions_controller.rb
 class SubscriptionsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_subscription, only: [:show, :cancel]
   before_action :authorize_subscription, only: [:show, :cancel]
 
   def new
-    if current_user.subscriptions.where("status = ? AND expires_at > ?", "active", Time.current).exists?
-      existing = current_user.subscriptions.where("status = ? AND expires_at > ?", "active", Time.current).first
+    # Check for existing active subscription
+    if current_user.subscriptions.active.exists?
+      existing = current_user.subscriptions.active.first
       redirect_to user_subscription_path(current_user, existing),
                   alert: "You already have an active subscription to #{existing.plan.name}."
       return
     end
 
+    # Check for pending payment
     if current_user.subscriptions.where(status: ["pending", "payment_pending"]).exists?
       pending = current_user.subscriptions.where(status: ["pending", "payment_pending"]).order(created_at: :desc).first
       redirect_to user_subscription_path(current_user, pending),
@@ -20,29 +23,22 @@ class SubscriptionsController < ApplicationController
 
     @plans = Plan.all.order(:price)
     @subscription = current_user.subscriptions.new
-    @available_server = Server.where(active: true)
-                              .where("current_subscriptions < max_subscriptions")
-                              .order(:current_subscriptions)
-                              .first
-    @pool_available = @available_server&.subscriptions&.preallocated&.exists?
-  end
 
-  def create_checkout_session
-    @subscription = current_user.subscriptions.find(params[:subscription_id])
-    service = StripeCheckoutService.new(@subscription)
-    session = service.create_session
-    render json: { url: session.url }
+    # ⭐ FIXED: Rename to match view expectation
+    @pool_available = SystemSetting.can_accept_new_subscription?
   end
 
   def create
     selected_plan = Plan.find(subscription_params[:plan_id])
 
-    if Subscription.where("status = ? AND expires_at > ?", "active", Time.current).count >= Setting.max_active_subscriptions
+    # ⭐ NEW: Check global capacity
+    unless Setting.can_accept_new_subscription?
       redirect_to new_user_subscription_path(current_user),
-                  alert: "We limit active subscriptions to ensure the best quality of service. Please try again later."
+                  alert: "We've reached capacity to ensure the best experience. New subscriptions will be available soon."
       return
     end
 
+    # Check for pending subscription
     if current_user.subscriptions.where(status: ["pending", "payment_pending"]).exists?
       pending = current_user.subscriptions.where(status: ["pending", "payment_pending"]).order(created_at: :desc).first
       redirect_to user_subscription_path(current_user, pending),
@@ -50,17 +46,7 @@ class SubscriptionsController < ApplicationController
       return
     end
 
-    server = Server.where(active: true)
-                   .where("current_subscriptions < max_subscriptions")
-                   .order(:current_subscriptions)
-                   .first
-
-    unless server
-      redirect_to new_user_subscription_path(current_user),
-                  alert: "No servers are available at the moment. Please try again later."
-      return
-    end
-
+    # ⭐ NEW: Just create subscription (no server, no preallocated)
     expires_at = case selected_plan.interval
                  when "week"  then 1.week.from_now + 2.hours
                  when "month" then 1.month.from_now + 2.hours
@@ -68,39 +54,22 @@ class SubscriptionsController < ApplicationController
                  else 1.month.from_now + 2.hours
     end
 
-    # Always use preallocated — never create on-demand without clients
-    preallocated = server.subscriptions.preallocated.first
-
-    unless preallocated
-      redirect_to new_user_subscription_path(current_user),
-                  alert: "No subscriptions are available at the moment. Please try again shortly."
-      return
+    # Generate unique subscription name
+    subscription_name = loop do
+      name = SecureRandom.alphanumeric(5).upcase
+      break name unless Subscription.exists?(name: name)
     end
 
-    preallocated.update!(
-      user_id: current_user.id,
+    @subscription = current_user.subscriptions.create!(
+      name: subscription_name,
       status: "payment_pending",
-      plan_id: selected_plan.id,
+      plan: selected_plan,
       price: selected_plan.price,
-      expires_at: expires_at
+      expires_at: expires_at,
+      max_devices: 3
     )
 
-    @subscription = preallocated
-    server.increment!(:current_subscriptions)
-
-    # Reuse existing open Stripe session if available
-    if @subscription.stripe_session_id.present?
-      begin
-        session = Stripe::Checkout::Session.retrieve(@subscription.stripe_session_id)
-        if session.status == "open"
-          redirect_to session.url, status: 303, allow_other_host: true
-          return
-        end
-      rescue Stripe::InvalidRequestError
-        # Session invalid — create a new one below
-      end
-    end
-
+    # Create Stripe checkout session
     session = StripeCheckoutService.new(@subscription).create_session
     @subscription.update!(stripe_session_id: session.id)
 
@@ -118,27 +87,29 @@ class SubscriptionsController < ApplicationController
           @pending_payment = true
           @stripe_session_url = session.url
         when "complete"
-          @subscription.update!(status: "pending")
+          @subscription.update!(status: "active")
           redirect_to user_subscription_path(current_user, @subscription),
-                      notice: "Your payment was successful."
+                      notice: "Your payment was successful! You can now connect your devices."
           return
         else
-          # Session expired or canceled — return to pool
-          return_to_pool(@subscription)
+          # Session expired or canceled
+          @subscription.update!(status: "failed")
           redirect_to new_user_subscription_path(current_user),
                       notice: "Your session has expired. Please create a new subscription."
           return
         end
       rescue Stripe::InvalidRequestError
-        return_to_pool(@subscription)
+        @subscription.update!(status: "failed")
         redirect_to new_user_subscription_path(current_user),
                     notice: "Your session has expired. Please create a new subscription."
         return
       end
     end
 
-    @wireguard_clients = @subscription.wireguard_clients.order(:name)
-    @wireguard_client = @wireguard_clients.first if @wireguard_clients.any?
+    # ⭐ NEW: Show devices and connections (no downloadable configs)
+    @devices = @subscription.devices.order(created_at: :desc)
+    @active_connections = @subscription.vpn_connections.active.includes(:server, :device)
+    @recent_connections = @subscription.vpn_connections.completed.order(disconnected_at: :desc).limit(10)
   end
 
   def cancel
@@ -147,8 +118,11 @@ class SubscriptionsController < ApplicationController
       return
     end
 
+    # Expire Stripe session
     StripeSessionExpirer.expire(@subscription)
-    return_to_pool(@subscription)
+
+    # Mark as failed
+    @subscription.update!(status: "failed", stripe_session_id: nil)
 
     redirect_to new_user_subscription_path(current_user),
                 notice: "Your subscription has been canceled."
@@ -156,17 +130,8 @@ class SubscriptionsController < ApplicationController
 
   private
 
-  def return_to_pool(subscription)
-    subscription.update!(
-      user_id: nil,
-      status: "preallocated",
-      stripe_session_id: nil
-    )
-    Rails.logger.info "Returned subscription #{subscription.name} to preallocated pool"
-  end
-
   def subscription_params
-    params.require(:subscription).permit(:plan_id, :price)
+    params.require(:subscription).permit(:plan_id)
   end
 
   def set_subscription

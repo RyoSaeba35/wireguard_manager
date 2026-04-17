@@ -3,80 +3,66 @@ class Api::SubscriptionsController < ApplicationController
   protect_from_forgery with: :null_session
   skip_before_action :authenticate_user!, raise: false
 
-  # ✅ JWT auth pour la méthode show
   before_action :authenticate_api_user!, only: [:show]
-
-  # ✅ NEW: API Key auth pour la méthode show_by_device
   before_action :authenticate_device!, only: [:show_by_device]
 
-  # Existing method - Pour Flutter UI (JWT)
+  # GET api/subscription (JWT auth)
   def show
-    subscription = @current_api_user.subscriptions.last
+    subscription = @current_api_user.subscriptions.active.first
 
     unless subscription
-      render json: { error: "No subscription found" }, status: :not_found
+      render json: { error: "No active subscription found" }, status: :not_found
       return
     end
 
     render json: {
-      subscription: {
-        name: subscription.name,
-        status: subscription.status,
-        expires_at: subscription.expires_at,
-        plan: {
-          name: subscription.plan.name,
-          interval: subscription.plan.interval
-        },
-        server: {
-          name: subscription.server.name,
-          location: subscription.server.singbox_server_name
-        },
-        devices: {
-          total: subscription.devices.count,
-          active: subscription.devices.where(active: true).count,
-          max: Api::DevicesController::MAX_DEVICES
-        }
-      }
+      subscription: subscription_json(subscription)
     }, status: :ok
   end
 
-  # ✅ NEW: Pour Android heartbeat (API Key)
+  # GET api/subscription/device/:device_id (API Key auth)
   def show_by_device
-    # @current_device est défini par authenticate_device!
-    user = @current_device.user
-    subscription = user.subscriptions.last
+    subscription = @current_device.user.subscriptions.active.first
 
     unless subscription
-      render json: { error: "No subscription found" }, status: :not_found
+      render json: { error: "No active subscription found" }, status: :not_found
       return
     end
 
-    # ✅ Retourne exactement le même format que show()
     render json: {
-      subscription: {
-        name: subscription.name,
-        status: subscription.status,
-        expires_at: subscription.expires_at,
-        plan: {
-          name: subscription.plan.name,
-          interval: subscription.plan.interval
-        },
-        server: {
-          name: subscription.server.name,
-          location: subscription.server.singbox_server_name
-        },
-        devices: {
-          total: subscription.devices.count,
-          active: subscription.devices.where(active: true).count,
-          max: Api::DevicesController::MAX_DEVICES
-        }
-      }
+      subscription: subscription_json(subscription)
     }, status: :ok
   end
 
   private
 
-  # Existing - JWT authentication
+  def subscription_json(subscription)
+    # Get current connection info
+    active_connection = subscription.vpn_connections.active.includes(:server).first
+
+    {
+      name: subscription.name,
+      status: subscription.status,
+      expires_at: subscription.expires_at,
+      plan: {
+        name: subscription.plan.name,
+        interval: subscription.plan.interval
+      },
+      server: active_connection ? {
+        name: active_connection.server.name,
+        location: active_connection.server.location || active_connection.server.city,
+        country: active_connection.server.country_code,
+        flag: active_connection.server.flag
+      } : nil,
+      devices: {
+        total: subscription.devices.count,
+        active: subscription.devices.where(active: true).count,
+        max: subscription.max_devices
+      },
+      active_connections: subscription.vpn_connections.active.count
+    }
+  end
+
   def authenticate_api_user!
     token = request.headers['Authorization']&.split(' ')&.last
 
@@ -93,7 +79,6 @@ class Api::SubscriptionsController < ApplicationController
         algorithm: 'HS256'
       ).first
 
-      # Check if token was revoked
       if JwtDenylist.exists?(jti: payload['jti'])
         render json: { error: "Token has been revoked" }, status: :unauthorized
         return
@@ -106,7 +91,6 @@ class Api::SubscriptionsController < ApplicationController
     end
   end
 
-  # ✅ NEW: API Key authentication (pour heartbeat)
   def authenticate_device!
     device_id = params[:device_id]
     api_key = request.headers['X-Api-Key']

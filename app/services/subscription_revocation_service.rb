@@ -1,122 +1,61 @@
 # app/services/subscription_revocation_service.rb
 class SubscriptionRevocationService
-  include WireguardClientCreator  # ✅ Now has remove_wireguard_peer method
-  include SingboxClientCreator
-  include SshKeyManager
-
-  MAX_RETRIES = 3
-
   def initialize(subscription)
     @subscription = subscription
-    @server = subscription.server
   end
 
   def revoke!
     Rails.logger.info "Starting revocation for subscription #{@subscription.name}"
 
-    unless @server
-      Rails.logger.warn "Subscription #{@subscription.name} has no associated server — skipping SSH steps"
-      return
-    end
+    ActiveRecord::Base.transaction do
+      # 1. Release all active configs back to pool
+      released_count = 0
+      @subscription.devices.each do |device|
+        next unless device.vpn_config_set
 
-    private_key_path = nil
-
-    begin
-      private_key_path = write_private_key(@server)
-
-      Net::SSH.start(@server.ip_address, @server.ssh_user, keys: [private_key_path], verify_host_key: :never) do |ssh|
-        revoke_wireguard_clients(ssh)
-        revoke_singbox_clients(ssh)
-
-        if @server.singbox_active? && singbox_clients_exist?
-          validate_and_reload_singbox(ssh, @server)
+        if device.vpn_config_set.status == 'in_use'
+          device.vpn_config_set.release!
+          released_count += 1
+          Rails.logger.info "Released config #{device.vpn_config_set.ip_address} from device #{device.name}"
         end
       end
 
-      update_server_subscription_count
-      delete_wireguard_files_from_wasabi
-
-      Rails.logger.info "Successfully revoked subscription #{@subscription.name}"
-
-    rescue Net::SSH::AuthenticationFailed => e
-      Rails.logger.error "SSH auth failed for #{@server.name}: #{e.message}"
-      raise
-    rescue Net::SSH::ConnectionTimeout, Errno::ECONNREFUSED => e
-      Rails.logger.error "SSH connection failed for #{@server.name}: #{e.message}"
-      raise
-    rescue Net::SSH::Exception => e
-      Rails.logger.error "SSH error for #{@server.name}: #{e.message}"
-      raise
-    ensure
-      File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
-    end
-  end
-
-  private
-
-  def revoke_wireguard_clients(ssh)
-    @subscription.wireguard_clients.each do |client|
-      revoke_wireguard_client_with_retries(ssh, client)
-      client.update!(status: "revoked")
-      Rails.logger.info "Revoked WireGuard client #{client.name}"
-    end
-  end
-
-  def revoke_wireguard_client_with_retries(ssh, client, attempts = 0)
-    # ⭐ NEW: Use direct WireGuard command (replaces pivpn -r)
-    remove_wireguard_peer(ssh, client.public_key)
-    Rails.logger.info "Removed WireGuard peer for #{client.name}"
-  rescue => e
-    attempts += 1
-    if attempts < MAX_RETRIES
-      sleep(2 ** attempts)
-      Rails.logger.info "Retrying (#{attempts}/#{MAX_RETRIES}) revocation of #{client.name}"
-      retry
-    else
-      Rails.logger.error "Failed to revoke #{client.name} after #{MAX_RETRIES} attempts: #{e.message}"
-      raise
-    end
-  end
-
-  def revoke_singbox_clients(ssh)
-    return unless @server.singbox_active?
-    return unless singbox_clients_exist?
-
-    remove_singbox_clients(ssh, @subscription)
-
-    @subscription.hysteria2_clients.update_all(status: "revoked")
-    @subscription.shadowsocks_clients.update_all(status: "revoked")
-
-    Rails.logger.info "Revoked sing-box clients for #{@subscription.name}"
-  end
-
-  def singbox_clients_exist?
-    @subscription.hysteria2_clients.any? || @subscription.shadowsocks_clients.any?
-  end
-
-  def delete_wireguard_files_from_wasabi
-    @subscription.wireguard_clients.each do |client|
-      if client.config_file.attached?
-        client.config_file.purge
-        Rails.logger.info "Deleted config file for #{client.name}"
-      else
-        Rails.logger.warn "No config file found for #{client.name}"
+      # 2. Close all active VPN connections
+      closed_count = 0
+      @subscription.vpn_connections.active.each do |connection|
+        connection.update!(disconnected_at: Time.current)
+        closed_count += 1
       end
 
-      if client.qr_code.attached?
-        client.qr_code.purge
-        Rails.logger.info "Deleted QR code for #{client.name}"
-      else
-        Rails.logger.warn "No QR code found for #{client.name}"
-      end
+      # 3. Deactivate all devices
+      @subscription.devices.update_all(active: false)
+
+      # 4. Update subscription status
+      @subscription.update!(
+        status: 'expired',
+        expires_at: Time.current
+      )
+
+      Rails.logger.info "✅ Revoked subscription #{@subscription.name}: " \
+                        "released #{released_count} configs, " \
+                        "closed #{closed_count} connections"
     end
+
+    true
+  rescue => e
+    Rails.logger.error "Failed to revoke subscription #{@subscription.name}: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    raise
   end
 
-  def update_server_subscription_count
-    new_count = [@server.current_subscriptions - 1, 0].max
-    @server.update!(current_subscriptions: new_count)
-    Rails.logger.info "Updated #{@server.name} subscription count to #{new_count}"
-  rescue => e
-    Rails.logger.error "Failed to update subscription count for #{@server.name}: #{e.message}"
+  # Optional: Soft revoke (keeps devices, just disconnects)
+  def soft_revoke!
+    Rails.logger.info "Soft revoking subscription #{@subscription.name}"
+
+    # Just disconnect active connections, don't release configs
+    @subscription.vpn_connections.active.update_all(disconnected_at: Time.current)
+    @subscription.update!(status: 'expired')
+
+    Rails.logger.info "✅ Soft revoked subscription #{@subscription.name}"
   end
 end

@@ -1,3 +1,4 @@
+<%# app/views/dashboard/show.html.erb %>
 <style>
   /* Animation */
   @keyframes fadeIn {
@@ -9,72 +10,108 @@
   .dashboard-container {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 5rem;
+    padding: 2rem;
   }
 
   /* Dashboard Header */
   .dashboard-header {
     margin-bottom: 2rem;
+    text-align: center;
   }
 
   .dashboard-header h1 {
     color: #2c3e50;
     font-size: 2rem;
+    margin: 0;
+  }
+
+  .dashboard-header p {
+    color: #7f8c8d;
+    font-size: 1rem;
+    margin: 0.5rem 0 0 0;
+  }
+
+  /* Status Banner */
+  .status-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
     text-align: center;
+  }
+
+  .status-banner-vpn {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  }
+
+  .status-banner-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  }
+
+  .status-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .status-detail {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin: 0.5rem 0 0 0;
   }
 
   /* Subscription Section */
   .subscription-section {
-    background-color: #f9f9f9;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 1rem;
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
   }
 
   .subscription-section h2 {
     color: #2c3e50;
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    margin: 0 0 1.5rem 0;
   }
 
-  /* Subscription Alert (Modern Design) */
+  /* Subscription Alert */
   .subscription-alert {
     display: flex;
     align-items: flex-start;
-    background-color: #fff3cd;
-    color: #2c3e50;
-    border-left: 4px solid #ff6e08;
+    background-color: #e8f5e9;
+    border-left: 4px solid #2ecc71;
     border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 20px;
-    max-width: 600px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    animation: fadeIn 0.3s ease-in-out;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .subscription-alert-warning {
+    background-color: #fff3cd;
+    border-left-color: #f39c12;
   }
 
   .alert-icon {
-    margin-right: 12px;
-    margin-top: 0px;
+    margin-right: 1rem;
     flex-shrink: 0;
   }
 
   .alert-icon svg {
-    width: 20px;
-    height: 20px;
-    fill: #ff6e08;
+    width: 24px;
+    height: 24px;
   }
 
   .alert-content h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 1.2em;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
     color: #2c3e50;
     font-weight: 600;
   }
 
   .alert-content p {
-    margin: 4px 0;
+    margin: 0.3rem 0;
     line-height: 1.5;
     color: #555;
   }
@@ -84,204 +121,218 @@
     font-weight: 600;
   }
 
-  .local-time-container {
-    position: relative;
-    display: inline-block;
-    font-weight: 600;
-    color: #2c3e50;
-    cursor: help;
-  }
-
-  .utc-tooltip {
-    display: none;
-    position: absolute;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    white-space: nowrap;
-    z-index: 100;
-    left: 0;
-    top: 100%;
-    margin-top: 5px;
-  }
-
-  .local-time-container:hover .utc-tooltip {
-    display: block;
-  }
-
   .countdown {
     font-weight: 600;
-    color: red !important;
-    margin: 8px 0 0;
-    font-size: 1.1em;
-    /* background-color: rgba(255, 110, 8, 0.1); */
-    padding: 4px 8px;
+    color: #e74c3c;
+    margin: 0.5rem 0 0;
+    font-size: 1rem;
+    padding: 0.25rem 0.5rem;
     border-radius: 4px;
     display: inline-block;
   }
 
-  /* Alerts */
-  .alert {
-    padding: 1rem;
-    border-radius: 4px;
+  /* App Download Section */
+  .app-download-section {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(155, 89, 182, 0.3);
+  }
+
+  .app-download-section h2 {
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 0 1rem 0;
+    text-align: center;
+  }
+
+  .app-download-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .app-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+
+  .app-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .app-icon {
+    font-size: 3rem;
     margin-bottom: 1rem;
   }
 
-  .alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border-left: 4px solid #28a745;
+  .app-card h3 {
+    color: white;
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem 0;
   }
 
-  .alert-warning {
-    background-color: #f8d7da;
-    color: #721c24;
-    border-left: 4px solid #e74c3c;
+  .app-card p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    margin: 0 0 1rem 0;
   }
 
-  .alert p {
-    margin: 0.5rem 0;
+  .download-btn {
+    display: inline-block;
+    background: white;
+    color: #9b59b6;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .download-btn:hover {
+    background: #f8f9fa;
+    transform: scale(1.05);
+    color: #8e44ad;
+  }
+
+  /* Quick Start Guide */
+  .quick-start-section {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+  }
+
+  .quick-start-section h2 {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    margin: 0 0 1.5rem 0;
+  }
+
+  .quick-start-steps {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .quick-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+
+  .quick-step:hover {
+    background: #e9ecef;
+  }
+
+  .step-number {
+    background: #9b59b6;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .step-content h3 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+  }
+
+  .step-content p {
+    margin: 0;
+    color: #555;
+    line-height: 1.5;
   }
 
   /* Buttons */
   .btn {
-    display: block;
-    width: 100%;
-    max-width: 300px;
-    background-color: #ff6e08;
+    display: inline-block;
+    background-color: #9b59b6;
     color: white !important;
-    padding: 10px;
+    padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 4px;
-    font-size: 1em;
-    font-weight: 500;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
     text-align: center;
     text-decoration: none;
     cursor: pointer;
-    margin: 15px auto;
-    transition: background-color 0.2s;
-    box-sizing: border-box;
+    transition: all 0.2s;
   }
 
   .btn:hover {
-    background-color: #ffc33c;
-    color: white;
-    text-decoration: none;
+    background-color: #8e44ad;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
   }
 
-  /* Lists */
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-
-  ul li {
-    padding: 0.5rem;
-    border-bottom: 1px solid #eee;
-  }
-
-  ul li:last-child {
-    border-bottom: none;
-  }
-
-  /* Section Divider */
-  .section-divider {
-    height: 1px;
-    background-color: #dee2e6;
-    margin: 30px 0;
+  .btn-block {
+    display: block;
     width: 100%;
+    max-width: 300px;
+    margin: 1rem auto;
   }
 
-  /* Subscription Card */
-  .subscription-card {
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 15px;
-    margin-bottom: 15px;
-    background-color: #f9f9f9;
-    max-width: 400px;
-  }
-
-  .subscription-card h3 {
-    margin-top: 0;
-    color: #333;
-  }
-
-  .subscription-card p {
-    margin: 5px 0;
-  }
-
-  /* Setup Guide Section */
-  .setup-guide-section {
-    background-color: #f9f9f9;
-    padding: 1.5rem;
+  /* Alert */
+  .alert {
+    padding: 1rem;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 2rem;
-  }
-
-  .setup-guide-section h2 {
-    color: #2c3e50;
     margin-bottom: 1rem;
   }
 
-  /* Collapsible Steps */
-  .collapsible-step {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #eee;
-  }
-
-  .step-header {
-    color: #ff6e08;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    font-size: 1.3em;
-  }
-
-  .step-toggle {
-    margin-left: 10px;
-    font-size: 1.2em;
-    font-weight: normal;
-  }
-
-  .step-content {
-    display: none;
-    padding-left: 10px;
-  }
-
-  .step-content a {
+  .alert-warning {
+    background-color: #fff3cd;
     color: #856404;
-    padding-left: 10px;
+    border-left: 4px solid #f39c12;
   }
 
-  .step-content.active {
-    display: block;
+  .alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-left: 4px solid #17a2b8;
   }
 
   /* Troubleshooting Section */
   .troubleshooting-section {
-    background-color: #f9f9f9;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 2rem;
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
   }
 
   .troubleshooting-section h2 {
     color: #2c3e50;
-    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    margin: 0 0 1.5rem 0;
   }
 
-  /* FAQ Items */
   .faq-item {
     margin-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #e9ecef;
     padding-bottom: 1rem;
+  }
+
+  .faq-item:last-child {
+    border-bottom: none;
   }
 
   .faq-question {
@@ -296,12 +347,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-weight: bold;
+    font-weight: 600;
+    transition: background 0.2s;
+    border-radius: 4px;
   }
 
   .faq-question:hover {
-    background-color: rgba(44, 62, 80, 0.1);
-    border-radius: 4px;
+    background-color: #f8f9fa;
   }
 
   .faq-icon {
@@ -315,6 +367,10 @@
     line-height: 1.6;
   }
 
+  .faq-answer.active {
+    display: block;
+  }
+
   .faq-answer ul {
     margin: 0.5rem 0 0 1.5rem;
     padding: 0;
@@ -325,7 +381,7 @@
   }
 
   .faq-answer a {
-    color: #ff6e08;
+    color: #9b59b6;
     text-decoration: none;
   }
 
@@ -333,713 +389,356 @@
     text-decoration: underline;
   }
 
-  .faq-answer.active {
-    display: block;
+  /* Subscription Card */
+  .subscription-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 1rem;
   }
 
-  /* Custom Alert */
-  .alert-warning-custom {
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background-color: #fff3cd;
-    color: #856404;
-    border-left: 4px solid #ffeeba;
+  .subscription-card h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
   }
 
-  .list-custom {
-    margin-bottom: 0;
-    padding-left: 1.2rem;
+  .subscription-card p {
+    margin: 0.5rem 0;
+    color: #555;
   }
 
-  /* History Button */
-  .history-button {
-    display: block;
-    padding: 4px;
-    background-color: #ff6e08;
-    color: white;
-    text-align: center;
-    border-radius: 4px;
-    text-decoration: none;
-    margin: auto;
-    max-width: 200px;
-  }
-
-  .history-button:hover {
-    background-color: #ffc33c;
-    color: white;
-    text-decoration: none;
-  }
-
-  /* Rotating messages for VPN users */
-  .rotating-message {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    text-align: center;
-    height: auto;
-    min-height: 20px;
-    overflow: visible;
-    white-space: nowrap;
-  }
-
-  .rotating-message > div {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: auto;
-    text-align: center;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-  }
-
-  .rotating-message .message-1 {
-    animation: rotateMessages 30s infinite;
-  }
-
-  .rotating-message .message-2 {
-    animation: rotateMessages 30s infinite;
-    animation-delay: 10s;
-  }
-
-  .rotating-message .message-3 {
-    animation: rotateMessages 30s infinite;
-    animation-delay: 20s;
-  }
-
-  @keyframes rotateMessages {
-    0%, 30% { opacity: 0; }
-    5%, 26% { opacity: 1; }
-    27%, 100% { opacity: 0; }
-  }
-
-  /* Mobile Styles */
-  @media (max-width: 600px) {
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
     .dashboard-container {
       padding: 1rem;
-      margin: 0 auto;
-      max-width: 100%;
-    }
-
-    .dashboard-header {
-      text-align: center;
-      margin-bottom: 1rem;
     }
 
     .dashboard-header h1 {
-      font-size: 1.25rem;
-      margin: 0;
-      color: #2c3e50;
+      font-size: 1.5rem;
     }
 
-    .subscription-section {
-      padding: 0;
-      margin-top: 1rem;
-      background-color: transparent;
+    .status-banner {
+      padding: 1rem;
     }
 
-    .subscription-section h2 {
-      font-size: 1.25rem;
-      text-align: center;
-      margin-bottom: 1rem;
-      color: #2c3e50;
+    .subscription-section,
+    .app-download-section,
+    .quick-start-section,
+    .troubleshooting-section {
+      padding: 1rem;
     }
 
     .subscription-alert {
       flex-direction: column;
-      align-items: center;
       text-align: center;
-      background-color: #fff3cd;
-      border: 1px solid #e9ecef;
-      border-radius: 0.5rem;
-      padding: 1.25rem;
-      margin-bottom: 1rem;
     }
 
     .alert-icon {
-      font-size: 2rem;
-      color: #28a745;
-      margin-bottom: 0;
       margin-right: 0;
-    }
-
-    .alert-content {
-      width: 100%;
-    }
-
-    .alert-content h3 {
-      font-size: 1.1rem;
-      margin-bottom: 0.75rem;
-      color: #2c3e50;
-    }
-
-    .alert-content p {
-      font-size: 0.9rem;
-      margin: 0.3rem 0;
-      line-height: 1.4;
-    }
-
-    .alert-content strong {
-      font-weight: 600;
-      color: #2c3e50;
-    }
-
-    .local-time-container {
-      font-weight: 600;
-      color: #2c3e50;
-      margin: 0.5rem 0;
-      display: block;
-    }
-
-    .countdown {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #dc3545;
-      margin: 0.5rem 0;
-    }
-
-    .btn {
-      max-width: 100%;
-      padding: 0.75rem;
-      font-size: 1rem;
-      margin: 0.75rem auto;
-      border-radius: 0.5rem;
-      background-color: #ff6e08;
-      border: none;
-    }
-
-    .subscription-card {
-      max-width: 100%;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border: 1px solid #e9ecef;
-      border-radius: 0.5rem;
-      background-color: #ffffff;
-    }
-
-    .subscription-card h3 {
-      font-size: 1.1rem;
-      margin-top: 0;
-      color: #2c3e50;
-    }
-
-    .subscription-card p {
-      font-size: 0.9rem;
-      margin: 0.3rem 0;
-    }
-
-    .setup-guide-section {
-      padding: 1rem 0;
-      margin-top: 1.5rem;
-      background-color: transparent;
-    }
-
-    .setup-guide-section h2 {
-      font-size: 1.25rem;
-      text-align: center;
-      margin-bottom: 1rem;
-      color: #2c3e50;
-    }
-
-    .collapsible-step {
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #e9ecef;
-    }
-
-    .step-header {
-      font-size: 1.1rem;
-      color: #ff6e08;
       margin-bottom: 0.5rem;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-left: 6px;
-      padding-right: 12px;
     }
 
-    .step-toggle {
-      font-size: 1.2rem;
+    .app-download-grid {
+      grid-template-columns: 1fr;
     }
 
-    .step-content {
-      padding-left: 6px;
-      padding-right: 6px;
-    }
-
-    .step-content ul,
-    .step-content ol {
-      padding-left: 1.25rem;
-      margin: 0.5rem 0;
-    }
-
-    .step-content li {
-      font-size: 0.9rem;
-      padding: 0.3rem 0;
-    }
-
-    .troubleshooting-section {
-      padding: 1rem;
-      margin-top: 1.5rem;
-      background-color: transparent;
-    }
-
-    .troubleshooting-section h2 {
-      font-size: 1.25rem;
+    .quick-step {
+      flex-direction: column;
       text-align: center;
-      margin-bottom: 1rem;
-      color: #2c3e50;
-    }
-
-    .faq-item {
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #e9ecef;
-    }
-
-    .faq-question {
-      width: 100%;
-      padding: 0.75rem 0;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-      color: #2c3e50;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-    }
-
-    .faq-icon {
-      font-size: 1.2rem;
-    }
-
-    .faq-answer {
-      padding: 0 0 1rem;
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
-
-    .faq-answer ul {
-      margin: 0.5rem 0 0 1.25rem;
-      padding: 0;
-    }
-
-    .faq-answer li {
-      margin: 0.3rem 0;
-    }
-
-    .section-divider {
-      height: 1px;
-      background-color: #dee2e6;
-      margin: 1.25rem 0;
-    }
-
-    .alert-content p:nth-child(4) {
-      display: none;
-    }
-
-    .history-button {
-      display: block;
-      padding-bottom: 10px;
-      text-align: center;
-      cursor: pointer;
-      margin: auto;
     }
   }
 </style>
 
-<div class="flash flash-notice" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 900;">
-  <div class="scrolling-text-container">
-    <% if @vpn_server_ips.include?(@user_ip) %>
-      <!-- VPN Protected: Rotating messages -->
-      <div class="rotating-message">
-        <div class="message-1"><strong>You are well protected using Vulcain VPN!</strong></div>
-        <div class="message-2"><strong>Your IP:</strong> <%= @user_ip || "Unavailable" %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
-        <div class="message-3"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
-      </div>
-    <% elsif @active_subscription&.server&.ip_address.present? %>
-      <!-- User has an active subscription and server -->
-      <div class="rotating-message">
-        <div class="message-1"><strong><%= @server_status || "Server status: Unavailable" %></strong></div>
-        <div class="message-2"><strong>Your IP:</strong> <%= @user_ip || "Unavailable" %> - <strong>Country:</strong> <%= @country || "Could not be determined" %></div>
-        <div class="message-3"><strong>You are not connected to your Vulcain VPN!</strong></div>
-      </div>
-    <% else %>
-      <!-- Not using VPN or no active subscription/server: Static message -->
-      <div class="scrolling-text">
-        <strong>Your IP:</strong> <%= @user_ip || "Unavailable" %> - <strong>Country:</strong> <%= @country || "Could not be determined" %>
-        <% unless @active_subscription %>
-          - <strong>No active subscription</strong>
-        <% end %>
-      </div>
-    <% end %>
+<!-- Status Banner -->
+<% if @vpn_server_ips.include?(@user_ip) %>
+  <div class="status-banner status-banner-vpn">
+    <p class="status-text">🔒 You are protected by VulcainVPN</p>
+    <p class="status-detail">IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
   </div>
-</div>
-
+<% elsif @active_subscription %>
+  <div class="status-banner status-banner-warning">
+    <p class="status-text">⚠️ VPN Not Connected</p>
+    <p class="status-detail">Your IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
+  </div>
+<% else %>
+  <div class="status-banner">
+    <p class="status-text">No Active Subscription</p>
+    <p class="status-detail">Your IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
+  </div>
+<% end %>
 
 <div class="dashboard-container">
+  <!-- Dashboard Header -->
   <header class="dashboard-header">
-    <h1>Welcome, <%= current_user.email %></h1>
+    <h1>Welcome, <%= current_user.email.split('@').first.capitalize %></h1>
+    <p>Manage your VPN subscription and stay protected</p>
   </header>
+
+  <!-- Subscription Section -->
   <section class="subscription-section">
-    <h2>Your VPN Subscription</h2>
-    <% if @has_subscription && @active_subscription.expires_at > Time.now %>
-      <!-- Show active subscription -->
+    <h2>📋 Your Subscription</h2>
+
+    <% if @has_subscription && @active_subscription && @active_subscription.expires_at > Time.now %>
+      <!-- Active Subscription -->
       <div class="subscription-alert">
         <div class="alert-icon">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="#ff6e08">
+          <svg width="24" height="24" viewBox="0 0 20 20" fill="#2ecc71">
             <path d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zM8 15l-5-5 1.4-1.4L8 12.2 14.6 5.6 16 7z" />
           </svg>
         </div>
         <div class="alert-content">
-          <h3>Active Subscription</h3>
-          <p><strong>Client:</strong> #<%= @active_subscription.name %></p>
+          <h3>✓ Active Subscription</h3>
           <p><strong>Plan:</strong> <%= @active_subscription.plan.name %></p>
-          <p>
-            Expires at:
-            <span class="local-time-container">
-              <span id="local-time-text">
-                <%= @active_subscription.expires_at.in_time_zone("Etc/UTC").strftime("%d/%m/%Y at %H:%M") %>
-              </span>
-              <span class="utc-tooltip">
-                UTC: <%= @active_subscription.expires_at.strftime("%d/%m/%Y at %H:%M") %>
-              </span>
-            </span>
-            (local time)
-          </p>
+          <p><strong>Devices:</strong> Connect up to <%= @active_subscription.plan.max_devices || 3 %> devices</p>
+          <p><strong>Expires:</strong> <span id="local-time-text"><%= @active_subscription.expires_at.strftime("%B %d, %Y at %H:%M") %></span></p>
           <p class="countdown">
-            <span id="countdown">Calculating remaining time...</span>
+            <span id="countdown">Calculating...</span>
           </p>
         </div>
       </div>
 
-      <%= link_to "View Subscription", user_subscription_path(current_user, @active_subscription), class: "btn" %>
+      <%= link_to "View Subscription Details", user_subscription_path(current_user, @active_subscription), class: "btn btn-block" %>
+
     <% else %>
-      <!-- Show "Subscribe Now" if no truly active (non-expired) or pending subscription exists -->
+      <!-- No Active Subscription -->
       <div class="alert alert-warning">
-        <p>You don't have an active subscription at the moment.</p>
-        <%= link_to "Subscribe Now", new_user_subscription_path(current_user), class: "btn" %>
+        <p><strong>No active subscription</strong></p>
+        <p>Subscribe now to protect your privacy and secure your connection on up to 3 devices.</p>
       </div>
+      <%= link_to "Choose a Plan", new_user_subscription_path(current_user), class: "btn btn-block" %>
     <% end %>
 
+    <!-- Expired Subscriptions -->
     <% if @expired_subscriptions.any? %>
-      <div class="section-divider"></div>
-      <h2>Expired Subscriptions</h2>
       <% last_expired = @expired_subscriptions.last %>
       <div class="subscription-card">
-        <h3>Subscription #<%= last_expired.name %></h3>
+        <h3>Last Subscription</h3>
         <p><strong>Plan:</strong> <%= last_expired.plan.name %></p>
-        <p><strong>Started:</strong> <%= last_expired.created_at.strftime("%d/%m/%Y") %></p>
-        <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%d/%m/%Y") %></p>
-        <p><strong>Price:</strong> <%= number_to_currency(last_expired.price) %>/month</p>
+        <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%B %d, %Y") %></p>
         <p><strong>Duration:</strong>
           <% days = (last_expired.expires_at.to_date - last_expired.created_at.to_date).to_i %>
           <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
         </p>
       </div>
-      <% if @expired_subscriptions.size > 1 %>
-        <%= link_to "View Full History", expired_subscriptions_path, class: "history-button" %>
-      <% end %>
-    <% else %>
-      <%# <p>No expired subscriptions.</p> %>
     <% end %>
   </section>
-  <section class="setup-guide-section">
-    <h2>Get Started with Your VPN</h2>
-    <div class="alert alert-warning alert-warning-custom">
-      <strong>Important Device Information:</strong>
-      <ul class="list-custom">
-        <li>Use <strong>only one client per device</strong> (one config file or QR code per device).</li>
-        <li>Your subscription allows VPN connections on <strong>up to 3 different devices</strong> simultaneously.</li>
-        <li>Each device must use its own unique configuration.</li>
-      </ul>
+
+  <!-- App Download Section -->
+  <section class="app-download-section">
+    <h2>📱 Download VulcainVPN</h2>
+    <p style="text-align: center; margin: 0 0 1rem 0; opacity: 0.9;">
+      Get started in seconds with our easy-to-use mobile app
+    </p>
+
+    <div class="app-download-grid">
+      <div class="app-card">
+        <div class="app-icon">🍎</div>
+        <h3>iOS</h3>
+        <p>iPhone & iPad</p>
+        <a href="#" class="download-btn">Coming Soon</a>
+      </div>
+
+      <div class="app-card">
+        <div class="app-icon">🤖</div>
+        <h3>Android</h3>
+        <p>Phones & Tablets</p>
+        <a href="#" class="download-btn">Coming Soon</a>
+      </div>
     </div>
-    <div class="setup-steps">
-      <div class="collapsible-step">
-        <h3 class="step-header" onclick="toggleStep(this)">
-          1. Download WireGuard <span class="step-toggle">+</span>
-        </h3>
-        <div class="step-content">
-          <ul>
-            <li><a href="https://apps.apple.com/app/wireguard/id1441195209" target="_blank">iOS</a></li>
-            <li><a href="https://play.google.com/store/apps/details?id=com.wireguard.android" target="_blank">Android</a></li>
-            <li><a href="https://www.wireguard.com/install/" target="_blank">Windows/macOS/Linux</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="collapsible-step">
-        <h3 class="step-header" onclick="toggleStep(this)">
-          2. Get Your Configuration <span class="step-toggle">+</span>
-        </h3>
-        <div class="step-content">
-          <% if @has_subscription && @active_subscription %>
-            <p><%= link_to "Download Config File", user_subscription_path(current_user, @active_subscription), class: "btn" %></p>
-          <% else %>
-            <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">🔒 Subscribe to download your config file.</p>
-          <% end %>
-        </div>
-      </div>
-      <div class="collapsible-step">
-        <h3 class="step-header" onclick="toggleStep(this)">
-          3. Set Up the VPN <span class="step-toggle">+</span>
-        </h3>
-        <div class="step-content">
-          <p><strong>Option A: QR Code (Mobile)</strong></p>
-          <ol>
-            <li>Open the WireGuard app.</li>
-            <li>Tap <strong>"Add Tunnel" → "Scan QR Code"</strong>.</li>
-            <li>Scan the QR code from your dashboard.</li>
-          </ol>
-          <p><strong>Option B: Config File (All Devices)</strong></p>
-          <ol>
-            <li>Open the WireGuard app.</li>
-            <li>Tap <strong>"Add Tunnel" → "Import from file"</strong>.</li>
-            <li>Select the downloaded config file.</li>
-          </ol>
-        </div>
-      </div>
-      <div class="collapsible-step">
-        <h3 class="step-header" onclick="toggleStep(this)">
-          4. Connect to the VPN <span class="step-toggle">+</span>
-        </h3>
-        <div class="step-content">
-          <p>Toggle the switch next to your tunnel to <strong>activate</strong> the connection.</p>
-          <p>Verify your connection at <a href="https://whatismyip.com" target="_blank">whatismyip.com</a>.</p>
-        </div>
-      </div>
-      <div>
-        <h3 class="step-header">
-          5. Need More Help?
-        </h3>
-        <div class="step">
-          <p><%= link_to "View Full Setup Guide", setup_guide_path, class: "btn" %></p>
-        </div>
-      </div>
+
+    <div class="alert alert-info" style="margin-top: 1.5rem; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); color: white;">
+      <strong>⚠️ Development Version:</strong> Contact support for beta access
     </div>
   </section>
+
+  <!-- Quick Start Guide -->
+  <section class="quick-start-section">
+    <h2>🚀 Quick Start Guide</h2>
+
+    <div class="quick-start-steps">
+      <div class="quick-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Download the App</h3>
+          <p>Install VulcainVPN from the App Store (iOS) or Google Play (Android)</p>
+        </div>
+      </div>
+
+      <div class="quick-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Sign In</h3>
+          <p>Open the app and log in with your VulcainVPN account (<%= current_user.email %>)</p>
+        </div>
+      </div>
+
+      <div class="quick-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Connect</h3>
+          <p>Tap the "Connect" button and you're protected! The app automatically selects the best server for you.</p>
+        </div>
+      </div>
+
+      <div class="quick-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Verify Protection</h3>
+          <p>Check your IP address at <a href="https://whatismyip.com" target="_blank">whatismyip.com</a> to confirm your connection</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-info" style="margin-top: 1.5rem;">
+      <strong>💡 Pro Tip:</strong> You can connect up to <%= @active_subscription&.plan&.max_devices || 3 %> devices simultaneously with a single subscription. Each device will automatically receive its own secure configuration.
+    </div>
+  </section>
+
+  <!-- Troubleshooting Section -->
   <section class="troubleshooting-section">
-    <h2>Troubleshooting</h2>
+    <h2>🔧 Troubleshooting</h2>
+
     <div class="faq-item">
-      <button class="faq-question">
-        Connection Issues <span class="faq-icon">+</span>
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Can't connect to VPN <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Symptoms:</strong> The VPN fails to connect or has connection problems.</p>
+        <p><strong>Try these steps:</strong></p>
         <ul>
-          <li><strong>Check for duplicate configurations:</strong> Ensure each config file/QR code is used on only one device. If the same configuration is installed on multiple devices, remove it from all but one device.</li>
-          <li>Check your internet connection.</li>
-          <li>Restart the VPN client.</li>
-          <li>Restart your device.</li>
-          <li>Check for firewall/antivirus interference.</li>
-          <li>Reinstall the VPN configuration.</li>
-          <li>Update the VPN app.</li>
+          <li>Check your internet connection</li>
+          <li>Make sure your subscription is active</li>
+          <li>Restart the VulcainVPN app</li>
+          <li>Restart your device</li>
+          <li>Check if other apps are blocking VPN connections (antivirus, firewall)</li>
+          <li>Try toggling airplane mode on/off</li>
         </ul>
       </div>
     </div>
+
     <div class="faq-item">
-      <button class="faq-question">
-        Connection Drops <span class="faq-icon">+</span>
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Connection keeps dropping <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Symptoms:</strong> The VPN disconnects frequently or fails to connect.</p>
+        <p><strong>Possible solutions:</strong></p>
         <ul>
-          <li>Check your internet connection.</li>
-          <li>Restart the VPN client.</li>
-          <li>Restart your device.</li>
-          <li>Check for firewall/antivirus interference.</li>
-          <li>Reinstall the VPN configuration.</li>
-          <li>Update the VPN app.</li>
+          <li>Make sure you have a stable internet connection</li>
+          <li>Disable battery optimization for VulcainVPN (Android Settings → Apps → VulcainVPN → Battery)</li>
+          <li>Check if your network blocks VPN traffic (some public WiFi networks do this)</li>
+          <li>Try switching to mobile data to test</li>
+          <li>Update the app to the latest version</li>
         </ul>
       </div>
     </div>
+
     <div class="faq-item">
-      <button class="faq-question">
-        Slow Speeds <span class="faq-icon">+</span>
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Slow connection speeds <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Symptoms:</strong> The VPN connection is active, but browsing/downloads are slower than usual.</p>
+        <p><strong>Speed optimization:</strong></p>
         <ul>
-          <li>Test your base internet speed.</li>
-          <li>Close background applications.</li>
-          <li>Check for network congestion.</li>
-          <li>Restart your router.</li>
+          <li>Test your base internet speed without VPN first</li>
+          <li>Close background apps that use internet</li>
+          <li>Restart your router</li>
+          <li>Try connecting to a server closer to your location</li>
+          <li>Check if your ISP is throttling VPN traffic</li>
         </ul>
       </div>
     </div>
+
     <div class="faq-item">
-      <button class="faq-question">
-        Unable to Access Certain Websites <span class="faq-icon">+</span>
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Multiple devices not working <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Symptoms:</strong> Some websites or services are blocked or unavailable while connected to the VPN.</p>
+        <p><strong>Device limit:</strong></p>
         <ul>
-          <li>Clear your browser cache.</li>
-          <li>Disable IPv6.</li>
-          <li>Check for DNS leaks.</li>
-          <li>Contact support.</li>
+          <li>Your plan allows up to <%= @active_subscription&.plan&.max_devices || 3 %> simultaneous connections</li>
+          <li>Each device gets its own unique configuration automatically</li>
+          <li>If you can't connect, check if you've reached your device limit</li>
+          <li>Disconnect unused devices to free up slots</li>
         </ul>
       </div>
     </div>
+
     <div class="faq-item">
-      <button class="faq-question">
-        General Tips <span class="faq-icon">+</span>
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Still need help? <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Keep your app updated and check for announcements. If issues persist, contact support at <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a>.</p>
+        <p>Contact our support team at <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a></p>
+        <p>Include details about:</p>
+        <ul>
+          <li>Your device type (iPhone 13, Samsung Galaxy S21, etc.)</li>
+          <li>App version</li>
+          <li>When the issue started</li>
+          <li>Error messages you're seeing</li>
+        </ul>
       </div>
     </div>
   </section>
 </div>
-<script>
-  // Function to toggle collapsible steps
-  function toggleStep(header) {
-    const step = header.parentElement;
-    const content = step.querySelector('.step-content');
-    const toggle = header.querySelector('.step-toggle');
-    if (content.classList.contains('active')) {
-      content.classList.remove('active');
-      toggle.textContent = '+';
-    } else {
-      document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
-      document.querySelectorAll('.step-toggle').forEach(t => t.textContent = '+');
-      content.classList.add('active');
-      toggle.textContent = '-';
-    }
-  }
 
-  // Function to toggle FAQ answers
+<script>
+  // Toggle FAQ answers
   function toggleFAQ(button) {
-    const faqItem = button.parentElement;
-    const answer = faqItem.querySelector('.faq-answer');
+    const answer = button.nextElementSibling;
     const icon = button.querySelector('.faq-icon');
+
     if (answer.classList.contains('active')) {
       answer.classList.remove('active');
       icon.textContent = '+';
     } else {
+      // Close all other FAQs
       document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
       document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
+
+      // Open this one
       answer.classList.add('active');
       icon.textContent = '-';
     }
   }
 
-  // Function to update countdown
+  // Update countdown
   function updateCountdown(expiresAt) {
     const now = new Date();
     const diff = expiresAt - now;
+
     if (diff <= 0) {
-      document.getElementById("countdown").textContent = "Subscription expired";
+      document.getElementById("countdown").textContent = "⚠️ Subscription expired";
       return;
     }
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    let countdownText = [];
-    if (days > 0) countdownText.push(`${days} day${days !== 1 ? 's' : ''}`);
-    if (hours > 0 || days > 0) countdownText.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
-    countdownText.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
-    document.getElementById("countdown").textContent = `${countdownText.join(', ')} remaining`;
+
+    let parts = [];
+    if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+    if (hours > 0 || days > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+    parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+
+    document.getElementById("countdown").textContent = `⏱️ ${parts.join(', ')} remaining`;
   }
 
-  // Initialize page on load and Turbo navigation
-  document.addEventListener("DOMContentLoaded", initPage);
-  document.addEventListener("turbo:load", initPage);
+  // Initialize countdown
+  <% if @active_subscription && @active_subscription.expires_at > Time.now %>
+    const expiresAt = new Date("<%= @active_subscription.expires_at.iso8601 %>");
+    const localTimeElement = document.getElementById("local-time-text");
 
-  function initPage() {
-    // Add event listeners for collapsible steps
-    document.querySelectorAll('.step-header').forEach(header => {
-      header.onclick = () => toggleStep(header);
-    });
-
-    // Add event listeners for FAQ questions
-    document.querySelectorAll('.faq-question').forEach(button => {
-      button.onclick = () => toggleFAQ(button);
-    });
-
-    // Initialize subscription countdown
-    <% if @active_subscription %>
-      const utcTime = "<%= j @active_subscription.expires_at.iso8601 %>";
-      const expiresAt = new Date(utcTime);
-      const localTimeElement = document.getElementById("local-time-text");
-      const day = String(expiresAt.getDate()).padStart(2, '0');
-      const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
-      const year = expiresAt.getFullYear();
-      const hours = String(expiresAt.getHours()).padStart(2, '0');
-      const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
-      const localTime = `${day}/${month}/${year} at ${hours}:${minutes}`;
-      if (localTimeElement) localTimeElement.textContent = localTime;
-
-      updateCountdown(expiresAt);
-      setInterval(() => updateCountdown(expiresAt), 60000);
-    <% end %>
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-    const rotatingMessage = document.querySelector('.rotating-message');
-    if (rotatingMessage) {
-      const message1 = rotatingMessage.querySelector('.message-1');
-      const message2 = rotatingMessage.querySelector('.message-2');
-      const message3 = rotatingMessage.querySelector('.message-3');
-      let currentMessage = 1;
-
-      // Show the first message immediately
-      if (message1) message1.style.opacity = '1';
-
-      // Function to fetch server status
-      function fetchServerStatus() {
-        const timestamp = new Date().getTime();
-        fetch(`/dashboard/fetch_server_status?t=${timestamp}`)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (!data.no_subscription && message3) {
-              let statusText;
-              let color;
-              if (data.status === "OK" || data.status === "WARNING") {
-                statusText = "VPN Service: All systems operational.";
-                color = "green";
-              } else {
-                statusText = "VPN Service: Unavailable. We are experiencing technical difficulties.";
-                color = "red";
-              }
-              message3.innerHTML = `<strong>${statusText}</strong>`;
-              message3.style.color = color;
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            // Optionally handle the error silently
-          });
-      }
-
-      // Rotate messages
-      setInterval(function() {
-        if (currentMessage === 1) {
-          if (message1) message1.style.opacity = '0';
-          if (message2) message2.style.opacity = '1';
-          currentMessage = 2;
-        } else if (currentMessage === 2) {
-          if (message2) message2.style.opacity = '0';
-          if (message3) message3.style.opacity = '1';
-          currentMessage = 3;
-          fetchServerStatus(); // Fetch status when showing message 3
-        } else {
-          if (message3) message3.style.opacity = '0';
-          if (message1) message1.style.opacity = '1';
-          currentMessage = 1;
-        }
-      }, 10000); // Rotate every 10 seconds
-
-      // Initial fetch
-      fetchServerStatus();
-      // Fetch server status every 30 seconds
-      setInterval(fetchServerStatus, 30000);
+    if (localTimeElement) {
+      const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      localTimeElement.textContent = expiresAt.toLocaleString(undefined, options);
     }
-  });
+
+    updateCountdown(expiresAt);
+    setInterval(() => updateCountdown(expiresAt), 60000); // Update every minute
+  <% end %>
 </script>

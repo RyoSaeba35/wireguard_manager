@@ -3,28 +3,43 @@ class Server < ApplicationRecord
   encrypts :ssh_user, :ssh_password, :ssh_private_key, deterministic: true
   encrypts :singbox_ss_master_password, :singbox_salamander_password
 
-  has_many :subscriptions
-  has_many :shadowsocks_clients, through: :subscriptions
-  has_many :hysteria2_clients, through: :subscriptions
+  # NEW: Pooling associations
+  has_many :vpn_config_sets, dependent: :destroy
+  has_many :vpn_connections
 
   validates :name, presence: true
   validates :ip_address, presence: true
-  validates :max_subscriptions, numericality: { only_integer: true, greater_than: 0 }
+  validates :max_concurrent_connections, numericality: { only_integer: true, greater_than: 0 }
+  validates :config_pool_size, numericality: { only_integer: true, greater_than: 0 }
 
-  validate :current_subscriptions_cannot_be_negative
+  # Scopes
+  scope :healthy, -> { where(healthy: true) }
 
-  def current_subscriptions_cannot_be_negative
-    if current_subscriptions < 0
-      errors.add(:current_subscriptions, "cannot be negative")
-      throw :abort
-    end
+  # Get flag emoji from country code
+  def flag
+    return nil unless country_code.present?
+    country_code.upcase.chars.map { |c| (c.ord + 127397).chr(Encoding::UTF_8) }.join
   end
 
-  # validate :ssh_credentials_present, if: :active?
+  # Current load stats
+  def current_connections
+    vpn_config_sets.where(status: 'in_use').count
+  end
 
-  # def ssh_credentials_present
-  #   if ssh_user.blank? || ssh_password.blank?
-  #     errors.add(:base, "SSH credentials are required for active servers")
-  #   end
-  # end
+  def available_configs
+    vpn_config_sets.where(status: 'available').count
+  end
+
+  def load_percent
+    return 0 if max_concurrent_connections.zero?
+    (current_connections.to_f / max_concurrent_connections * 100).round(1)
+  end
+
+  def capacity_remaining
+    max_concurrent_connections - current_connections
+  end
+
+  def at_capacity?
+    current_connections >= max_concurrent_connections
+  end
 end

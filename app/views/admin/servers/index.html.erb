@@ -1,451 +1,925 @@
+<!-- app/views/admin/servers/index.html.erb -->
 <div class="admin-container">
-  <!-- Sidebar Navigation -->
   <%= render 'admin/sidebar' %>
 
-  <!-- Main Content: Servers Page -->
   <div class="admin-content">
-    <h1>VPN Servers</h1>
-    <p class="server-capacity">
-      Servers Info:
-      Total Servers: <%= @servers.count %> servers (<%= @servers.where(active: true).count %> active - <%= @servers.where(active: false).count %> inactive) -
-      Total Capacity: <%= @servers.where(active: true).sum(:max_subscriptions) %> subscriptions -
-      Total Current Load: <%= @servers.sum(:current_subscriptions) %> subscriptions
-    </p>
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1>🖥️ VPN Servers</h1>
+        <p class="header-subtitle">Manage your VPN server infrastructure</p>
+      </div>
+      <%= link_to new_admin_server_path, class: "btn-primary" do %>
+        <span class="btn-icon">+</span>
+        Add New Server
+      <% end %>
+    </div>
 
-    <!-- Success/Error Messages -->
+    <!-- Flash Messages -->
     <% if flash[:notice] %>
       <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
         <%= flash[:notice] %>
       </div>
     <% end %>
     <% if flash[:alert] %>
       <div class="alert alert-warning">
+        <span class="alert-icon">⚠</span>
         <%= flash[:alert] %>
       </div>
     <% end %>
 
-    <!-- Add New Server Button -->
-    <div class="admin-actions">
-      <%= link_to "Add New Server", new_admin_server_path, class: "admin-btn admin-btn--servers" %>
+    <!-- System Overview -->
+    <div class="overview-cards">
+      <div class="overview-card">
+        <div class="overview-icon">🖥️</div>
+        <div class="overview-content">
+          <div class="overview-label">Total Servers</div>
+          <div class="overview-value"><%= @servers.count %></div>
+          <div class="overview-detail">
+            <span class="detail-success"><%= @servers.where(active: true).count %> active</span>
+            <span class="detail-separator">•</span>
+            <span class="detail-inactive"><%= @servers.where(active: false).count %> inactive</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="overview-card">
+        <div class="overview-icon">💚</div>
+        <div class="overview-content">
+          <div class="overview-label">Healthy Servers</div>
+          <div class="overview-value"><%= @servers.where(active: true, healthy: true).count %></div>
+          <div class="overview-detail">
+            <% health_percent = @servers.where(active: true).count > 0 ? (@servers.where(active: true, healthy: true).count.to_f / @servers.where(active: true).count * 100).round(1) : 0 %>
+            <span class="<%= health_percent >= 80 ? 'detail-success' : 'detail-warning' %>">
+              <%= health_percent %>% health rate
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="overview-card">
+        <div class="overview-icon">🔌</div>
+        <div class="overview-content">
+          <div class="overview-label">Total Capacity</div>
+          <div class="overview-value"><%= @total_capacity %></div>
+          <div class="overview-detail">
+            <span class="detail-neutral">Max concurrent connections</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="overview-card">
+        <div class="overview-icon">📊</div>
+        <div class="overview-content">
+          <div class="overview-label">Current Load</div>
+          <div class="overview-value"><%= @active_connections %></div>
+          <div class="overview-detail">
+            <% load_percent = @total_capacity > 0 ? (@active_connections.to_f / @total_capacity * 100).round(1) : 0 %>
+            <span class="<%= load_percent > 90 ? 'detail-error' : load_percent > 70 ? 'detail-warning' : 'detail-success' %>">
+              <%= load_percent %>% utilized
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Active Servers Section -->
-    <div class="admin-section">
-      <h2>Active Servers (<%= @servers.where(active: true).count %>)</h2>
+    <div class="section-card">
+      <div class="section-header">
+        <h2 class="section-title">
+          Active Servers
+          <span class="section-badge"><%= @servers.where(active: true).count %></span>
+        </h2>
+      </div>
+
       <% if @servers.where(active: true).any? %>
-        <div class="table-responsive">
+        <!-- Desktop Table -->
+        <div class="servers-table-desktop">
           <table class="servers-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>IP Address</th>
-                <th>Current Load</th>
-                <th>Capacity</th>
-                <th>Status</th>
+                <th>Server</th>
+                <th>Location</th>
+                <th>Health</th>
+                <th>Connections</th>
+                <th>Pool</th>
+                <th>Load</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <% @servers.where(active: true).each do |server| %>
-                <tr class="server-row">
-                  <td><%= server.name %></td>
-                  <td><%= server.ip_address %></td>
+                <%
+                  connections = server.vpn_config_sets.in_use.count
+                  capacity = server.max_concurrent_connections
+                  load_percent = capacity > 0 ? (connections.to_f / capacity * 100).round(1) : 0
+                  available_configs = server.vpn_config_sets.available.count
+                  total_configs = server.vpn_config_sets.count
+                %>
+                <tr>
                   <td>
-                    <div class="load-indicator">
-                      <span class="load-text">
-                        <%= server.current_subscriptions %> / <%= server.max_subscriptions %>
-                      </span>
-                      <div class="load-bar">
-                        <div class="load-fill"
-                             style="width: <%= [server.current_subscriptions.to_f / server.max_subscriptions * 100, 100].min %>%;
-                                  background-color: <%= server.current_subscriptions.to_f / server.max_subscriptions * 100 > 80 ? '#e74c3c' : '#ff6e08' %>;">
-                        </div>
-                      </div>
+                    <div class="server-name-cell">
+                      <strong><%= server.name %></strong>
+                      <code class="server-ip"><%= server.ip_address %></code>
                     </div>
                   </td>
-                  <td><%= server.max_subscriptions %></td>
                   <td>
-                    <% status = @server_statuses[server.id] %>
-                    <% if status %>
-                      <span class="status-badge status-<%= status&.[]('status')&.downcase || 'unknown' %>" data-status='<%= status.to_json %>' data-server-name='<%= server.name %>'>
-                        <%= status&.[]('status') == 'OK' ? 'Operational' : status&.[]('status')&.capitalize || 'Unknown' %>
+                    <span class="location-badge">
+                      <%= server.flag || '🌐' %>
+                      <%= server.location || 'Not set' %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if server.healthy %>
+                      <span class="status-badge status-healthy">
+                        <span class="status-dot"></span>
+                        Healthy
                       </span>
                     <% else %>
-                      <span class="status-badge status-unknown">Unknown</span>
+                      <span class="status-badge status-unhealthy">
+                        <span class="status-dot"></span>
+                        Unhealthy
+                      </span>
                     <% end %>
                   </td>
-                  <td class="server-actions">
-                    <%= link_to "Edit", edit_admin_server_path(server), class: "admin-btn admin-btn--users" %>
-                    <%= button_to "Deactivate", admin_server_path(server, server: { active: false }), method: :patch,
-                                  class: "admin-btn admin-btn--warning",
-                                  data: { turbo_confirm: "Are you sure you want to deactivate #{server.name}?" } %>
+                  <td>
+                    <div class="metric-cell">
+                      <strong><%= connections %></strong> / <%= capacity %>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="metric-cell">
+                      <span class="metric-available"><%= available_configs %></span> / <%= total_configs %>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="load-indicator">
+                      <div class="load-bar">
+                        <div class="load-fill" style="width: <%= load_percent %>%; background-color: <%= load_percent > 90 ? '#e74c3c' : load_percent > 70 ? '#f39c12' : '#2ecc71' %>;"></div>
+                      </div>
+                      <span class="load-text"><%= load_percent %>%</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <%= link_to edit_admin_server_path(server), class: "btn-action btn-edit", title: "Edit" do %>
+                        ✎
+                      <% end %>
+                      <%= button_to toggle_active_admin_server_path(server),
+                          method: :patch,
+                          class: "btn-action btn-deactivate",
+                          title: "Deactivate",
+                          data: { confirm: "Deactivate #{server.name}?" } do %>
+                        ⏸️
+                      <% end %>
+                    </div>
                   </td>
                 </tr>
               <% end %>
             </tbody>
           </table>
         </div>
+
+        <!-- Mobile Cards -->
+        <div class="servers-cards-mobile">
+          <% @servers.where(active: true).each do |server| %>
+            <%
+              connections = server.vpn_config_sets.in_use.count
+              capacity = server.max_concurrent_connections
+              load_percent = capacity > 0 ? (connections.to_f / capacity * 100).round(1) : 0
+              available_configs = server.vpn_config_sets.available.count
+              total_configs = server.vpn_config_sets.count
+            %>
+            <div class="server-card">
+              <div class="server-card-header">
+                <div class="server-card-title">
+                  <strong><%= server.name %></strong>
+                  <span class="location-badge-mobile">
+                    <%= server.flag || '🌐' %>
+                    <%= server.location || server.ip_address %>
+                  </span>
+                </div>
+                <% if server.healthy %>
+                  <span class="status-badge status-healthy">
+                    <span class="status-dot"></span>
+                    Healthy
+                  </span>
+                <% else %>
+                  <span class="status-badge status-unhealthy">
+                    <span class="status-dot"></span>
+                    Unhealthy
+                  </span>
+                <% end %>
+              </div>
+
+              <div class="server-card-metrics">
+                <div class="metric-item">
+                  <div class="metric-label">Connections</div>
+                  <div class="metric-value"><%= connections %>/<%= capacity %></div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Pool</div>
+                  <div class="metric-value"><%= available_configs %>/<%= total_configs %></div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Load</div>
+                  <div class="metric-value <%= load_percent > 90 ? 'metric-error' : load_percent > 70 ? 'metric-warning' : 'metric-success' %>">
+                    <%= load_percent %>%
+                  </div>
+                </div>
+              </div>
+
+              <div class="server-card-actions">
+                <%= link_to "Edit", edit_admin_server_path(server), class: "btn-card-action btn-card-edit" %>
+                <%= button_to "Deactivate", toggle_active_admin_server_path(server),
+                    method: :patch,
+                    class: "btn-card-action btn-card-deactivate",
+                    data: { confirm: "Deactivate #{server.name}?" } %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
       <% else %>
         <div class="empty-state">
-          <p>No active servers found.</p>
-          <%= link_to "Add your first server", new_admin_server_path, class: "admin-btn admin-btn--servers" %>
+          <div class="empty-icon">🖥️</div>
+          <h3>No Active Servers</h3>
+          <p>Create your first server to start accepting VPN connections</p>
+          <%= link_to new_admin_server_path, class: "btn-primary" do %>
+            <span class="btn-icon">+</span>
+            Add Your First Server
+          <% end %>
         </div>
       <% end %>
     </div>
 
     <!-- Inactive Servers Section -->
-    <div class="admin-section">
-      <h2>Inactive Servers (<%= @servers.where(active: false).count %>)</h2>
-      <% if @servers.where(active: false).any? %>
-        <div class="table-responsive">
+    <% if @servers.where(active: false).any? %>
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">
+            Inactive Servers
+            <span class="section-badge section-badge-inactive"><%= @servers.where(active: false).count %></span>
+          </h2>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="servers-table-desktop">
           <table class="servers-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>IP Address</th>
+                <th>Server</th>
+                <th>Location</th>
                 <th>Capacity</th>
+                <th>Pool Size</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <% @servers.where(active: false).each do |server| %>
-                <tr class="server-row">
-                  <td><%= server.name %></td>
-                  <td><%= server.ip_address %></td>
-                  <td><%= server.max_subscriptions %></td>
-                  <td class="server-actions">
-                    <%= button_to "Activate", admin_server_path(server, server: { active: true }), method: :patch,
-                                  class: "admin-btn admin-btn--servers" %>
+                <tr>
+                  <td>
+                    <div class="server-name-cell">
+                      <strong><%= server.name %></strong>
+                      <code class="server-ip"><%= server.ip_address %></code>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="location-badge">
+                      <%= server.flag || '🌐' %>
+                      <%= server.location || 'Not set' %>
+                    </span>
+                  </td>
+                  <td><%= server.max_concurrent_connections %></td>
+                  <td><%= server.config_pool_size %></td>
+                  <td>
+                    <div class="action-buttons">
+                      <%= link_to edit_admin_server_path(server), class: "btn-action btn-edit", title: "Edit" do %>
+                        ✎
+                      <% end %>
+                      <%= button_to toggle_active_admin_server_path(server),
+                          method: :patch,
+                          class: "btn-action btn-activate",
+                          title: "Activate",
+                          data: { confirm: "Activate #{server.name}?" } do %>
+                        ▶️
+                      <% end %>
+                    </div>
                   </td>
                 </tr>
               <% end %>
             </tbody>
           </table>
         </div>
-      <% else %>
-        <div class="empty-state">
-          <p>No inactive servers found.</p>
-        </div>
-      <% end %>
-    </div>
-  </div>
 
-  <!-- Add this inside your admin-container div, before the closing </div> -->
-  <div id="statusModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2 id="modalServerName"></h2>
-      <div id="modalServerStatus"></div>
-    </div>
+        <!-- Mobile Cards -->
+        <div class="servers-cards-mobile">
+          <% @servers.where(active: false).each do |server| %>
+            <div class="server-card server-card-inactive">
+              <div class="server-card-header">
+                <div class="server-card-title">
+                  <strong><%= server.name %></strong>
+                  <span class="location-badge-mobile">
+                    <%= server.flag || '🌐' %>
+                    <%= server.location || server.ip_address %>
+                  </span>
+                </div>
+                <span class="status-badge status-inactive">Inactive</span>
+              </div>
+
+              <div class="server-card-metrics">
+                <div class="metric-item">
+                  <div class="metric-label">Capacity</div>
+                  <div class="metric-value"><%= server.max_concurrent_connections %></div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Pool Size</div>
+                  <div class="metric-value"><%= server.config_pool_size %></div>
+                </div>
+              </div>
+
+              <div class="server-card-actions">
+                <%= link_to "Edit", edit_admin_server_path(server), class: "btn-card-action btn-card-edit" %>
+                <%= button_to "Activate", toggle_active_admin_server_path(server),
+                    method: :patch,
+                    class: "btn-card-action btn-card-activate",
+                    data: { confirm: "Activate #{server.name}?" } %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>
 
-<!-- CSS for Servers Page -->
 <style>
-  .header {
-    position: fixed;
-    width: 100vw;
-  }
-  /* Admin Container */
+  /* Base Layout */
   .admin-container {
-    padding-top: 80px;
     display: flex;
     min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    line-height: 1.5;
+    background-color: #f5f6fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   }
 
-  /* Main Content */
   .admin-content {
-    margin-left: 200px;
-    padding: 20px;
-    width: calc(100% - 250px);
-  }
-  .admin-content h1 {
-    color: #2c3e50;
-    font-size: 28px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #ecf0f1;
+    flex: 1;
+    padding: 2rem;
+    margin-left: 250px;
+    max-width: 1600px;
   }
 
-  /* Admin Section */
-  .admin-section {
-    background-color: white;
+  /* Page Header */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header-content h1 {
+    color: #2c3e50;
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .header-subtitle {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #9b59b6;
+    color: white;
+    border: none;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    padding: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+
+  .btn-primary:hover {
+    background-color: #8e44ad;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+  }
+
+  .btn-icon {
+    font-size: 1.1rem;
+  }
+
+  /* Alerts */
+  .alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    animation: slideIn 0.3s ease;
+  }
+
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+  }
+
+  .alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 4px solid #ffc107;
+  }
+
+  .alert-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Overview Cards */
+  .overview-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
     margin-bottom: 2rem;
   }
 
-  /* Server Capacity Info */
-  .server-capacity {
+  .overview-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    gap: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .overview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .overview-icon {
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .overview-content {
+    flex: 1;
+  }
+
+  .overview-label {
     color: #7f8c8d;
-    margin-bottom: 20px;
-    font-size: 14px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
   }
 
-  /* Table Responsive Container */
-  .table-responsive {
-    overflow-x: auto;
-    margin-bottom: 20px;
+  .overview-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+    margin-bottom: 0.5rem;
   }
 
-  /* Servers Table */
+  .overview-detail {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .detail-success { color: #2ecc71; font-weight: 600; }
+  .detail-warning { color: #f39c12; font-weight: 600; }
+  .detail-error { color: #e74c3c; font-weight: 600; }
+  .detail-inactive { color: #95a5a6; }
+  .detail-neutral { color: #7f8c8d; }
+  .detail-separator { color: #bdc3c7; }
+
+  /* Section Card */
+  .section-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .section-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #ecf0f1;
+  }
+
+  .section-title {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-badge {
+    background-color: #2ecc71;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .section-badge-inactive {
+    background-color: #95a5a6;
+  }
+
+  /* Desktop Table */
+  .servers-table-desktop {
+    display: block;
+  }
+
   .servers-table {
     width: 100%;
     border-collapse: collapse;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 0;
+  }
+
+  .servers-table thead {
+    background-color: #f8f9fa;
   }
 
   .servers-table th {
-    padding: 14px 16px;
+    padding: 0.75rem;
     text-align: left;
+    font-size: 0.85rem;
+    color: #7f8c8d;
     font-weight: 600;
-    background-color: #f8f9fa;
-    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .servers-table td {
-    padding: 12px 16px;
+    padding: 1rem 0.75rem;
+    border-top: 1px solid #ecf0f1;
     vertical-align: middle;
-    border-bottom: 1px solid #f0f0f0;
   }
 
-  .servers-table tr:hover {
-    background-color: #f9f9f9;
+  .servers-table tbody tr:hover {
+    background-color: #f8f9fa;
   }
 
-  .server-row {
-    transition: background-color 0.2s ease;
+  /* Table Cells */
+  .server-name-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .server-ip {
+    background-color: #f8f9fa;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+  }
+
+  .location-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+
+  .metric-cell {
+    font-size: 0.95rem;
+  }
+
+  .metric-available {
+    color: #2ecc71;
+    font-weight: 600;
+  }
+
+  /* Status Badges */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .status-healthy {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .status-healthy .status-dot {
+    background-color: #28a745;
+  }
+
+  .status-unhealthy {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .status-unhealthy .status-dot {
+    background-color: #dc3545;
+  }
+
+  .status-inactive {
+    background-color: #e9ecef;
+    color: #6c757d;
   }
 
   /* Load Indicator */
   .load-indicator {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .load-text {
-    font-size: 14px;
-    color: #2c3e50;
-    font-weight: 500;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .load-bar {
+    flex: 1;
     height: 8px;
-    background-color: #e0e0e0;
+    background-color: #ecf0f1;
     border-radius: 4px;
     overflow: hidden;
+    min-width: 60px;
   }
 
   .load-fill {
     height: 100%;
     border-radius: 4px;
-    transition: width 0.3s ease, background-color 0.3s ease;
+    transition: width 0.3s ease;
   }
 
-  /* Server Actions */
-  .server-actions {
+  .load-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #7f8c8d;
+    min-width: 40px;
+  }
+
+  /* Action Buttons */
+  .action-buttons {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
-  .server-actions .admin-btn {
-    padding: 6px 12px;
-    font-size: 14px;
-    width: auto;
-    min-width: 80px;
+  .btn-action {
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-edit {
+    background-color: #ff6e08;
+    color: white;
+  }
+
+  .btn-edit:hover {
+    background-color: #e67e22;
+  }
+
+  .btn-deactivate {
+    background-color: #f39c12;
+    color: white;
+  }
+
+  .btn-deactivate:hover {
+    background-color: #e67e22;
+  }
+
+  .btn-activate {
+    background-color: #2ecc71;
+    color: white;
+  }
+
+  .btn-activate:hover {
+    background-color: #27ae60;
+  }
+
+  /* Mobile Cards (Hidden by default) */
+  .servers-cards-mobile {
+    display: none;
   }
 
   /* Empty State */
   .empty-state {
     text-align: center;
-    padding: 30px;
-    color: #7f8c8d;
-    background-color: #f9f9f9;
-    border-radius: 6px;
-    margin-bottom: 20px;
+    padding: 4rem 2rem;
   }
 
-  .empty-state .admin-btn {
-    margin-top: 15px;
-    width: auto;
-    padding: 8px 20px;
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
   }
 
-  /* Admin Actions */
-  .admin-actions {
-    margin-bottom: 20px;
-  }
-
-  /* Admin Button */
-  .admin-btn {
-    display: inline-block;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    text-decoration: none;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    color: white;
-    margin: 5px 0;
-  }
-
-  /* Server Management Button */
-  .admin-btn--servers {
-    background-color: #e74c3c;
-  }
-
-  .admin-btn--servers:hover {
-    background-color: #d62c1a;
-  }
-
-  /* Users Management Button */
-  .admin-btn--users {
-    background-color: #ff6e08;
-  }
-
-  .admin-btn--users:hover {
-    background-color: #e67e22;
-  }
-
-  /* Warning Button */
-  .admin-btn--warning {
-    background-color: #f39c12;
-  }
-
-  .admin-btn--warning:hover {
-    background-color: #e67e22;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .server-actions {
-      flex-direction: column;
-    }
-
-    .server-actions .admin-btn {
-      width: 100%;
-      margin-bottom: 6px;
-    }
-
-    .servers-table th,
-    .servers-table td {
-      padding: 8px 10px;
-      font-size: 13px;
-    }
-
-    .load-bar {
-      height: 6px;
-    }
-  }
-
-  /* Modal Styles */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-  }
-
-  .modal-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 50%;
-    max-width: 600px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  .close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-
-  .close:hover {
-    color: black;
-  }
-
-  .modal-content h2 {
-    margin-top: 0;
+  .empty-state h3 {
     color: #2c3e50;
+    margin-bottom: 0.5rem;
   }
 
-  .modal-content ul {
-    padding-left: 20px;
+  .empty-state p {
+    color: #7f8c8d;
+    margin-bottom: 2rem;
   }
 
-  .modal-content li {
-    margin-bottom: 8px;
+  /* Mobile Responsive */
+  @media (max-width: 1024px) {
+    .admin-content {
+      margin-left: 0;
+      padding: 1rem;
+    }
+
+    .overview-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
-  .status-badge {
-    cursor: pointer;
-  }
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
 
-  .status-badge:hover {
-    opacity: 0.9;
-    transform: scale(1.05);
+    .header-content h1 {
+      font-size: 1.5rem;
+    }
+
+    .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .overview-cards {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .overview-card {
+      padding: 1rem;
+    }
+
+    .overview-icon {
+      font-size: 2rem;
+    }
+
+    .overview-value {
+      font-size: 1.5rem;
+    }
+
+    .section-card {
+      padding: 1rem;
+    }
+
+    /* Hide desktop table, show mobile cards */
+    .servers-table-desktop {
+      display: none;
+    }
+
+    .servers-cards-mobile {
+      display: block;
+    }
+
+    /* Mobile Server Cards */
+    .server-card {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .server-card-inactive {
+      border-left-color: #95a5a6;
+    }
+
+    .server-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .server-card-title {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .server-card-title strong {
+      color: #2c3e50;
+      font-size: 1.1rem;
+    }
+
+    .location-badge-mobile {
+      font-size: 0.85rem;
+      color: #7f8c8d;
+    }
+
+    .server-card-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .metric-item {
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: #7f8c8d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    .metric-success { color: #2ecc71; }
+    .metric-warning { color: #f39c12; }
+    .metric-error { color: #e74c3c; }
+
+    .server-card-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-card-action {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .btn-card-edit {
+      background-color: #ff6e08;
+      color: white;
+    }
+
+    .btn-card-deactivate {
+      background-color: #f39c12;
+      color: white;
+    }
+
+    .btn-card-activate {
+      background-color: #2ecc71;
+      color: white;
+    }
   }
 </style>
-
-<script>
-  // Add this JavaScript to your page
-  document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('statusModal');
-    const span = document.getElementsByClassName("close")[0];
-
-    // When the user clicks on a status badge, open the modal and display the status details
-    document.querySelectorAll('.status-badge').forEach(badge => {
-      badge.addEventListener('click', function() {
-        const status = JSON.parse(this.getAttribute('data-status'));
-        const serverName = this.getAttribute('data-server-name');
-
-        document.getElementById('modalServerName').textContent = `Server: ${serverName}`;
-        let statusHTML = '<ul>';
-
-        for (const [key, value] of Object.entries(status)) {
-          statusHTML += `<li><strong>${key.replace('_', ' ')}:</strong> ${value}</li>`;
-        }
-
-        statusHTML += '</ul>';
-        document.getElementById('modalServerStatus').innerHTML = statusHTML;
-        modal.style.display = 'block';
-      });
-    });
-
-    // When the user clicks on <span> (x), close the modal
-    span.onclick = function() {
-      modal.style.display = 'none';
-    };
-
-    // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function(event) {
-      if (event.target == modal) {
-        modal.style.display = 'none';
-      }
-    };
-  });
-</script>

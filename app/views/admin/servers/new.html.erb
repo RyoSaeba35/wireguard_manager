@@ -1,167 +1,462 @@
 <%# app/views/admin/servers/new.html.erb %>
-<div class="admin-dashboard">
-  <div class="admin-section">
-    <h1>Add New Server</h1>
-    <p class="section-description">Configure a new VPN server for your infrastructure</p>
+<div class="admin-container">
+  <%= render 'admin/sidebar' %>
 
-    <%= render 'form' %>
+  <div class="admin-content">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumbs">
+      <%= link_to "Servers", admin_servers_path, class: "breadcrumb-link" %>
+      <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb-current">Add New Server</span>
+    </nav>
 
-    <div class="form-actions">
-      <%= link_to "Back to Servers", admin_servers_path, class: "admin-btn admin-btn--secondary" %>
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1>➕ Add New Server</h1>
+        <p class="header-subtitle">Configure a new VPN server for your infrastructure</p>
+      </div>
+      <div class="header-actions">
+        <%= link_to admin_servers_path, class: "btn-secondary" do %>
+          <span class="btn-icon">←</span>
+          Back to Servers
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Setup Guide Card -->
+    <div class="guide-card">
+      <div class="guide-header">
+        <span class="guide-icon">💡</span>
+        <h3>Quick Setup Guide</h3>
+      </div>
+      <div class="guide-content">
+        <div class="guide-grid">
+          <div class="guide-item">
+            <div class="guide-step">1</div>
+            <div class="guide-text">
+              <strong>Basic Information</strong>
+              <p>Server name and IP address</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-step">2</div>
+            <div class="guide-text">
+              <strong>Location Details</strong>
+              <p>Geographic location for routing</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-step">3</div>
+            <div class="guide-text">
+              <strong>Set Capacity</strong>
+              <p>Default: 225 connections, 3000 configs</p>
+            </div>
+          </div>
+          <div class="guide-item">
+            <div class="guide-step">4</div>
+            <div class="guide-text">
+              <strong>Configure Protocols</strong>
+              <p>WireGuard + Sing-box settings</p>
+            </div>
+          </div>
+        </div>
+        <div class="guide-note">
+          <span class="note-icon">ℹ️</span>
+          <span>After creation, config pool generation will begin in the background. This may take several minutes.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Important Notes -->
+    <div class="info-cards">
+      <div class="info-card info-card-primary">
+        <div class="info-icon">🔐</div>
+        <div class="info-content">
+          <strong>SSH Authentication</strong>
+          <p>Use key-based authentication for better security. You can generate a key pair directly in the form.</p>
+        </div>
+      </div>
+
+      <div class="info-card info-card-success">
+        <div class="info-icon">📊</div>
+        <div class="info-content">
+          <strong>Recommended Capacity</strong>
+          <p>Start with 225 concurrent connections and 3000 config pool size. Adjust based on server resources.</p>
+        </div>
+      </div>
+
+      <div class="info-card info-card-warning">
+        <div class="info-icon">🌍</div>
+        <div class="info-content">
+          <strong>Location Data</strong>
+          <p>Accurate latitude/longitude helps automatic server selection find the closest server for users.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="form-section">
+      <%= render 'form' %>
     </div>
   </div>
 </div>
 
 <style>
-  /* Form Container Styling */
-  .admin-section {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    padding: 30px;
-    margin: 20px auto;
-    max-width: 800px;
+  /* Base Layout */
+  .admin-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f5f6fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   }
 
-  /* Section Header */
-  .admin-section h1 {
-    color: #2c3e50;
-    font-size: 24px;
-    margin-top: 0;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #ecf0f1;
+  .admin-content {
+    flex: 1;
+    padding: 2rem;
+    margin-left: 250px;
+    max-width: 1200px;
   }
 
-  /* Section Description */
-  .section-description {
-    color: #7f8c8d;
-    margin-bottom: 25px;
-    font-size: 14px;
-  }
-
-  /* Form Group Styling */
-  .form-group {
-    margin-bottom: 20px;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #2c3e50;
-    font-size: 14px;
-  }
-
-  .form-group input[type="text"],
-  .form-group input[type="password"],
-  .form-group input[type="number"],
-  .form-group select,
-  .form-group textarea {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-  }
-
-  .form-group input:focus,
-  .form-group select:focus,
-  .form-group textarea:focus {
-    border-color: #ff6e08;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-  }
-
-  /* Textarea Specific */
-  .form-group textarea {
-    /* min-height: 100px; */
-    resize: vertical;
-    font-family: inherit;
-  }
-
-  /* Checkbox Styling */
-  .form-group input[type="checkbox"] {
-    width: auto;
-    margin-right: 8px;
-  }
-
-  .form-group label[for="server_active"] {
+  /* Breadcrumbs */
+  .breadcrumbs {
     display: flex;
     align-items: center;
-    cursor: pointer;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
   }
 
-  /* Form Actions */
-  .form-actions {
-    margin-top: 30px;
+  .breadcrumb-link {
+    color: #7f8c8d;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .breadcrumb-link:hover {
+    color: #2c3e50;
+  }
+
+  .breadcrumb-separator {
+    color: #bdc3c7;
+  }
+
+  .breadcrumb-current {
+    color: #2c3e50;
+    font-weight: 600;
+  }
+
+  /* Page Header */
+  .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
-  /* Submit Button */
-  .form-submit {
-    background-color: #ff6e08;
+  .header-content h1 {
+    color: #2c3e50;
+    font-size: 2rem;
+    margin: 0;
+  }
+
+  .header-subtitle {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin: 0.5rem 0 0 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  /* Buttons */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #95a5a6;
     color: white;
-    padding: 12px 24px;
     border: none;
-    border-radius: 6px;
-    font-size: 16px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-  }
-
-  .form-submit:hover {
-    background-color: #ffc33c;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
-  }
-
-  /* Back Button */
-  .admin-btn--secondary {
-    background-color: #95a5a6;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
     text-decoration: none;
-    display: block;
-    text-align: center;
   }
 
-  .admin-btn--secondary:hover {
+  .btn-secondary:hover {
     background-color: #7f8c8d;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
   }
 
-  /* Required Field Indicator */
-  .required:after {
-    content: " *";
-    color: #e74c3c;
+  .btn-icon {
+    font-size: 1.1rem;
   }
 
-  /* Responsive Adjustments */
+  /* Guide Card */
+  .guide-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: white;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  }
+
+  .guide-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .guide-icon {
+    font-size: 2rem;
+  }
+
+  .guide-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .guide-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .guide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+  }
+
+  .guide-step {
+    background: white;
+    color: #667eea;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .guide-text strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+  }
+
+  .guide-text p {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+
+  .guide-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .note-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  /* Info Cards */
+  .info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .info-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .info-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  .info-content strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #2c3e50;
+  }
+
+  .info-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    line-height: 1.5;
+  }
+
+  .info-card-primary {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  }
+
+  .info-card-success {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  }
+
+  .info-card-warning {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  }
+
+  /* Form Section */
+  .form-section {
+    margin-bottom: 2rem;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 1024px) {
+    .admin-content {
+      margin-left: 0;
+      padding: 1rem;
+    }
+
+    .guide-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .info-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @media (max-width: 768px) {
-    .admin-section {
-      padding: 20px;
-      margin: 10px;
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
     }
 
-    .form-actions {
-      flex-direction: column-reverse;
-      gap: 15px;
+    .header-content h1 {
+      font-size: 1.5rem;
     }
 
-    .form-submit {
+    .header-subtitle {
+      font-size: 0.9rem;
+    }
+
+    .header-actions {
       width: 100%;
     }
+
+    .btn-secondary {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .guide-card {
+      padding: 1.5rem;
+    }
+
+    .guide-header h3 {
+      font-size: 1.25rem;
+    }
+
+    .guide-grid {
+      gap: 0.75rem;
+    }
+
+    .guide-item {
+      padding: 0.75rem;
+    }
+
+    .info-card {
+      padding: 1rem;
+    }
+
+    .breadcrumbs {
+      font-size: 0.85rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .guide-icon {
+      font-size: 1.5rem;
+    }
+
+    .guide-step {
+      width: 28px;
+      height: 28px;
+      font-size: 0.9rem;
+    }
+
+    .info-icon {
+      font-size: 1.5rem;
+    }
+
+    .info-content strong {
+      font-size: 0.95rem;
+    }
+
+    .info-content p {
+      font-size: 0.85rem;
+    }
+  }
+
+  /* Animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .guide-card,
+  .info-card,
+  .form-section {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .info-cards .info-card:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .info-cards .info-card:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .info-cards .info-card:nth-child(3) {
+    animation-delay: 0.3s;
   }
 </style>

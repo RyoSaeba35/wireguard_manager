@@ -13,31 +13,20 @@ class ExpireAbandonedSubscriptionsJob < ApplicationJob
   private
 
   def process_subscription(subscription)
-    Rails.logger.info "Reclaiming abandoned subscription #{subscription.name}"
+    Rails.logger.info "Expiring abandoned subscription #{subscription.name}"
 
     # Expire Stripe session if still open
     StripeSessionExpirer.expire(subscription)
 
-    # Safety check — should never have active devices at this stage
-    # but guard against edge cases
-    if subscription.devices.where(active: true).any?
-      Rails.logger.warn "Subscription #{subscription.name} has active devices despite being abandoned — doing full revocation"
-      SubscriptionRevocationService.new(subscription).revoke!
-      subscription.update!(status: "canceled")
-      return
-    end
-
-    # Return to pool — no SSH needed, clients untouched
+    # ⭐ NEW: No pool to return to - just mark as failed
     subscription.update!(
-      user_id: nil,
-      status: "preallocated",
+      status: "failed",
       stripe_session_id: nil
     )
 
-    Rails.logger.info "Successfully returned #{subscription.name} to preallocated pool"
+    Rails.logger.info "Marked abandoned subscription #{subscription.name} as failed"
   rescue => e
-    Rails.logger.error "Failed to reclaim subscription #{subscription.name}: #{e.message}"
-    # Last resort — mark canceled so it doesn't get stuck in pending forever
-    subscription.update!(status: "canceled") rescue nil
+    Rails.logger.error "Failed to expire subscription #{subscription.name}: #{e.message}"
+    subscription.update!(status: "failed") rescue nil
   end
 end

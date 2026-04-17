@@ -5,17 +5,11 @@ class Api::DevicesController < ApplicationController
   before_action :authenticate_api_user!, only: [:register]
   before_action :authenticate_device!, only: [:connect, :disconnect, :heartbeat, :credentials]
 
-  MAX_DEVICES = 3
-
   # POST api/devices/register
-  # ✅ CHANGED: Allow registration even without active subscription
-  # Device stays registered, but can't connect without subscription
   def register
-    # ✅ Look for ANY subscription (active or not)
     subscription = @current_api_user.subscriptions.last
 
     unless subscription
-      # User has never had a subscription
       render json: {
         error: "No subscription found",
         message: "You need to purchase a subscription first.",
@@ -25,20 +19,17 @@ class Api::DevicesController < ApplicationController
       return
     end
 
-    # ✅ Allow registration even if subscription is expired
-    # Just use the most recent subscription (active or not)
-
-    # Look for device ANYWHERE first (not scoped to subscription)
+    # Find or create device
     device = Device.find_by(device_id: params[:device_id])
 
     if device
-      # Device exists - link it to the current subscription
+      # Device exists - link it to current subscription if different
       if device.subscription_id != subscription.id
-        Rails.logger.info "🔄 Auto-linking existing device #{device.device_id} from subscription #{device.subscription_id} to subscription #{subscription.id}"
+        Rails.logger.info "🔄 Auto-linking device #{device.device_id} to subscription #{subscription.id}"
         device.update!(subscription: subscription, active: false)
       end
     else
-      # Device doesn't exist - create new one
+      # Create new device
       device = subscription.devices.new(device_id: params[:device_id])
     end
 
@@ -60,45 +51,96 @@ class Api::DevicesController < ApplicationController
   end
 
   # POST api/connect/:device_id
-  # ✅ Check order: Subscription (via before_action) → Device Limit → Assign Credentials
   def connect
     subscription = current_subscription
     device = current_device
 
-    # Subscription is already checked in authenticate_device! before_action
-    # If we're here, subscription is active
-
-    # ✅ STEP 2: Check active device limit
+    # ⭐ STEP 1: Check device limit
     active_count = subscription.devices
                                 .where(active: true)
                                 .where.not(id: device.id)
                                 .count
 
-    if active_count >= MAX_DEVICES
+    if active_count >= subscription.max_devices
       render json: {
         error: "Maximum active devices reached",
-        message: "You can only have #{MAX_DEVICES} devices connected simultaneously. Please disconnect another device first.",
-        max_devices: MAX_DEVICES,
+        message: "You can only have #{subscription.max_devices} devices connected simultaneously.",
+        max_devices: subscription.max_devices,
         active_devices: active_count,
         action_required: "disconnect_device"
-      }, status: :too_many_requests  # 429
+      }, status: :too_many_requests
       return
     end
 
-    # ✅ STEP 3: Check if WireGuard slots available
-    available_wg_client = subscription.wireguard_clients.where(device_id: nil).exists?
-    already_has_wg = subscription.wireguard_clients.exists?(device_id: device.id)
+    # ⭐ STEP 2: Check if device already has a config
+    existing_config = device.vpn_config_set
 
-    unless available_wg_client || already_has_wg
+    if existing_config&.status == 'in_use'
+      # Device already connected with this config
+      Rails.logger.info "✅ Device #{device.id} already has config #{existing_config.ip_address}"
+
+      device.update!(
+        active: true,
+        last_seen_at: Time.current,
+        last_connection_ip: request.remote_ip
+      )
+
+      credentials = build_credentials_from_config(existing_config)
+
       render json: {
-        error: "Maximum active devices reached",
-        message: "All WireGuard connection slots are in use. Please disconnect another device first.",
-        action_required: "disconnect_device"
-      }, status: :too_many_requests  # 429
+        message: "Already connected",
+        credentials: credentials
+      }, status: :ok
       return
     end
 
-    # ✅ STEP 4: Mark device as active and assign credentials
+    # ⭐ STEP 3: Find best server
+    selector = ServerSelectorService.new
+    server = selector.find_best_server(
+      user_ip: request.remote_ip,
+      preferred_location: params[:preferred_location]
+    )
+
+    unless server
+      render json: {
+        error: "No servers available",
+        message: "All servers are currently at capacity. Please try again in a few minutes."
+      }, status: :service_unavailable
+      return
+    end
+
+    # ⭐ STEP 4: Claim config from pool
+    config_set = nil
+
+    VpnConfigSet.transaction do
+      config_set = VpnConfigSet.where(server: server, status: 'available')
+                               .lock('FOR UPDATE SKIP LOCKED')
+                               .first
+
+      if config_set
+        config_set.claim!(device)
+      end
+    end
+
+    unless config_set
+      render json: {
+        error: "Server at capacity",
+        message: "Selected server is currently full. Trying another server...",
+        retry: true
+      }, status: :service_unavailable
+      return
+    end
+
+    # ⭐ STEP 5: Create connection record
+    connection = VpnConnection.create!(
+      user: device.user,
+      device: device,
+      config_set: config_set,
+      server: server,
+      connected_at: Time.current
+    )
+
+    # ⭐ STEP 6: Update device status
     device.update!(
       active: true,
       connected_at: Time.current,
@@ -106,36 +148,43 @@ class Api::DevicesController < ApplicationController
       last_connection_ip: request.remote_ip
     )
 
-    # ✅ STEP 5: Build and return credentials (with assignment)
-    credentials = build_credentials(device, assign: true)
-
-    # Double-check that WireGuard credentials were successfully assigned
-    unless credentials[:wireguard].present?
-      device.update!(active: false, connected_at: nil)
-      render json: {
-        error: "Maximum active devices reached",
-        message: "Failed to assign connection credentials. Please try again or disconnect another device.",
-        action_required: "disconnect_device"
-      }, status: :too_many_requests
-      return
-    end
+    # ⭐ STEP 7: Build and return credentials
+    credentials = build_credentials_from_config(config_set)
 
     render json: {
       message: "Connected successfully",
+      server: {
+        name: server.name,
+        location: server.location || server.city,
+        country: server.country_code
+      },
       credentials: credentials
     }, status: :ok
+
+  rescue => e
+    Rails.logger.error "Connection failed for device #{device.id}: #{e.message}"
+    render json: {
+      error: "Connection failed",
+      message: "An error occurred while connecting. Please try again."
+    }, status: :internal_server_error
   end
 
   # POST api/disconnect/:device_id
   def disconnect
     device = current_device
-    subscription = device.subscription
 
-    # Free all protocol clients back to the pool
-    subscription.wireguard_clients.where(device_id: device.id).update_all(device_id: nil)
-    subscription.hysteria2_clients.where(device_id: device.id).update_all(device_id: nil)
-    subscription.shadowsocks_clients.where(device_id: device.id).update_all(device_id: nil)
+    # Release config back to pool
+    config_set = device.vpn_config_set
+    if config_set
+      config_set.release!
+      Rails.logger.info "Released config #{config_set.ip_address} from device #{device.id}"
+    end
 
+    # Close active connection
+    active_connection = device.vpn_connections.active.last
+    active_connection&.update!(disconnected_at: Time.current)
+
+    # Mark device as inactive
     device.update!(active: false, connected_at: nil)
 
     render json: { message: "Disconnected successfully" }, status: :ok
@@ -143,8 +192,31 @@ class Api::DevicesController < ApplicationController
 
   # GET api/credentials/:device_id
   def credentials
+    device = current_device
+    config_set = device.vpn_config_set
+
+    unless config_set
+      render json: {
+        error: "Not connected",
+        message: "Device is not connected to VPN"
+      }, status: :not_found
+      return
+    end
+
     render json: {
-      credentials: build_credentials(current_device, assign: false)
+      credentials: build_credentials_from_config(config_set)
+    }, status: :ok
+  end
+
+  # POST api/heartbeat/:device_id
+  def heartbeat
+    device = current_device
+
+    device.update!(last_seen_at: Time.current)
+
+    render json: {
+      status: "alive",
+      subscription_active: device.subscription.active?
     }, status: :ok
   end
 
@@ -159,11 +231,9 @@ class Api::DevicesController < ApplicationController
     end
 
     begin
-      secret = ENV['DEVISE_JWT_SECRET_KEY']
-
       payload = JWT.decode(
         token,
-        secret,
+        ENV['DEVISE_JWT_SECRET_KEY'],
         true,
         algorithm: 'HS256'
       ).first
@@ -180,7 +250,6 @@ class Api::DevicesController < ApplicationController
     end
   end
 
-  # ✅ CRITICAL: Check subscription status in authenticate_device! (not register!)
   def authenticate_device!
     api_key = request.headers['X-Api-Key']
 
@@ -188,7 +257,7 @@ class Api::DevicesController < ApplicationController
       render json: {
         error: "API key required",
         message: "Device not registered. Please login again."
-      }, status: :unauthorized  # 401
+      }, status: :unauthorized
       return
     end
 
@@ -198,33 +267,30 @@ class Api::DevicesController < ApplicationController
       render json: {
         error: "Invalid API key",
         message: "Device not registered. Please login again."
-      }, status: :unauthorized  # 401
+      }, status: :unauthorized
       return
     end
 
-    # ✅ STEP 1: Check subscription status (ONLY for /connect, /disconnect, etc.)
+    # Check subscription status
     current_subscription = @current_device.subscription
 
-    # Try to auto-link to active subscription if current one is expired/inactive
     unless current_subscription.active?
+      # Try to auto-link to active subscription
       active_subscription = @current_device.user.subscriptions.active.first
 
       if active_subscription
-        Rails.logger.info "🔄 Auto-linking device #{@current_device.device_id} from subscription #{current_subscription.id} (#{current_subscription.status}) to active subscription #{active_subscription.id}"
+        Rails.logger.info "🔄 Auto-linking device to active subscription"
         @current_device.update!(subscription: active_subscription, active: false)
-
-        # Reload to use the new subscription
         @current_device.reload
       else
-        # ✅ NO ACTIVE SUBSCRIPTION - Return 403 with renewal info
         render json: {
           error: "No active subscription",
-          message: "Your subscription has expired. Please renew to continue using VulcainVPN.",
+          message: "Your subscription has expired. Please renew to continue.",
           subscription_status: current_subscription.status,
           expires_at: current_subscription.expires_at,
           action_required: "renew",
           renewal_url: "https://www.vulcainvpn.com/dashboard/"
-        }, status: :forbidden  # 403
+        }, status: :forbidden
         return
       end
     end
@@ -238,98 +304,41 @@ class Api::DevicesController < ApplicationController
     @current_device.subscription
   end
 
-  def build_credentials(device, assign:)
-    subscription = device.subscription
-    server = subscription.server
+  # ⭐ NEW: Build credentials from config set
+  def build_credentials_from_config(config_set)
+    server = config_set.server
 
-    {
-      wireguard: build_wireguard_credentials(device, subscription, server, assign: assign),
-      hysteria2: build_hysteria2_credentials(device, subscription, server, assign: assign),
-      shadowsocks: build_shadowsocks_credentials(device, subscription, server, assign: assign)
+    credentials = {
+      wireguard: {
+        server_ip: server.ip_address,
+        server_port: server.wireguard_port,
+        server_public_key: server.wireguard_public_key,
+        client_private_key: config_set.wireguard_private_key,
+        client_public_key: config_set.wireguard_public_key,
+        client_preshared_key: config_set.wireguard_preshared_key,
+        client_ip: config_set.ip_address
+      }
     }
-  end
 
-  def build_wireguard_credentials(device, subscription, server, assign:)
-    client = nil
+    # Add sing-box protocols if enabled
+    if server.singbox_active?
+      credentials[:hysteria2] = {
+        server: server.singbox_server_name,
+        port: server.singbox_hysteria2_port,
+        password: config_set.hysteria2_password,
+        obfs_type: "salamander",
+        obfs_password: server.singbox_salamander_password,
+        tls_server_name: server.singbox_server_name
+      }
 
-    ActiveRecord::Base.transaction do
-      client = subscription.wireguard_clients.find_by(device_id: device.id)
-
-      if client.nil? && assign
-        client = subscription.wireguard_clients
-                             .where(device_id: nil)
-                             .lock("FOR UPDATE SKIP LOCKED")
-                             .first
-        client&.update!(device_id: device.id)
-      end
+      credentials[:shadowsocks] = {
+        server: server.ip_address,
+        port: server.singbox_ss_port,
+        method: "2022-blake3-aes-256-gcm",
+        password: "#{server.singbox_ss_master_password}:#{config_set.shadowsocks_password}"
+      }
     end
 
-    return nil unless client
-
-    {
-      server_ip: server.ip_address,
-      server_port: server.wireguard_port,
-      server_public_key: server.wireguard_public_key,
-      client_private_key: client.private_key,
-      client_public_key: client.public_key,
-      client_preshared_key: client.preshared_key,
-      client_ip: client.ip_address
-    }
-  end
-
-  def build_hysteria2_credentials(device, subscription, server, assign:)
-    return nil unless server.singbox_active?
-
-    client = nil
-
-    ActiveRecord::Base.transaction do
-      client = subscription.hysteria2_clients.find_by(device_id: device.id)
-
-      if client.nil? && assign
-        client = subscription.hysteria2_clients
-                             .where(device_id: nil)
-                             .lock("FOR UPDATE SKIP LOCKED")
-                             .first
-        client&.update!(device_id: device.id)
-      end
-    end
-
-    return nil unless client
-
-    {
-      server: server.singbox_server_name,
-      port: server.singbox_hysteria2_port,
-      password: client.password,
-      obfs_type: "salamander",
-      obfs_password: server.singbox_salamander_password,
-      tls_server_name: server.singbox_server_name
-    }
-  end
-
-  def build_shadowsocks_credentials(device, subscription, server, assign:)
-    return nil unless server.singbox_active?
-
-    client = nil
-
-    ActiveRecord::Base.transaction do
-      client = subscription.shadowsocks_clients.find_by(device_id: device.id)
-
-      if client.nil? && assign
-        client = subscription.shadowsocks_clients
-                             .where(device_id: nil)
-                             .lock("FOR UPDATE SKIP LOCKED")
-                             .first
-        client&.update!(device_id: device.id)
-      end
-    end
-
-    return nil unless client
-
-    {
-      server: server.ip_address,
-      port: server.singbox_ss_port,
-      method: "2022-blake3-aes-256-gcm",
-      password: "#{server.singbox_ss_master_password}:#{client.password}"
-    }
+    credentials
   end
 end

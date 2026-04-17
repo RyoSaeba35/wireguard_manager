@@ -35,14 +35,7 @@
           <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
           <div class="plan-features">
             <% plan.description.split(', ').each do |feature| %>
-              <% if feature.include?("Devices") %>
-                <p>
-                  <strong><span class="checkmark">➤</span> <%= feature %></strong>
-                  <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
-                </p>
-              <% else %>
-                <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
-              <% end %>
+              <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
             <% end %>
           </div>
           <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>
@@ -64,14 +57,7 @@
                 <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
                 <div class="plan-features">
                   <% plan.description.split(', ').each do |feature| %>
-                    <% if feature.include?("Devices") %>
-                      <p>
-                        <strong><span class="checkmark">➤</span> <%= feature %></strong>
-                        <%# <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span> %>
-                      </p>
-                    <% else %>
-                      <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
-                    <% end %>
+                    <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
                   <% end %>
                 </div>
                 <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>

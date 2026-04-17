@@ -1,15 +1,21 @@
+# app/models/subscription.rb
 class Subscription < ApplicationRecord
-  belongs_to :user, optional: true  # Allow user_id to be nil
+  belongs_to :user, optional: true  # Allow nil for future use
   belongs_to :plan
-  belongs_to :server
-  has_many :wireguard_clients, dependent: :destroy
-  has_many :shadowsocks_clients, dependent: :destroy
-  has_many :hysteria2_clients, dependent: :destroy
+
+  # NEW: No server association (pooling!)
+  # REMOVED: belongs_to :server
+
+  # NEW: Keep devices
   has_many :devices, dependent: :destroy
 
+  # NEW: Connections through devices
+  has_many :vpn_connections, through: :devices
+
   validates :name, :price, :plan, :expires_at, presence: true
-  validates :name, uniqueness: true  # Globally unique names
+  validates :name, uniqueness: true
   validates :price, numericality: { greater_than: 0 }
+  validates :max_devices, numericality: { only_integer: true, greater_than: 0 }
 
   before_validation :set_plan_interval, on: :create
 
@@ -23,17 +29,10 @@ class Subscription < ApplicationRecord
     where("expires_at < ?", Time.current)
   }
 
-  scope :pending, -> {
-    where(status: "pending")
-  }
+  scope :pending, -> { where(status: "pending") }
+  scope :payment_pending, -> { where(status: "payment_pending") }
 
-   scope :payment_pending, -> {
-    where(status: "payment_pending")
-  }
-
-  scope :preallocated, -> {
-    where(user_id: nil, status: "preallocated")
-  }
+  # REMOVED: preallocated scope (no more preallocated subscriptions)
 
   # URL-friendly parameter
   def to_param
@@ -61,9 +60,16 @@ class Subscription < ApplicationRecord
     expires_at < Time.current
   end
 
-  def preallocated?
-    status == "preallocated"
+  # Helper: current active devices
+  def active_devices_count
+    devices.where(active: true).count
   end
+
+  def can_add_device?
+    active_devices_count < max_devices
+  end
+
+  private
 
   def set_plan_interval
     self.plan_interval = plan.interval

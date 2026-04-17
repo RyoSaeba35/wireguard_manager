@@ -1,30 +1,22 @@
 # app/jobs/clash_api_monitor_job.rb
 require 'net/http'
-require 'net/ssh'
 require 'json'
 
 class ClashApiMonitorJob < ApplicationJob
-  include SshKeyManager
-
   queue_as :default
 
   CLASH_API_PORT = 9090
-  LOG_FILE_PATH = "/var/log/sing-box/connections.log"
-  LINES_TO_READ = 1000
-
-  # ✅ NEW: Grace period before deactivating devices
-  # This allows users to go through tunnels, switch networks, airplane mode, etc.
-  DEACTIVATION_GRACE_PERIOD = 5.minutes  # Adjust as needed (5-10 minutes recommended)
+  DEACTIVATION_GRACE_PERIOD = 5.minutes
 
   def perform
     devices_with_real_connections = Set.new
 
-    Server.where(active: true, singbox_active: true).find_each do |server|
+    Server.active.healthy.where(singbox_active: true).find_each do |server|
       active_device_ids = monitor_server(server)
       devices_with_real_connections.merge(active_device_ids)
     end
 
-    # ✅ Mark devices with real connections as active
+    # Mark devices with real connections as active
     if devices_with_real_connections.any?
       Device.where(id: devices_with_real_connections).update_all(
         active: true,
@@ -32,30 +24,31 @@ class ClashApiMonitorJob < ApplicationJob
       )
     end
 
-    # ✅ CHANGED: Only deactivate devices that have been inactive for > grace period
+    # Deactivate devices that have been inactive for > grace period
     currently_active_device_ids = Device.where(active: true).pluck(:id)
     potentially_inactive_device_ids = currently_active_device_ids - devices_with_real_connections.to_a
 
     if potentially_inactive_device_ids.any?
-      # ✅ NEW: Check last_seen_at and only deactivate if grace period exceeded
       devices_to_deactivate = Device
         .where(id: potentially_inactive_device_ids)
         .where('last_seen_at < ?', DEACTIVATION_GRACE_PERIOD.ago)
         .pluck(:id)
 
       if devices_to_deactivate.any?
-        free_clients_for_devices(devices_to_deactivate)
+        # ⭐ NEW: Release configs back to pool
+        release_configs_for_devices(devices_to_deactivate)
+
         Device.where(id: devices_to_deactivate).update_all(
           active: false,
           last_seen_at: Time.current
         )
+
         Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices (inactive > #{DEACTIVATION_GRACE_PERIOD.inspect})"
       end
 
-      # ✅ NEW: Log devices in grace period (for debugging)
       devices_in_grace = potentially_inactive_device_ids - devices_to_deactivate
       if devices_in_grace.any?
-        Rails.logger.info "⏳ #{devices_in_grace.size} devices in grace period (tunnel/network switch/airplane mode)"
+        Rails.logger.info "⏳ #{devices_in_grace.size} devices in grace period"
       end
     end
   end
@@ -63,261 +56,44 @@ class ClashApiMonitorJob < ApplicationJob
   private
 
   def monitor_server(server)
-    username_to_port = read_log_file(server)
-
-    Rails.logger.info "📊 Found #{username_to_port.size} username mappings from logs"
-
     connections = get_active_connections(server)
-
-    Rails.logger.info "🔌 Found #{connections.size} active connections"
-
-    detect_password_theft(username_to_port, connections, server)
+    Rails.logger.info "🔌 Found #{connections.size} active connections on #{server.name}"
 
     active_device_ids = Set.new
-    matched_connections = Set.new  # Track unique IP:port combinations
+    matched_connections = Set.new
 
     connections.each do |conn|
       source_ip = conn.dig("metadata", "sourceIP")
-      source_port = conn.dig("metadata", "sourcePort")
-      source_key = "#{source_ip}:#{source_port}"  # Unique key
+      next unless source_ip
 
-      username = username_to_port[source_key]
+      # ⭐ NEW: In pooling, username IS the IP address
+      # Find the config set by IP
+      config_set = VpnConfigSet.find_by(server: server, ip_address: source_ip, status: 'in_use')
 
-      if username
-        # Skip if we already processed this IP:port
-        if matched_connections.include?(source_key)
-          next
-        end
-        matched_connections.add(source_key)  # Mark as processed
-
-        client = find_client(username)
-
-        # Kill orphan connections (explicitly disconnected)
-        if client && client.device_id.nil?
-          Rails.logger.warn "🧹 Killing orphan connection: #{username} (user disconnected)"
-          kill_connection(server, conn["id"])
-          next
-        end
-
-        # Skip locked clients
-        if client&.locked_at
-          Rails.logger.warn "⚠️ Skipping locked client: #{username}"
-          kill_connection(server, conn["id"])
-          next
-        end
-
-        next unless client&.device
-
-        device = client.device
-
-        unless device.subscription&.active?
-          kill_connection(server, conn["id"])
-          Rails.logger.warn "❌ Killed unauthorized: #{username}"
-          next
-        end
-
-        Rails.logger.info "✅ Matched: #{source_key} → #{username}"  # Now logs once per unique connection
-        active_device_ids << device.id
-      else
-        # Also deduplicate "No username" warnings
-        unless matched_connections.include?(source_key)
-          Rails.logger.warn "⚠️ No username for: #{source_key}"
-          matched_connections.add(source_key)
-        end
-      end
-    end
-
-    Rails.logger.info "✅ #{active_device_ids.size} active devices"
-
-    # ✅ Mark devices with real connections as active
-    if active_device_ids.any?
-      Device.where(id: active_device_ids).update_all(
-        active: true,
-        last_seen_at: Time.current
-      )
-    end
-
-    # ✅ CHANGED: Deactivate devices claiming to be active but with no connection (WITH GRACE PERIOD)
-    currently_active_device_ids = Device.where(active: true).pluck(:id)
-    potentially_inactive_device_ids = currently_active_device_ids - active_device_ids.to_a
-
-    if potentially_inactive_device_ids.any?
-      # ✅ NEW: Only deactivate if grace period exceeded
-      devices_to_deactivate = Device
-        .where(id: potentially_inactive_device_ids)
-        .where('last_seen_at < ?', DEACTIVATION_GRACE_PERIOD.ago)
-        .pluck(:id)
-
-      if devices_to_deactivate.any?
-        free_clients_for_devices(devices_to_deactivate)
-        Device.where(id: devices_to_deactivate).update_all(
-          active: false,
-          last_seen_at: Time.current
-        )
-        Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices (inactive > #{DEACTIVATION_GRACE_PERIOD.inspect})"
+      unless config_set
+        Rails.logger.warn "⚠️ No config set for IP: #{source_ip}"
+        next
       end
 
-      # ✅ NEW: Log devices in grace period
-      devices_in_grace = potentially_inactive_device_ids - devices_to_deactivate
-      if devices_in_grace.any?
-        Rails.logger.info "⏳ #{devices_in_grace.size} devices in grace period (server: #{server.name})"
+      device = config_set.device
+      unless device
+        Rails.logger.warn "⚠️ Config set #{source_ip} has no device"
+        next
       end
+
+      # Check subscription status
+      unless device.subscription&.active?
+        kill_connection(server, conn["id"])
+        Rails.logger.warn "❌ Killed unauthorized: #{source_ip}"
+        next
+      end
+
+      Rails.logger.info "✅ Active: #{source_ip} → Device #{device.id}"
+      active_device_ids << device.id
     end
 
+    Rails.logger.info "✅ #{active_device_ids.size} active devices on #{server.name}"
     active_device_ids.to_a
-  end
-
-  def detect_password_theft(username_to_port, connections, server)
-    connections_by_username = {}
-
-    connections.each do |conn|
-      source_ip = conn.dig("metadata", "sourceIP")
-      source_port = conn.dig("metadata", "sourcePort")
-      username = username_to_port["#{source_ip}:#{source_port}"]
-
-      next unless username
-
-      connections_by_username[username] ||= []
-      connections_by_username[username] << {
-        ip: source_ip,
-        port: source_port,
-        connection_id: conn["id"]
-      }
-    end
-
-    connections_by_username.each do |username, conns|
-      unique_ips = conns.map { |c| c[:ip] }.uniq
-
-      # Skip if only 1 IP (normal case)
-      next if unique_ips.size == 1
-
-      Rails.logger.info "🔍 Checking #{username}: #{unique_ips.size} different IPs"
-
-      # Get geolocation for each IP
-      geolocations = unique_ips.map do |ip|
-        geo = get_geolocation(ip)
-        { ip: ip, geo: geo }
-      end
-
-      countries = geolocations.map { |g| g[:geo][:country] }.uniq.compact
-
-      if countries.size > 1
-        # CRITICAL: Password used in multiple countries simultaneously!
-        Rails.logger.error "🚨 CRITICAL PASSWORD THEFT: #{username} used in #{countries.join(' + ')} simultaneously!"
-        Rails.logger.error "   IPs: #{geolocations.map { |g| "#{g[:ip]} (#{g[:geo][:country]}, #{g[:geo][:city]})" }.join(' | ')}"
-
-        # Kill all connections for this username
-        conns.each do |c|
-          kill_connection_by_connection_id(server, c[:connection_id])
-        end
-
-        # Lock the client
-        client = find_client(username)
-        if client
-          client.update!(
-            locked_at: Time.current,
-            locked_reason: "Password used from #{countries.join(', ')} simultaneously at #{Time.current.strftime('%Y-%m-%d %H:%M UTC')}"
-          )
-
-          # Send critical alert
-          AdminMailer.password_theft_alert(
-            username: username,
-            geolocations: geolocations,
-            client: client
-          ).deliver_now
-
-          Rails.logger.error "🔒 Locked client #{username}"
-        end
-      else
-        # Same country, different IPs - probably legitimate (WiFi switching)
-        Rails.logger.info "ℹ️ #{username} using #{unique_ips.size} IPs in #{countries.first || 'Unknown'} (likely network switching)"
-      end
-    end
-  rescue => e
-    Rails.logger.error "Password theft detection failed: #{e.message}"
-  end
-
-  def get_geolocation(ip)
-    # Skip private/local IPs
-    return { country: 'Local', city: 'Private Network' } if ip.start_with?('192.168.', '10.', '172.16.', '127.')
-
-    # Check cache first (avoid API rate limits)
-    cache_key = "geolocation:#{ip}"
-    cached = Rails.cache.read(cache_key)
-    return cached if cached
-
-    # Use ipapi.co (free tier: 1000 requests/day)
-    response = HTTParty.get("https://ipapi.co/#{ip}/json/", timeout: 3)
-
-    geo = if response.success? && response['country']
-      {
-        country: response['country_name'] || 'Unknown',
-        city: response['city'] || 'Unknown',
-        country_code: response['country'] || 'XX'
-      }
-    else
-      { country: 'Unknown', city: 'Unknown', country_code: 'XX' }
-    end
-
-    # Cache for 24 hours
-    Rails.cache.write(cache_key, geo, expires_in: 24.hours)
-    geo
-  rescue => e
-    Rails.logger.warn "Geolocation failed for #{ip}: #{e.message}"
-    { country: 'Unknown', city: 'Unknown', country_code: 'XX' }
-  end
-
-  def read_log_file(server)
-    mapping = {}
-    private_key_path = nil
-
-    begin
-      private_key_path = write_private_key(server)
-
-      Net::SSH.start(server.ip_address, server.ssh_user, keys: [private_key_path], verify_host_key: :never) do |ssh|
-        log_content = ssh.exec!("tail -n #{LINES_TO_READ} #{LOG_FILE_PATH}")
-
-        # Group lines by connection ID
-        connections_by_id = {}
-
-        log_content.each_line do |line|
-          conn_id_match = line.match(/\[(\d+)\s+\d+ms\]/)
-          next unless conn_id_match
-
-          conn_id = conn_id_match[1]
-          connections_by_id[conn_id] ||= []
-          connections_by_id[conn_id] << line
-        end
-
-        # Match IP:PORT with USERNAME for same connection ID
-        connections_by_id.each do |conn_id, lines|
-          ip = nil
-          port = nil
-          username = nil
-
-          lines.each do |line|
-            if ip_port_match = line.match(/from\s+([\d\.]+):(\d+)/)
-              ip = ip_port_match[1]
-              port = ip_port_match[2]
-            end
-
-            if username_match = line.match(/\[([A-Z0-9_]+)\]/)
-              username = username_match[1]
-            end
-          end
-
-          if ip && port && username
-            mapping["#{ip}:#{port}"] = username
-          end
-        end
-      end
-    rescue => e
-      Rails.logger.error "Failed to read log file: #{e.message}"
-    ensure
-      File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
-    end
-
-    mapping
   end
 
   def get_active_connections(server)
@@ -335,14 +111,8 @@ class ClashApiMonitorJob < ApplicationJob
     data = JSON.parse(response.body)
     data["connections"] || []
   rescue => e
-    Rails.logger.error "Failed to get connections: #{e.message}"
+    Rails.logger.error "Failed to get connections from #{server.name}: #{e.message}"
     []
-  end
-
-  def find_client(username)
-    Hysteria2Client.find_by(name: username) ||
-      ShadowsocksClient.find_by(name: username) ||
-      WireguardClient.find_by(name: username)
   end
 
   def kill_connection(server, connection_id)
@@ -358,15 +128,18 @@ class ClashApiMonitorJob < ApplicationJob
     Rails.logger.error "Failed to kill connection: #{e.message}"
   end
 
-  alias_method :kill_connection_by_connection_id, :kill_connection
-
-  def free_clients_for_devices(device_ids)
+  # ⭐ NEW: Release configs back to pool instead of freeing individual clients
+  def release_configs_for_devices(device_ids)
     return if device_ids.empty?
 
-    Hysteria2Client.where(device_id: device_ids).update_all(device_id: nil)
-    ShadowsocksClient.where(device_id: device_ids).update_all(device_id: nil)
-    WireguardClient.where(device_id: device_ids).update_all(device_id: nil)
+    VpnConfigSet.where(device_id: device_ids, status: 'in_use').find_each do |config_set|
+      config_set.release!
+      Rails.logger.info "Released config #{config_set.ip_address} back to pool"
+    end
 
-    Rails.logger.info "🔓 Freed clients for #{device_ids.size} devices"
+    # Close active connections
+    VpnConnection.where(device_id: device_ids, disconnected_at: nil).update_all(disconnected_at: Time.current)
+
+    Rails.logger.info "🔓 Released configs for #{device_ids.size} devices"
   end
 end

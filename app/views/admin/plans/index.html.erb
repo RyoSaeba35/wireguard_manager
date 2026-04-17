@@ -1,495 +1,997 @@
+<!-- app/views/admin/plans/index.html.erb -->
 <div class="admin-container">
-  <!-- Sidebar Navigation -->
   <%= render 'admin/sidebar' %>
 
-  <!-- Main Content: Plans Page -->
   <div class="admin-content">
-    <h1>Subscription Plans</h1>
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1>📋 Subscription Plans</h1>
+        <p class="header-subtitle">Manage pricing tiers and features</p>
+      </div>
+      <button class="btn-primary add-plan-btn">
+        <span class="btn-icon">+</span>
+        Add New Plan
+      </button>
+    </div>
 
-    <!-- Success/Error Messages -->
+    <!-- Flash Messages -->
     <% if flash[:notice] %>
       <div class="alert alert-success">
+        <span class="alert-icon">✓</span>
         <%= flash[:notice] %>
       </div>
     <% end %>
     <% if flash[:alert] %>
       <div class="alert alert-warning">
+        <span class="alert-icon">⚠</span>
         <%= flash[:alert] %>
       </div>
     <% end %>
 
-    <!-- Add New Plan Button -->
-    <div class="admin-actions">
-      <button class="add-plan-btn admin-btn admin-btn--plans">Add New Plan</button>
-    </div>
+    <!-- Plans Grid -->
+    <% if @plans.any? %>
+      <div class="plans-grid">
+        <% @plans.each do |plan| %>
+          <div class="plan-card" data-plan-id="<%= plan.id %>">
+            <!-- Plan Header -->
+            <div class="plan-card-header">
+              <div class="plan-title-section">
+                <h3 class="plan-name editable" data-field="name" data-plan-id="<%= plan.id %>">
+                  <%= plan.name %>
+                </h3>
+                <div class="plan-meta">
+                  <span class="plan-interval"><%= plan.interval.capitalize %>ly</span>
+                  <span class="plan-status">
+                    <label class="toggle-switch">
+                      <input type="checkbox" class="plan-active-toggle"
+                             data-plan-id="<%= plan.id %>"
+                             <%= plan.active ? 'checked' : '' %>>
+                      <span class="toggle-slider"></span>
+                    </label>
+                    <span class="status-text"><%= plan.active ? 'Active' : 'Inactive' %></span>
+                  </span>
+                </div>
+              </div>
+              <div class="plan-price editable" data-field="price" data-plan-id="<%= plan.id %>">
+                <span class="price-currency">€</span>
+                <span class="price-value"><%= plan.price %></span>
+                <span class="price-period">/<%= plan.interval %></span>
+              </div>
+            </div>
 
-    <!-- Plans Table -->
-    <div class="admin-section">
-      <h2>Available Plans (<%= @plans.count %>)</h2>
-      <% if @plans.any? %>
-        <div class="table-responsive">
-          <table class="plans-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Interval</th>
-                <th>Active</th>
-                <th>Features</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="plans-table-body">
-              <% @plans.each do |plan| %>
-                <tr class="plan-row" data-plan-id="<%= plan.id %>">
-                  <td class="editable" data-field="name" data-plan-id="<%= plan.id %>"><%= plan.name %></td>
-                  <td class="editable" data-field="price" data-plan-id="<%= plan.id %>">€<%= plan.price %></td>
-                  <td><%= plan.interval.capitalize %></td>
-                  <td>
-                    <input type="checkbox" class="plan-active-toggle" data-plan-id="<%= plan.id %>" <%= plan.active ? 'checked' : '' %>>
-                  </td>
-                  <td class="editable" data-field="description" data-plan-id="<%= plan.id %>">
-                    <%= plan.description %>
-                  </td>
-                  <td>
-                    <button class="edit-plan-btn admin-btn admin-btn--users" data-plan-id="<%= plan.id %>">Edit</button>
-                    <button class="save-plan-btn admin-btn admin-btn--servers" data-plan-id="<%= plan.id %>" style="display: none;">Save</button>
-                    <button class="cancel-plan-btn admin-btn" data-plan-id="<%= plan.id %>" style="display: none;">Cancel</button>
-                  </td>
-                </tr>
+            <!-- Plan Features -->
+            <div class="plan-features editable" data-field="description" data-plan-id="<%= plan.id %>">
+              <% plan.description.split(', ').each do |feature| %>
+                <div class="feature-item">
+                  <span class="feature-icon">✓</span>
+                  <%= feature %>
+                </div>
               <% end %>
-            </tbody>
-          </table>
-        </div>
-      <% else %>
-        <div class="empty-state">
-          <p>No plans found.</p>
-          <button class="add-plan-btn admin-btn admin-btn--plans">Add Your First Plan</button>
-        </div>
-      <% end %>
-    </div>
-  </div>
+            </div>
 
-  <!-- Add Plan Modal -->
-  <div id="add-plan-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-modal">&times;</span>
-      <h3>Add New Plan</h3>
-      <%= form_with(model: [:admin, Plan.new], id: 'add-plan-form') do |form| %>
-        <div class="form-group">
-          <%= form.label :name, "Plan Name:" %>
-          <%= form.text_field :name, id: 'new-plan-name', required: true, class: 'form-control' %>
-        </div>
-        <div class="form-group">
-          <%= form.label :price, "Price:" %>
-          <%= form.number_field :price, id: 'new-plan-price', step: 0.01, required: true, class: 'form-control' %>
-        </div>
-        <div class="form-group">
-          <%= form.label :interval, "Interval:" %>
-          <%= form.select :interval, options_for_select([['Week', 'week'], ['Month', 'month'], ['Year', 'year']], 'month'), {}, id: 'new-plan-interval', required: true, class: 'form-control' %>
-        </div>
-        <div class="form-group">
-          <%= form.label :description, "Features (comma-separated):" %>
-          <%= form.text_area :description, id: 'new-plan-features', rows: 3, required: true, class: 'form-control' %>
-        </div>
-        <div class="form-group">
-          <%= form.label :active, class: 'checkbox-label' do %>
-            <%= form.check_box :active, id: 'new-plan-active', checked: true %>
-            Active
-          <% end %>
-        </div>
-        <%= form.submit 'Create Plan', class: 'admin-btn admin-btn--plans' %>
-      <% end %>
-    </div>
+            <!-- Plan Actions -->
+            <div class="plan-actions">
+              <button class="btn-edit edit-plan-btn" data-plan-id="<%= plan.id %>">
+                <span class="btn-icon">✎</span>
+                Edit Plan
+              </button>
+              <button class="btn-save save-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">
+                <span class="btn-icon">✓</span>
+                Save Changes
+              </button>
+              <button class="btn-cancel cancel-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">
+                Cancel
+              </button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Plans Table (Mobile Fallback) -->
+      <div class="plans-table-mobile">
+        <% @plans.each do |plan| %>
+          <div class="plan-row-mobile" data-plan-id="<%= plan.id %>">
+            <div class="plan-row-header">
+              <div class="plan-row-title">
+                <h4 class="editable" data-field="name" data-plan-id="<%= plan.id %>">
+                  <%= plan.name %>
+                </h4>
+                <span class="plan-row-price editable" data-field="price" data-plan-id="<%= plan.id %>">
+                  €<%= plan.price %>/<%= plan.interval %>
+                </span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" class="plan-active-toggle"
+                       data-plan-id="<%= plan.id %>"
+                       <%= plan.active ? 'checked' : '' %>>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="plan-row-features editable" data-field="description" data-plan-id="<%= plan.id %>">
+              <%= plan.description %>
+            </div>
+            <div class="plan-row-actions">
+              <button class="btn-edit-mobile edit-plan-btn" data-plan-id="<%= plan.id %>">Edit</button>
+              <button class="btn-save-mobile save-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">Save</button>
+              <button class="btn-cancel-mobile cancel-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">Cancel</button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+    <% else %>
+      <!-- Empty State -->
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>No Plans Created Yet</h3>
+        <p>Create your first subscription plan to get started</p>
+        <button class="btn-primary add-plan-btn">
+          <span class="btn-icon">+</span>
+          Create Your First Plan
+        </button>
+      </div>
+    <% end %>
   </div>
 </div>
 
-<!-- CSS for Plans Page -->
+<!-- Add Plan Modal -->
+<div id="add-plan-modal" class="modal">
+  <div class="modal-overlay"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Create New Plan</h3>
+      <button class="close-modal">&times;</button>
+    </div>
+
+    <%= form_with(model: [:admin, Plan.new], id: 'add-plan-form') do |form| %>
+      <div class="modal-body">
+        <div class="form-group">
+          <%= form.label :name, "Plan Name" %>
+          <%= form.text_field :name,
+              placeholder: "e.g., Premium Monthly",
+              required: true,
+              class: 'form-control' %>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <%= form.label :price, "Price (€)" %>
+            <%= form.number_field :price,
+                step: 0.01,
+                placeholder: "9.99",
+                required: true,
+                class: 'form-control' %>
+          </div>
+
+          <div class="form-group">
+            <%= form.label :interval, "Billing Interval" %>
+            <%= form.select :interval,
+                options_for_select([['Weekly', 'week'], ['Monthly', 'month'], ['Yearly', 'year']], 'month'),
+                {},
+                required: true,
+                class: 'form-control' %>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <%= form.label :description, "Features (comma-separated)" %>
+          <%= form.text_area :description,
+              rows: 4,
+              placeholder: "3 Devices, Unlimited Bandwidth, 24/7 Support",
+              required: true,
+              class: 'form-control' %>
+          <small class="form-hint">Separate each feature with a comma</small>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <%= form.check_box :active, checked: true %>
+            <span>Make this plan active immediately</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary close-modal">Cancel</button>
+        <%= form.submit 'Create Plan', class: 'btn-primary' %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
 <style>
-  .header {
-    position: fixed;
-    width: 100vw;
-  }
-  /* Admin Container */
+  /* Base Layout */
   .admin-container {
-    padding-top: 80px;
     display: flex;
     min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    line-height: 1.5;
+    background-color: #f5f6fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   }
 
-  /* Main Content */
   .admin-content {
-    margin-left: 200px;
-    padding: 20px;
-    width: calc(100% - 250px);
-  }
-  .admin-content h1 {
-    color: #2c3e50;
-    font-size: 28px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #ecf0f1;
+    flex: 1;
+    padding: 2rem;
+    margin-left: 250px;
+    max-width: 1400px;
   }
 
-  /* Admin Section */
-  .admin-section {
-    background-color: white;
+  /* Page Header */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header-content h1 {
+    color: #2c3e50;
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .header-subtitle {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  /* Buttons */
+  .btn-primary, .btn-secondary, .btn-edit, .btn-save, .btn-cancel {
+    padding: 0.75rem 1.5rem;
+    border: none;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    padding: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-primary {
+    background-color: #9b59b6;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #8e44ad;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+  }
+
+  .btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+  }
+
+  .btn-secondary:hover {
+    background-color: #7f8c8d;
+  }
+
+  .btn-edit {
+    background-color: #ff6e08;
+    color: white;
+    width: 100%;
+  }
+
+  .btn-edit:hover {
+    background-color: #e67e22;
+  }
+
+  .btn-save {
+    background-color: #2ecc71;
+    color: white;
+    width: 100%;
+  }
+
+  .btn-save:hover {
+    background-color: #27ae60;
+  }
+
+  .btn-cancel {
+    background-color: #95a5a6;
+    color: white;
+    width: 100%;
+  }
+
+  .btn-cancel:hover {
+    background-color: #7f8c8d;
+  }
+
+  .btn-icon {
+    font-size: 1.1rem;
+  }
+
+  /* Alerts */
+  .alert {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slideIn 0.3s ease;
+  }
+
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+  }
+
+  .alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 4px solid #ffc107;
+  }
+
+  .alert-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Plans Grid */
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
     margin-bottom: 2rem;
   }
 
-  /* Table Responsive Container */
-  .table-responsive {
-    overflow-x: auto;
-    margin-bottom: 20px;
+  .plan-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
   }
 
-  /* Plans Table */
-  .plans-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 0;
+  .plan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
   }
 
-  .plans-table th {
-    padding: 14px 16px;
-    text-align: left;
-    font-weight: 600;
-    background-color: #f8f9fa;
+  /* Plan Card Header */
+  .plan-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .plan-title-section {
+    flex: 1;
+  }
+
+  .plan-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 0.5rem 0;
+    cursor: pointer;
+  }
+
+  .plan-name:hover {
+    color: #9b59b6;
+  }
+
+  .plan-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .plan-interval {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    background-color: #ecf0f1;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+  }
+
+  .plan-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .status-text {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+  }
+
+  /* Toggle Switch */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 24px;
+  }
+
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+  }
+
+  input:checked + .toggle-slider {
+    background-color: #2ecc71;
+  }
+
+  input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+  }
+
+  /* Plan Price */
+  .plan-price {
+    text-align: right;
+    cursor: pointer;
+  }
+
+  .plan-price:hover {
+    color: #9b59b6;
+  }
+
+  .price-currency {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+  }
+
+  .price-value {
+    font-size: 2.5rem;
+    font-weight: 700;
     color: #2c3e50;
   }
 
-  .plans-table td {
-    padding: 12px 16px;
-    vertical-align: middle;
-    border-bottom: 1px solid #f0f0f0;
+  .price-period {
+    font-size: 1rem;
+    color: #95a5a6;
   }
 
-  .plans-table tr:hover {
-    background-color: #f9f9f9;
-  }
-
-  /* Editable Cells */
-  .editable:hover {
-    background-color: #f0f8ff;
+  /* Plan Features */
+  .plan-features {
+    flex: 1;
+    margin-bottom: 1.5rem;
     cursor: pointer;
+    padding: 1rem;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+  }
+
+  .plan-features:hover {
+    background-color: #f8f9fa;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    color: #2c3e50;
+    font-size: 0.95rem;
+  }
+
+  .feature-icon {
+    color: #2ecc71;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+
+  /* Editable Fields */
+  .editable {
+    transition: all 0.2s ease;
+  }
+
+  .editable:hover {
+    background-color: rgba(155, 89, 182, 0.05);
+    border-radius: 4px;
   }
 
   .edit-input, .edit-textarea {
     width: 100%;
-    padding: 6px 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 0.75rem;
+    border: 2px solid #9b59b6;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+
+  .edit-input:focus, .edit-textarea:focus {
+    outline: none;
+    border-color: #8e44ad;
+    box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
   }
 
   .edit-textarea {
-    min-height: 60px;
+    min-height: 100px;
     resize: vertical;
-    font-family: inherit;
   }
 
-  /* Plan Active Toggle */
-  .plan-active-toggle {
-    cursor: pointer;
+  /* Plan Actions */
+  .plan-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: auto;
   }
 
   /* Empty State */
   .empty-state {
     text-align: center;
-    padding: 30px;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+  }
+
+  .empty-state h3 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+
+  .empty-state p {
     color: #7f8c8d;
-    background-color: #f9f9f9;
-    border-radius: 6px;
-    margin-bottom: 20px;
-  }
-
-  .empty-state .admin-btn {
-    margin-top: 15px;
-    width: auto;
-    padding: 8px 20px;
-  }
-
-  /* Admin Actions */
-  .admin-actions {
-    margin-bottom: 20px;
-  }
-
-  /* Admin Button */
-  .admin-btn {
-    display: inline-block;
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    text-decoration: none;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    color: white;
-    margin: 5px 0;
-  }
-
-  /* Plan Management Button */
-  .admin-btn--plans {
-    background-color: #9b59b6;
-  }
-
-  .admin-btn--plans:hover {
-    background-color: #8e44ad;
-  }
-
-  /* Users Management Button */
-  .admin-btn--users {
-    background-color: #ff6e08;
-  }
-
-  .admin-btn--users:hover {
-    background-color: #e67e22;
-  }
-
-  /* Server Management Button */
-  .admin-btn--servers {
-    background-color: #e74c3c;
-  }
-
-  .admin-btn--servers:hover {
-    background-color: #d62c1a;
-  }
-
-  /* Form Group */
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: #2c3e50;
-  }
-
-  .form-control {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  .form-control:focus {
-    border-color: #ff6e08;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-  }
-
-  .checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
-    color: #2c3e50;
-    cursor: pointer;
+    margin-bottom: 2rem;
   }
 
   /* Modal */
   .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
-    left: 0;
     top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
   }
 
   .modal-content {
+    position: relative;
     background: white;
     margin: 5% auto;
-    padding: 24px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #ecf0f1;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.5rem;
   }
 
   .close-modal {
-    color: #aaa;
-    float: right;
-    font-size: 24px;
-    font-weight: bold;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #95a5a6;
     cursor: pointer;
     transition: color 0.2s;
+    line-height: 1;
+    padding: 0;
   }
 
   .close-modal:hover {
-    color: #333;
+    color: #2c3e50;
   }
 
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .admin-btn {
-      font-size: 14px;
-      padding: 10px 16px;
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid #ecf0f1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  /* Form Styles */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: #9b59b6;
+    box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+  }
+
+  .form-hint {
+    display: block;
+    margin-top: 0.5rem;
+    color: #7f8c8d;
+    font-size: 0.85rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+  }
+
+  .checkbox-label:hover {
+    background-color: #f8f9fa;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  /* Mobile Table (Hidden by default) */
+  .plans-table-mobile {
+    display: none;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 1024px) {
+    .admin-content {
+      margin-left: 0;
+      padding: 1rem;
     }
 
-    .plans-table th,
-    .plans-table td {
-      padding: 8px 10px;
-      font-size: 14px;
+    .plans-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .header-content h1 {
+      font-size: 1.5rem;
+    }
+
+    /* Hide grid, show mobile table */
+    .plans-grid {
+      display: none;
+    }
+
+    .plans-table-mobile {
+      display: block;
+    }
+
+    .plan-row-mobile {
+      background: white;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .plan-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #ecf0f1;
+    }
+
+    .plan-row-title h4 {
+      margin: 0 0 0.5rem 0;
+      color: #2c3e50;
+      font-size: 1.2rem;
+    }
+
+    .plan-row-price {
+      color: #9b59b6;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .plan-row-features {
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #2c3e50;
+    }
+
+    .plan-row-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-edit-mobile, .btn-save-mobile, .btn-cancel-mobile {
+      flex: 1;
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .btn-edit-mobile {
+      background-color: #ff6e08;
+      color: white;
+    }
+
+    .btn-save-mobile {
+      background-color: #2ecc71;
+      color: white;
+    }
+
+    .btn-cancel-mobile {
+      background-color: #95a5a6;
+      color: white;
+    }
+
+    .modal-content {
+      margin: 10% 1rem;
+      max-width: calc(100% - 2rem);
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .modal-footer {
+      flex-direction: column-reverse;
+    }
+
+    .modal-footer button {
+      width: 100%;
     }
   }
 </style>
 
-<!-- JavaScript for Plans Page -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Open Add Plan Modal
-    document.querySelectorAll('.add-plan-btn').forEach(button => {
-      button.addEventListener('click', () => {
+    // Open Modal
+    document.querySelectorAll('.add-plan-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
         document.getElementById('add-plan-modal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
       });
     });
 
     // Close Modal
-    document.querySelectorAll('.close-modal').forEach(button => {
-      button.addEventListener('click', () => {
+    document.querySelectorAll('.close-modal').forEach(btn => {
+      btn.addEventListener('click', () => {
         document.getElementById('add-plan-modal').style.display = 'none';
+        document.body.style.overflow = 'auto';
       });
     });
 
-    // Close modal when clicking outside
-    window.addEventListener('click', (event) => {
-      const modal = document.getElementById('add-plan-modal');
-      if (event.target === modal) {
-        modal.style.display = 'none';
-      }
+    // Close on overlay click
+    document.querySelector('.modal-overlay')?.addEventListener('click', () => {
+      document.getElementById('add-plan-modal').style.display = 'none';
+      document.body.style.overflow = 'auto';
     });
 
     // Edit Plan
-    document.querySelectorAll('.edit-plan-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        const planId = this.getAttribute('data-plan-id');
-        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
+    document.querySelectorAll('.edit-plan-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const planId = this.dataset.planId;
+        const container = this.closest('[data-plan-id]');
 
-        // Hide Edit button, show Save and Cancel buttons
-        row.querySelector('.edit-plan-btn').style.display = 'none';
-        row.querySelector('.save-plan-btn').style.display = 'inline-block';
-        row.querySelector('.cancel-plan-btn').style.display = 'inline-block';
+        // Toggle buttons
+        container.querySelector('.edit-plan-btn').style.display = 'none';
+        container.querySelector('.save-plan-btn').style.display = 'inline-flex';
+        container.querySelector('.cancel-plan-btn').style.display = 'inline-flex';
 
-        // Replace text with input fields
-        row.querySelectorAll('.editable').forEach(cell => {
-          const field = cell.getAttribute('data-field');
-          const value = cell.textContent.replace('€', '');
-
-          if (field === 'description') {
-            const textarea = document.createElement('textarea');
-            textarea.value = value;
-            textarea.className = 'edit-textarea';
-            cell.innerHTML = '';
-            cell.appendChild(textarea);
-          } else {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.value = value;
-            input.className = 'edit-input';
-            cell.innerHTML = '';
-            cell.appendChild(input);
-          }
-        });
-      });
-    });
-
-    // Cancel Plan Editing
-    document.querySelectorAll('.cancel-plan-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        window.location.reload();
-      });
-    });
-
-    // Save Plan Changes
-    document.querySelectorAll('.save-plan-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        const planId = this.getAttribute('data-plan-id');
-        const row = document.querySelector(`.plan-row[data-plan-id="${planId}"]`);
-        const updatedData = {};
-
-        // Collect updated data
-        row.querySelectorAll('.editable').forEach(cell => {
-          const field = cell.getAttribute('data-field');
-          const input = cell.querySelector('input, textarea');
+        // Make fields editable
+        container.querySelectorAll('.editable').forEach(el => {
+          const field = el.dataset.field;
+          let value = el.textContent.trim();
 
           if (field === 'price') {
-            updatedData[field] = parseFloat(input.value.replace('€', ''));
+            value = value.replace(/[€\/\w\s]/g, '');
+          }
+
+          if (field === 'description') {
+            // For features, extract just the text
+            const features = Array.from(el.querySelectorAll('.feature-item'))
+              .map(item => item.textContent.replace('✓', '').trim())
+              .join(', ');
+            value = features || el.textContent.trim();
+
+            const textarea = document.createElement('textarea');
+            textarea.className = 'edit-textarea';
+            textarea.value = value;
+            el.innerHTML = '';
+            el.appendChild(textarea);
           } else {
-            updatedData[field] = input.value;
+            const input = document.createElement('input');
+            input.type = field === 'price' ? 'number' : 'text';
+            input.step = field === 'price' ? '0.01' : '';
+            input.className = 'edit-input';
+            input.value = value;
+            el.innerHTML = '';
+            el.appendChild(input);
           }
         });
+      });
+    });
 
-        // Include active status
-        updatedData.active = row.querySelector('.plan-active-toggle').checked;
+    // Cancel Edit
+    document.querySelectorAll('.cancel-plan-btn').forEach(btn => {
+      btn.addEventListener('click', () => location.reload());
+    });
 
-        // Send data to server
+    // Save Plan
+    document.querySelectorAll('.save-plan-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const planId = this.dataset.planId;
+        const container = this.closest('[data-plan-id]');
+        const data = {};
+
+        container.querySelectorAll('.editable').forEach(el => {
+          const field = el.dataset.field;
+          const input = el.querySelector('input, textarea');
+          data[field] = field === 'price' ? parseFloat(input.value) : input.value;
+        });
+
+        data.active = container.querySelector('.plan-active-toggle').checked;
+
         fetch(`/admin/plans/${planId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
           },
-          body: JSON.stringify({ plan: updatedData })
+          body: JSON.stringify({ plan: data })
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
           if (data.success) {
-            window.location.reload();
+            location.reload();
           } else {
-            alert('Error updating plan: ' + (data.error || 'Unknown error'));
+            alert('Error: ' + (data.error || 'Unknown error'));
           }
         })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred while updating the plan');
+        .catch(err => {
+          console.error(err);
+          alert('An error occurred while saving');
         });
       });
     });
 
-    // Toggle Plan Active Status
-    document.querySelectorAll('.plan-active-toggle').forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const planId = this.getAttribute('data-plan-id');
+    // Toggle Active Status
+    document.querySelectorAll('.plan-active-toggle').forEach(toggle => {
+      toggle.addEventListener('change', function() {
+        const planId = this.dataset.planId;
         const active = this.checked;
 
         fetch(`/admin/plans/${planId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
           },
-          body: JSON.stringify({ plan: { active: active } })
+          body: JSON.stringify({ plan: { active } })
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
           if (!data.success) {
-            alert('Error updating plan status: ' + (data.error || 'Unknown error'));
+            alert('Error: ' + (data.error || 'Unknown error'));
             this.checked = !this.checked;
           }
         })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred while updating the plan status');
+        .catch(err => {
+          console.error(err);
+          alert('An error occurred');
           this.checked = !this.checked;
         });
       });

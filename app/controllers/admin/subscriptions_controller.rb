@@ -6,40 +6,42 @@ module Admin
     before_action :set_user, only: [:create]
 
     def create
-      server = Server.find(params[:subscription][:server_id])
       plan = Plan.find(params[:subscription][:plan_id])
       expires_at = params[:subscription][:expires_at]
 
-      # Always use preallocated — same as regular user flow
-      preallocated = server.subscriptions.preallocated.first
-
-      unless preallocated
+      # ⭐ NEW: Check global capacity
+      unless SystemSetting.can_accept_new_subscription?
         render json: {
           success: false,
-          error: "No preallocated subscriptions available on #{server.name}. Run PreallocateSubscriptionsJob first."
+          error: "System at capacity. Cannot create new subscription."
         }, status: :unprocessable_entity
         return
       end
 
-      preallocated.update!(
-        user_id: @user.id,
-        status: "active",  # Admin-created subscriptions skip payment
-        plan_id: plan.id,
-        price: plan.price,
-        expires_at: expires_at
-      )
+      # ⭐ NEW: Generate unique name
+      subscription_name = loop do
+        name = "ADMIN_#{SecureRandom.alphanumeric(5).upcase}"
+        break name unless Subscription.exists?(name: name)
+      end
 
-      server.increment!(:current_subscriptions)
+      # ⭐ NEW: Create subscription directly (no preallocated, no server)
+      subscription = @user.subscriptions.create!(
+        name: subscription_name,
+        status: "active",  # Admin-created skip payment
+        plan: plan,
+        price: plan.price,
+        expires_at: expires_at,
+        max_devices: 3
+      )
 
       render json: {
         success: true,
         subscription: {
-          id: preallocated.id,
-          name: preallocated.name,
+          id: subscription.id,
+          name: subscription.name,
           plan: plan.name,
-          server: server.name,
-          expires_at: preallocated.expires_at.strftime("%d %b %Y"),
-          status: preallocated.status
+          expires_at: subscription.expires_at.strftime("%d %b %Y"),
+          status: subscription.status
         }
       }
     end
@@ -47,8 +49,18 @@ module Admin
     def cancel
       @subscription = Subscription.find(params[:id])
 
-      # Full revocation — remove from server, purge files, no pool return
-      CancelSubscriptionJob.perform_later(@subscription.id)
+      # Release all active configs back to pool
+      @subscription.devices.each do |device|
+        if device.vpn_config_set
+          device.vpn_config_set.release!
+        end
+      end
+
+      # Mark subscription as expired
+      @subscription.update!(
+        status: "expired",
+        expires_at: Time.current
+      )
 
       render json: { success: true }
     end
@@ -66,7 +78,7 @@ module Admin
     end
 
     def subscription_params
-      params.require(:subscription).permit(:plan_id, :server_id, :expires_at)
+      params.require(:subscription).permit(:plan_id, :expires_at)
     end
   end
 end

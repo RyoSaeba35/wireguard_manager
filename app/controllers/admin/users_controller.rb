@@ -1,3 +1,4 @@
+# app/controllers/admin/users_controller.rb
 module Admin
   class UsersController < ApplicationController
     before_action :authenticate_user!
@@ -5,9 +6,11 @@ module Admin
     before_action :set_user, only: [:destroy]
 
     def index
-      @users = User.includes(subscriptions: [:plan, :server, :wireguard_clients]).order(:email)
+      # ⭐ NEW: Updated includes (no wireguard_clients)
+      @users = User.includes(subscriptions: [:plan, devices: :vpn_config_set])
+                   .order(:email)
       @plans = Plan.order(price: :asc)
-      @servers = Server.all
+      @servers = Server.active.healthy  # Only show healthy servers
     end
 
     def create
@@ -42,8 +45,8 @@ module Admin
         if @user.destroy
           render json: {
             success: true,
-            email: @user.email,  # Add the user's email to the response
-            id: @user.id        # Add the user's ID to the response
+            email: @user.email,
+            id: @user.id
           }
         else
           render json: {

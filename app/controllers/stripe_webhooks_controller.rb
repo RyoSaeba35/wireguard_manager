@@ -1,5 +1,6 @@
+# app/controllers/stripe_webhooks_controller.rb
 class StripeWebhooksController < ApplicationController
-  skip_before_action :verify_authenticity_token # Stripe sends POST requests, not from a form
+  skip_before_action :verify_authenticity_token
   skip_before_action :authenticate_user!
 
   def create
@@ -12,11 +13,11 @@ class StripeWebhooksController < ApplicationController
     begin
       event = Stripe::Webhook.construct_event(payload, sig_header, endpoint_secret)
     rescue JSON::ParserError => e
-      puts "Invalid payload: #{e.message}"
+      Rails.logger.error "Invalid payload: #{e.message}"
       render json: { error: "Invalid payload" }, status: 400
       return
     rescue Stripe::SignatureVerificationError => e
-      puts "Invalid signature: #{e.message}"
+      Rails.logger.error "Invalid signature: #{e.message}"
       render json: { error: "Invalid signature" }, status: 400
       return
     end
@@ -29,7 +30,7 @@ class StripeWebhooksController < ApplicationController
     when 'payment_intent.payment_failed'
       handle_payment_failed(event.data.object)
     else
-      puts "Unhandled event type: #{event.type}"
+      Rails.logger.info "Unhandled event type: #{event.type}"
     end
 
     render json: { message: "Success" }, status: 200
@@ -42,8 +43,9 @@ class StripeWebhooksController < ApplicationController
     return unless subscription
     return unless subscription.payment_pending?
 
+    # ⭐ NEW: Just activate (no pool management)
     subscription.update!(status: "active")
-    UserMailer.vpn_config_ready(subscription.user, subscription).deliver_later
+    UserMailer.subscription_activated(subscription.user, subscription).deliver_later
     Rails.logger.info "Subscription #{subscription.name} activated via webhook"
   end
 
@@ -52,13 +54,9 @@ class StripeWebhooksController < ApplicationController
     return unless subscription
     return unless subscription.payment_pending?
 
-    # Return to pool — never paid, clients untouched
-    subscription.update!(
-      user_id: nil,
-      status: "preallocated",
-      stripe_session_id: nil
-    )
-    Rails.logger.info "Subscription #{subscription.name} returned to pool via webhook"
+    # ⭐ NEW: Just mark as failed (no pool to return to)
+    subscription.update!(status: "failed", stripe_session_id: nil)
+    Rails.logger.info "Subscription #{subscription.name} marked failed — session expired"
   end
 
   def handle_payment_failed(payment_intent)
@@ -69,13 +67,9 @@ class StripeWebhooksController < ApplicationController
     return unless subscription
     return unless subscription.payment_pending?
 
-    # Return to pool — payment failed, never activated
-    subscription.update!(
-      user_id: nil,
-      status: "preallocated",
-      stripe_session_id: nil
-    )
+    # ⭐ NEW: Mark as failed and notify user
+    subscription.update!(status: "failed", stripe_session_id: nil)
     UserMailer.payment_failed(subscription.user, subscription).deliver_later
-    Rails.logger.info "Subscription #{subscription.name} returned to pool — payment failed"
+    Rails.logger.info "Subscription #{subscription.name} marked failed — payment failed"
   end
 end

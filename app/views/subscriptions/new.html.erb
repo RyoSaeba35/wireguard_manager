@@ -1,3 +1,4 @@
+<!-- app/views/subscriptions/new.html.erb -->
 <div class="super-container">
   <section class="pricing">
     <h2>Choose Your Plan</h2>
@@ -6,9 +7,8 @@
     <div class="plan-grid">
       <% @plans.each do |plan| %>
         <%
-          plan_available = plan.active &&
-                          Subscription.where(status: 'active').count < Setting.max_active_subscriptions &&
-                          @pool_available
+          # ⭐ SIMPLIFIED: @pool_available already checks subscription count
+          plan_available = plan.active && @pool_available
         %>
         <div class="plan <%= !plan_available ? 'unavailable' : '' %>">
           <% if plan.name.include?("Month") %>
@@ -22,7 +22,8 @@
               <% if feature.include?("Devices") %>
                 <p>
                   <strong><span class="checkmark">➤</span> <%= feature %></strong>
-                  <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span>
+                  <!-- ⭐ UPDATED: Reflects automatic pooling behavior -->
+                  <span class="tooltip-icon" title="Connect up to 3 devices simultaneously. Each device receives its own secure configuration automatically when you connect.">ℹ️</span>
                 </p>
               <% else %>
                 <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
@@ -52,7 +53,7 @@
                 <p>This plan is currently not available.</p>
               <% elsif !@pool_available %>
                 <p>Sold Out</p>
-                <p>We're preparing new slots — check back in a few minutes.</p>
+                <p>We're at capacity right now. Check back in a few minutes!</p>
               <% else %>
                 <p>Plan Sold Out</p>
                 <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>
@@ -70,9 +71,8 @@
           <% @plans.each do |plan| %>
             <div class="splide__slide">
               <%
-                plan_available = plan.active &&
-                                Subscription.where(status: 'active').count < Setting.max_active_subscriptions &&
-                                @pool_available
+                # ⭐ SIMPLIFIED: @pool_available already checks subscription count
+                plan_available = plan.active && @pool_available
               %>
               <div class="plan <%= !plan_available ? 'unavailable' : '' %>">
                 <% if plan.name.include?("Month") %>
@@ -86,7 +86,7 @@
                     <% if feature.include?("Devices") %>
                       <p>
                         <strong><span class="checkmark">➤</span> <%= feature %></strong>
-                        <%# <span class="tooltip-icon" title="Each device requires its own unique configuration. You can use the VPN on up to 3 different devices at the same time.">ℹ️</span> %>
+                        <!-- Tooltip removed on mobile for cleaner look -->
                       </p>
                     <% else %>
                       <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
@@ -110,7 +110,7 @@
                       <p>This plan is currently not available.</p>
                     <% elsif !@pool_available %>
                       <p>Sold Out</p>
-                      <p>We're preparing new slots — check back in a few minutes.</p>
+                      <p>We're at capacity right now. Check back in a few minutes!</p>
                     <% else %>
                       <p>Plan Sold Out</p>
                       <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>

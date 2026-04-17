@@ -1,311 +1,543 @@
+<!-- app/views/subscriptions/show.html.erb -->
 <style>
-  .client-container {
-    max-width: 800px;
+  .subscription-container {
+    max-width: 900px;
     margin: 0 auto;
     padding: 2rem;
-    padding-top:4rem;
+    padding-top: 4rem;
   }
-  .client-header {
+
+  .subscription-header {
     margin-bottom: 2rem;
+    background-color: #f9f9f9;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
-  .client-header h1 {
+
+  .subscription-header h1 {
     color: #2c3e50;
     font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .subscription-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .meta-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    border-left: 4px solid #ff6e08;
+  }
+
+  .meta-item strong {
+    display: block;
+    color: #666;
+    font-size: 0.9rem;
     margin-bottom: 0.5rem;
   }
-  .client-meta {
-    color: #666;
-    margin-bottom: 2rem;
+
+  .meta-item span {
+    color: #2c3e50;
+    font-size: 1.1rem;
   }
+
   .local-time-container {
     position: relative;
     display: inline-block;
     cursor: help;
   }
+
   .utc-tooltip {
     display: none;
     position: absolute;
     background: #333;
     color: white;
-    padding: 2px 6px;
+    padding: 4px 8px;
     border-radius: 4px;
-    font-size: 0.9em;
+    font-size: 0.85rem;
     white-space: nowrap;
     z-index: 100;
     left: 0;
     top: 100%;
+    margin-top: 4px;
   }
+
   .local-time-container:hover .utc-tooltip {
     display: block;
   }
-  .tabs {
-    display: flex;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #ddd;
-  }
-  .tab-button {
-    padding: 0.75rem 1.5rem;
-    cursor: pointer;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    font-size: 1rem;
-    color: #666;
-    transition: all 0.3s ease;
-  }
-  .tab-button.active {
-    color: #ff6e08;
-    border-bottom: 3px solid #ff6e08;
-  }
-  .tab-content {
-    display: none;
+
+  .section {
     background-color: #f9f9f9;
     padding: 1.5rem;
-    border-radius: 0 8px 8px 8px;
+    border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
   }
-  .tab-content.active {
-    display: block;
+
+  .section h2 {
+    color: #2c3e50;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #ff6e08;
+    padding-bottom: 0.5rem;
   }
-  .qr-code {
-    text-align: center;
-    margin: 1rem 0;
+
+  .device-grid {
+    display: grid;
+    gap: 1rem;
   }
-  .qr-code img {
-    max-width: 200px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 0.5rem;
+
+  .device-card {
     background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    border-left: 4px solid #00bf63;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  .download-link {
+
+  .device-card.inactive {
+    border-left-color: #95a5a6;
+    opacity: 0.7;
+  }
+
+  .device-info {
+    flex: 1;
+  }
+
+  .device-name {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+  }
+
+  .device-meta {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .device-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+  }
+
+  .device-status.connected {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .device-status.disconnected {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .connection-table {
+    width: 100%;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .connection-table th {
+    background-color: #2c3e50;
+    color: white;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .connection-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .connection-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .connection-table tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  .server-badge {
     display: inline-block;
-    padding: 0.5rem 1rem;
-    background-color: #00bf63;
+    padding: 0.25rem 0.5rem;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: #ff6e08;
     color: white;
     text-decoration: none;
     border-radius: 4px;
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-    min-width: 180px;
+    font-weight: 600;
     border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
   }
-  .download-link:hover {
+
+  .btn:hover {
     background-color: #ffc33c;
   }
+
+  .btn-secondary {
+    background-color: #6c757d;
+  }
+
+  .btn-secondary:hover {
+    background-color: #5a6268;
+  }
+
   .alert {
     padding: 1rem;
     border-radius: 4px;
-    margin-bottom: 1rem;
-    background-color: #f8d7da;
-    color: #e74c3c;
-    border-left: 4px solid #e74c3c;
-  }
-  .info-box {
-    padding: 1.5rem;
-    border-radius: 4px;
     margin-bottom: 1.5rem;
+  }
+
+  .alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 4px solid #ffc107;
+  }
+
+  .alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-left: 4px solid #17a2b8;
+  }
+
+  .empty-state {
     text-align: center;
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
+    padding: 3rem 1rem;
+    color: #666;
   }
-  .loading-spinner {
-    display: inline-block;
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(0,0,0,.1);
-    border-radius: 50%;
-    border-top-color: #ff6e08;
-    animation: spin 1s ease-in-out infinite;
-    margin: 1rem 0;
+
+  .empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
   }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  .progress-container {
-    margin: 1.5rem 0;
+
+  .download-app {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 8px;
     text-align: center;
+    margin-bottom: 2rem;
   }
-  .progress-bar {
-    height: 6px;
-    background-color: #e9ecef;
-    border-radius: 3px;
-    margin: 0.5rem 0;
-    overflow: hidden;
+
+  .download-app h3 {
+    margin-top: 0;
+    font-size: 1.5rem;
   }
-  .progress {
-    height: 100%;
-    background-color: #ff6e08;
-    width: 0%;
-    transition: width 0.3s ease;
+
+  .download-app p {
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+  }
+
+  .app-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .app-btn {
+    background: white;
+    color: #667eea;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: transform 0.2s;
+  }
+
+  .app-btn:hover {
+    transform: translateY(-2px);
   }
 
   @media (max-width: 768px) {
-    .client-container {
-      padding: 0 1rem;
-      padding-top:3rem;
-      h1 {
-        font-size: 1.5rem;
-      }
+    .subscription-container {
+      padding: 1rem;
+      padding-top: 3rem;
+    }
+
+    .subscription-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .subscription-meta {
+      grid-template-columns: 1fr;
+    }
+
+    .connection-table {
+      font-size: 0.85rem;
+    }
+
+    .connection-table th,
+    .connection-table td {
+      padding: 0.5rem;
     }
   }
 </style>
 
-<div class="client-container">
-  <div class="client-header">
-    <h1>Subscription: #<%= @subscription.name %></h1>
-    <p class="client-meta">
-      Expires at:
-      <span class="local-time-container">
-        <span id="local-time-text">
-          <%= @subscription.expires_at.in_time_zone("Etc/UTC").strftime("%Y-%m-%d %H:%M:%S %Z") %>
+<div class="subscription-container">
+  <!-- Header -->
+  <div class="subscription-header">
+    <h1>Subscription #<%= @subscription.name %></h1>
+
+    <div class="subscription-meta">
+      <div class="meta-item">
+        <strong>Plan</strong>
+        <span><%= @subscription.plan.name %></span>
+      </div>
+
+      <div class="meta-item">
+        <strong>Status</strong>
+        <span><%= @subscription.status.titleize %></span>
+      </div>
+
+      <div class="meta-item">
+        <strong>Expires</strong>
+        <span class="local-time-container">
+          <span id="local-time-text">
+            <%= @subscription.expires_at.in_time_zone("Etc/UTC").strftime("%d/%m/%Y %H:%M") %>
+          </span>
+          <span class="utc-tooltip">
+            UTC: <%= @subscription.expires_at.strftime("%d/%m/%Y %H:%M") %>
+          </span>
         </span>
-        <span class="utc-tooltip">
-          <%= @subscription.expires_at %>
-        </span>
-      </span>
-      (local time)
-      –
-      <span id="countdown">Calculating...</span>
-    </p>
+      </div>
+
+      <div class="meta-item">
+        <strong>Time Remaining</strong>
+        <span id="countdown">Calculating...</span>
+      </div>
+    </div>
   </div>
 
   <% if @subscription.payment_pending? && @pending_payment %>
-    <div class="info-box">
-      <h3>Your payment is pending!</h3>
-      <p>You have not completed your payment yet.</p>
-      <div style="margin: 1.5rem 0; text-align: center;">
-        <%= link_to "Pay Now", @stripe_session_url, class: "download-link", style: "font-weight: bold" %>
-        <%= button_to "Cancel Subscription", cancel_user_subscription_path(current_user, @subscription), method: :patch, class: "download-link", style: "background-color: #e74c3c;", data: { confirm: "Are you sure you want to cancel this subscription?" } %>
+    <!-- Pending Payment State -->
+    <div class="alert alert-warning">
+      <h3 style="margin-top: 0;">⚠️ Payment Pending</h3>
+      <p>Your subscription is waiting for payment confirmation.</p>
+      <div style="margin-top: 1rem;">
+        <%= link_to "Complete Payment", @stripe_session_url, class: "btn" %>
+        <%= button_to "Cancel Subscription", cancel_user_subscription_path(current_user, @subscription),
+            method: :patch, class: "btn btn-secondary", style: "margin-left: 1rem;",
+            data: { confirm: "Are you sure you want to cancel this subscription?" } %>
       </div>
-    </div>
-  <% elsif @subscription.pending? %>
-    <div class="info-box">
-      <h3>Your VPN is being set up!</h3>
-      <div class="loading-spinner"></div>
-      <p>Your configuration files and QR codes are being generated. This may take a few minutes.</p>
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div class="progress" style="width: 100%;"></div>
-        </div>
-        <p>Preparing your VPN configuration...</p>
-      </div>
-      <p>You will receive an email at <strong><%= @subscription.user.email %></strong> when everything is ready.</p>
-      <p>This page will automatically refresh when your VPN is ready.</p>
-      <p style="margin-top: 1rem;">
-        While you wait, you can
-        <%= link_to "read the setup guide", setup_guide_path %>
-        to prepare for connecting your devices.
-      </p>
     </div>
 
-    <!-- Auto-reload script -->
-    <script>
-      // Reload the page every 10 seconds to check for updates
-      setTimeout(function() {
-        window.location.reload();
-      }, 10000);
-    </script>
-  <% else %>
-    <% if @wireguard_clients.any? %>
-      <div class="tabs">
-        <% @wireguard_clients.each_with_index do |client, index| %>
-          <button class="tab-button <%= 'active' if index == 0 %>" data-tab="tab-<%= index %>">
-            <%= client.display_name || client.name %>
-          </button>
+  <% elsif @subscription.active? %>
+    <!-- Active Subscription -->
+
+    <% if @devices.empty? %>
+      <!-- No devices yet - show app download -->
+      <div class="download-app">
+        <h3>📱 Get Started with VulcainVPN</h3>
+        <p>Download the VulcainVPN app to connect your devices</p>
+        <div class="app-buttons">
+          <a href="#" class="app-btn">📱 Download for Android</a>
+          <a href="#" class="app-btn">🍎 Download for iOS (Coming Soon)</a>
+          <a href="#" class="app-btn">💻 Download for Desktop (Coming Soon)</a>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <h4 style="margin-top: 0;">How to Connect:</h4>
+        <ol style="margin-bottom: 0;">
+          <li>Download the VulcainVPN app for your device</li>
+          <li>Login with your email: <strong><%= current_user.email %></strong></li>
+          <li>Your device will be registered automatically</li>
+          <li>Tap "Connect" to start using the VPN</li>
+        </ol>
+        <p style="margin-top: 1rem; margin-bottom: 0;">
+          <%= link_to "View detailed setup guide →", setup_guide_path %>
+        </p>
+      </div>
+
+    <% else %>
+      <!-- Show devices and connections -->
+
+      <!-- Devices Section -->
+      <div class="section">
+        <h2>Your Devices (<%= @devices.count %>/<%= @subscription.max_devices %>)</h2>
+
+        <div class="device-grid">
+          <% @devices.each do |device| %>
+            <% is_connected = @active_connections.any? { |conn| conn.device_id == device.id } %>
+            <% connection = @active_connections.find { |conn| conn.device_id == device.id } %>
+
+            <div class="device-card <%= is_connected ? '' : 'inactive' %>">
+              <div class="device-info">
+                <div class="device-name">📱 <%= device.name %></div>
+                <div class="device-meta">
+                  Registered: <%= device.created_at.strftime("%d/%m/%Y") %>
+                  <% if is_connected && connection %>
+                    | Server: <span class="server-badge"><%= connection.server.flag %> <%= connection.server.name %></span>
+                  <% end %>
+                </div>
+              </div>
+              <div class="device-status <%= is_connected ? 'connected' : 'disconnected' %>">
+                <%= is_connected ? '🟢 Connected' : '⚫ Disconnected' %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <% if @devices.count < @subscription.max_devices %>
+          <p style="margin-top: 1rem; color: #666;">
+            You can register <%= @subscription.max_devices - @devices.count %> more device<%= @subscription.max_devices - @devices.count == 1 ? '' : 's' %>.
+          </p>
+        <% else %>
+          <p style="margin-top: 1rem; color: #856404;">
+            ⚠️ Maximum devices reached. Disconnect from a device to add a new one.
+          </p>
         <% end %>
       </div>
-      <% @wireguard_clients.each_with_index do |client, index| %>
-        <div id="tab-<%= index %>" class="tab-content <%= 'active' if index == 0 %>">
-          <div class="qr-code">
-            <h3>QR Code:</h3>
-            <%= image_tag download_qr_code_path(filename: "#{client.name}.png") %>
-          </div>
-          <div class="qr-code" style="margin-top: 2rem;">
-            <h3>Config File:</h3>
-            <%= link_to "Download Config",
-                        download_config_path(filename: "#{client.name}.conf"),
-                        class: "download-link" %>
-          </div>
+
+      <!-- Active Connections Section -->
+      <% if @active_connections.any? %>
+        <div class="section">
+          <h2>Active Connections (<%= @active_connections.count %>)</h2>
+
+          <table class="connection-table">
+            <thead>
+              <tr>
+                <th>Device</th>
+                <th>Server</th>
+                <th>Connected Since</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @active_connections.each do |conn| %>
+                <tr>
+                  <td><%= conn.device.name %></td>
+                  <td>
+                    <span class="server-badge">
+                      <%= conn.server.flag %> <%= conn.server.name %>
+                    </span>
+                  </td>
+                  <td><%= conn.connected_at.strftime("%d/%m/%Y %H:%M") %></td>
+                  <td><%= distance_of_time_in_words(conn.connected_at, Time.current) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
         </div>
       <% end %>
-    <% else %>
-      <div class="alert">
-        <p>No WireGuard clients found for this subscription.</p>
-      </div>
+
+      <!-- Recent Connections Section -->
+      <% if @recent_connections.any? %>
+        <div class="section">
+          <h2>Recent Connection History</h2>
+
+          <table class="connection-table">
+            <thead>
+              <tr>
+                <th>Device</th>
+                <th>Server</th>
+                <th>Connected</th>
+                <th>Disconnected</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @recent_connections.each do |conn| %>
+                <tr>
+                  <td><%= conn.device.name %></td>
+                  <td>
+                    <span class="server-badge">
+                      <%= conn.server.flag %> <%= conn.server.name %>
+                    </span>
+                  </td>
+                  <td><%= conn.connected_at.strftime("%d/%m %H:%M") %></td>
+                  <td><%= conn.disconnected_at&.strftime("%d/%m %H:%M") || "—" %></td>
+                  <td><%= distance_of_time_in_words(conn.connected_at, conn.disconnected_at || Time.current) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
     <% end %>
-    <!-- Add this section -->
-    <div class="info-box" style="text-align: center; margin-top: 2rem;">
-      <h3>Read our Setup Guide for setting up your VPN</h3>
+
+    <!-- Setup Guide Link -->
+    <div style="text-align: center; margin-top: 2rem;">
+      <%= link_to "📖 View Setup Guide", setup_guide_path, class: "btn btn-secondary" %>
+    </div>
+
+  <% else %>
+    <!-- Expired/Failed Subscription -->
+    <div class="empty-state">
+      <div class="empty-state-icon">⚠️</div>
+      <h3>This subscription is <%= @subscription.status %></h3>
       <p>
-        <%= link_to "View Setup Guide", setup_guide_path, class: "download-link", style: "font-size: 1rem; padding: 0.75rem 1.5rem;" %>
+        <%= link_to "Subscribe again", new_user_subscription_path(current_user), class: "btn" %>
       </p>
     </div>
   <% end %>
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    initPage();
-  });
-
-  document.addEventListener("turbo:load", function() {
-    initPage();
-  });
+  document.addEventListener("DOMContentLoaded", initPage);
+  document.addEventListener("turbo:load", initPage);
 
   function initPage() {
-    // Tab switching logic
-    const tabButtons = document.querySelectorAll('.tab-button');
-    if (tabButtons.length > 0) {
-      tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-          const tabId = button.getAttribute('data-tab');
-          document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-          });
-          document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.remove('active');
-          });
-          document.getElementById(tabId).classList.add('active');
-          button.classList.add('active');
-        });
-      });
-    }
-
-    // Subscription expiration logic
+    // Update local time display
     const utcTime = "<%= j @subscription.expires_at.iso8601 %>";
     const expiresAt = new Date(utcTime);
     const localTimeElement = document.getElementById("local-time-text");
+
     if (localTimeElement) {
       const day = String(expiresAt.getDate()).padStart(2, '0');
       const month = String(expiresAt.getMonth() + 1).padStart(2, '0');
       const year = expiresAt.getFullYear();
       const hours = String(expiresAt.getHours()).padStart(2, '0');
       const minutes = String(expiresAt.getMinutes()).padStart(2, '0');
-      localTimeElement.textContent = `${day}/${month}/${year}, ${hours}h${minutes}`;
+      localTimeElement.textContent = `${day}/${month}/${year} ${hours}:${minutes}`;
 
+      // Update countdown
       function updateCountdown() {
         const now = new Date();
         const diff = expiresAt - now;
+
         if (diff <= 0) {
           document.getElementById("countdown").textContent = "Expired";
           return;
         }
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hoursRemaining = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutesRemaining = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        document.getElementById("countdown").textContent =
-          `${days}d ${hoursRemaining}h ${minutesRemaining}m remaining`;
-      }
-      updateCountdown();
-      setInterval(updateCountdown, 60000); // Pass the function directly
-    }
 
-    // Auto-reload script for pending subscriptions
-    <% if @subscription.pending? %>
-      setTimeout(() => { // Use arrow function instead of string
-        window.location.reload();
-      }, 10000);
-    <% end %>
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+        let parts = [];
+        if (days > 0) parts.push(`${days}d`);
+        if (hours > 0 || days > 0) parts.push(`${hours}h`);
+        parts.push(`${minutes}m`);
+
+        document.getElementById("countdown").textContent = parts.join(' ');
+      }
+
+      updateCountdown();
+      setInterval(updateCountdown, 60000);
+    }
   }
 </script>
