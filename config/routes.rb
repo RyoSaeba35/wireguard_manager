@@ -5,8 +5,8 @@ Rails.application.routes.draw do
   # ==========================================
   namespace :admin do
     # Dashboard
-    get 'dashboard', to: 'dashboard#show', as: :dashboard
-    root to: 'dashboard#show'
+    get 'dashboard', to: 'dashboard#index', as: :dashboard
+    root to: 'dashboard#index'
 
     # Users Management
     resources :users, only: [:index, :create, :show, :edit, :update] do
