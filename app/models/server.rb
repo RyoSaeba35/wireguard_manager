@@ -13,6 +13,7 @@ class Server < ApplicationRecord
   validates :config_pool_size, numericality: { only_integer: true, greater_than: 0 }
 
   # Scopes
+  scope :active, -> { where(active: true) }
   scope :healthy, -> { where(healthy: true) }
 
   # Get flag emoji from country code
