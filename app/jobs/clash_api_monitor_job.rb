@@ -7,7 +7,8 @@ class ClashApiMonitorJob < ApplicationJob
   queue_as :default
 
   CLASH_API_PORT = 9090
-  DEACTIVATION_GRACE_PERIOD = 5.minutes
+  WIREGUARD_HANDSHAKE_TIMEOUT = 20.minutes  # ⭐ Allow 20 min of idle before considering inactive
+  DEACTIVATION_GRACE_PERIOD = 5.minutes      # Then 5 min grace period
 
   def perform
     devices_with_real_connections = Set.new
@@ -97,8 +98,8 @@ class ClashApiMonitorJob < ApplicationJob
           public_key = parts[0]
           latest_handshake = parts[4].to_i
 
-          # Active if handshake within last 3 minutes
-          if latest_handshake > 0 && Time.at(latest_handshake) > 3.minutes.ago
+          # ⭐ Active if handshake within WIREGUARD_HANDSHAKE_TIMEOUT
+          if latest_handshake > 0 && Time.at(latest_handshake) > WIREGUARD_HANDSHAKE_TIMEOUT.ago
             allowed_ip = parts[3].split('/').first # "10.155.0.5/32" -> "10.155.0.5"
 
             # Find config by IP
