@@ -14,6 +14,7 @@ class Server < ApplicationRecord
 
   # Scopes
   scope :active, -> { where(active: true) }
+  scope :inactive, -> { where(active: false) }
   scope :healthy, -> { where(healthy: true) }
 
   # Get flag emoji from country code
