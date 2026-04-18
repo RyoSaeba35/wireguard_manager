@@ -1,5 +1,6 @@
 # app/jobs/clash_api_monitor_job.rb
 require 'net/http'
+require 'net/ssh'
 require 'json'
 
 class ClashApiMonitorJob < ApplicationJob
@@ -11,9 +12,16 @@ class ClashApiMonitorJob < ApplicationJob
   def perform
     devices_with_real_connections = Set.new
 
-    Server.active.healthy.where(singbox_active: true).find_each do |server|
-      active_device_ids = monitor_server(server)
-      devices_with_real_connections.merge(active_device_ids)
+    Server.active.healthy.find_each do |server|
+      # ⭐ Monitor WireGuard (primary protocol)
+      wg_devices = monitor_wireguard(server)
+      devices_with_real_connections.merge(wg_devices)
+
+      # ⭐ Monitor sing-box (for Hysteria2/Shadowsocks users)
+      if server.singbox_active?
+        singbox_devices = monitor_singbox(server)
+        devices_with_real_connections.merge(singbox_devices)
+      end
     end
 
     # Mark devices with real connections as active
@@ -35,7 +43,6 @@ class ClashApiMonitorJob < ApplicationJob
         .pluck(:id)
 
       if devices_to_deactivate.any?
-        # ⭐ NEW: Release configs back to pool
         release_configs_for_devices(devices_to_deactivate)
 
         Device.where(id: devices_to_deactivate).update_all(
@@ -55,23 +62,78 @@ class ClashApiMonitorJob < ApplicationJob
 
   private
 
-  def monitor_server(server)
+  # ⭐ NEW: Monitor WireGuard connections via SSH
+  def monitor_wireguard(server)
+    active_device_ids = Set.new
+    private_key_path = write_private_key(server)
+
+    begin
+      Net::SSH.start(
+        server.ip_address,
+        server.ssh_user,
+        keys: [private_key_path],
+        verify_host_key: :never,
+        timeout: 10
+      ) do |ssh|
+        # Get WireGuard peer info
+        output = ssh.exec!("sudo wg show wg0 dump")
+
+        output.each_line.with_index do |line, index|
+          next if index == 0 # Skip interface header line
+
+          parts = line.strip.split("\t")
+          next if parts.size < 5
+
+          public_key = parts[0]
+          latest_handshake = parts[4].to_i
+
+          # Active if handshake within last 3 minutes
+          if latest_handshake > 0 && Time.at(latest_handshake) > 3.minutes.ago
+            allowed_ip = parts[3].split('/').first # "10.155.0.5/32" -> "10.155.0.5"
+
+            # Find config by IP
+            config_set = VpnConfigSet.find_by(
+              server: server,
+              ip_address: allowed_ip,
+              status: 'in_use'
+            )
+
+            next unless config_set
+
+            device = config_set.device
+            next unless device&.subscription&.active?
+
+            Rails.logger.info "✅ WireGuard active: #{allowed_ip} → Device #{device.id}"
+            active_device_ids << device.id
+          end
+        end
+      end
+    rescue => e
+      Rails.logger.error "Failed to monitor WireGuard on #{server.name}: #{e.message}"
+    ensure
+      File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
+    end
+
+    Rails.logger.info "✅ #{active_device_ids.size} active WireGuard devices on #{server.name}"
+    active_device_ids.to_a
+  end
+
+  # ⭐ RENAMED: Monitor sing-box connections via Clash API
+  def monitor_singbox(server)
     connections = get_active_connections(server)
-    Rails.logger.info "🔌 Found #{connections.size} active connections on #{server.name}"
+    Rails.logger.info "🔌 Found #{connections.size} active sing-box connections on #{server.name}"
 
     active_device_ids = Set.new
-    matched_connections = Set.new
 
     connections.each do |conn|
       source_ip = conn.dig("metadata", "sourceIP")
       next unless source_ip
 
-      # ⭐ NEW: In pooling, username IS the IP address
       # Find the config set by IP
       config_set = VpnConfigSet.find_by(server: server, ip_address: source_ip, status: 'in_use')
 
       unless config_set
-        Rails.logger.warn "⚠️ No config set for IP: #{source_ip}"
+        Rails.logger.warn "⚠️ No config set for sing-box IP: #{source_ip}"
         next
       end
 
@@ -88,11 +150,11 @@ class ClashApiMonitorJob < ApplicationJob
         next
       end
 
-      Rails.logger.info "✅ Active: #{source_ip} → Device #{device.id}"
+      Rails.logger.info "✅ sing-box active: #{source_ip} → Device #{device.id}"
       active_device_ids << device.id
     end
 
-    Rails.logger.info "✅ #{active_device_ids.size} active devices on #{server.name}"
+    Rails.logger.info "✅ #{active_device_ids.size} active sing-box devices on #{server.name}"
     active_device_ids.to_a
   end
 
@@ -128,7 +190,6 @@ class ClashApiMonitorJob < ApplicationJob
     Rails.logger.error "Failed to kill connection: #{e.message}"
   end
 
-  # ⭐ NEW: Release configs back to pool instead of freeing individual clients
   def release_configs_for_devices(device_ids)
     return if device_ids.empty?
 
@@ -141,5 +202,17 @@ class ClashApiMonitorJob < ApplicationJob
     VpnConnection.where(device_id: device_ids, disconnected_at: nil).update_all(disconnected_at: Time.current)
 
     Rails.logger.info "🔓 Released configs for #{device_ids.size} devices"
+  end
+
+  # ⭐ NEW: Write SSH private key to temp file
+  def write_private_key(server)
+    require 'tempfile'
+
+    temp_file = Tempfile.new(['ssh_key', '.pem'])
+    temp_file.write(server.ssh_private_key)
+    temp_file.close
+
+    File.chmod(0600, temp_file.path)
+    temp_file.path
   end
 end
