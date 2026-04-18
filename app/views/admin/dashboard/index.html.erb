@@ -217,82 +217,110 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+  // ⭐ SAFETY CHECK - Prevent chart errors
+  const safeNumber = (val) => typeof val === 'number' && !isNaN(val) ? val : 0;
+  const safeArray = (arr) => Array.isArray(arr) ? arr : [];
+
   // Pool Status Chart
-  const poolCtx = document.getElementById('poolStatusChart').getContext('2d');
-  new Chart(poolCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Available', 'In Use', 'Used (Recycling)'],
-      datasets: [{
-        data: [<%= @available_configs %>, <%= @in_use_configs %>, <%= @used_configs %>],
-        backgroundColor: ['#2ecc71', '#3498db', '#95a5a6']
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { boxWidth: 12, padding: 10, font: { size: 11 } }
+  try {
+    const poolCtx = document.getElementById('poolStatusChart')?.getContext('2d');
+    if (poolCtx) {
+      new Chart(poolCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Available', 'In Use', 'Used (Recycling)'],
+          datasets: [{
+            data: [
+              safeNumber(<%= @available_configs || 0 %>),
+              safeNumber(<%= @in_use_configs || 0 %>),
+              safeNumber(<%= @used_configs || 0 %>)
+            ],
+            backgroundColor: ['#2ecc71', '#3498db', '#95a5a6']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12, padding: 10, font: { size: 11 } }
+            }
+          }
         }
-      }
+      });
     }
-  });
+  } catch (e) {
+    console.error('Pool chart error:', e);
+  }
 
   // Monthly Subscriptions Chart
-  const monthlyCtx = document.getElementById('monthlySubscriptionsChart').getContext('2d');
-  new Chart(monthlyCtx, {
-    type: 'line',
-    data: {
-      labels: <%= raw @monthly_subscriptions.map { |m| m[:month].strftime("%b %Y") }.to_json %>,
-      datasets: [{
-        label: 'Subscriptions',
-        data: <%= raw @monthly_subscriptions.map { |m| m[:count] }.to_json %>,
-        borderColor: '#3498db',
-        backgroundColor: 'rgba(52, 152, 219, 0.1)',
-        tension: 0.4,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      },
-      scales: {
-        x: {
-          ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } }
+  try {
+    const monthlyCtx = document.getElementById('monthlySubscriptionsChart')?.getContext('2d');
+    if (monthlyCtx) {
+      const monthlyData = <%= raw (@monthly_subscriptions || []).to_json %>;
+      new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+          labels: monthlyData.map(m => new Date(m.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })),
+          datasets: [{
+            label: 'Subscriptions',
+            data: monthlyData.map(m => safeNumber(m.count)),
+            borderColor: '#3498db',
+            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
         },
-        y: { beginAtZero: true, ticks: { font: { size: 10 } } }
-      }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } } },
+            y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+          }
+        }
+      });
     }
-  });
+  } catch (e) {
+    console.error('Monthly chart error:', e);
+  }
 
   // Subscription Status Chart
-  const statusCtx = document.getElementById('subscriptionStatusChart').getContext('2d');
-  new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Active', 'Expired', 'Pending'],
-      datasets: [{
-        data: [<%= @active_subscriptions %>, <%= @expired_subscriptions %>, <%= @pending_subscriptions %>],
-        backgroundColor: ['#2ecc71', '#e74c3c', '#f39c12']
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      }
+  try {
+    const statusCtx = document.getElementById('subscriptionStatusChart')?.getContext('2d');
+    if (statusCtx) {
+      new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Active', 'Expired', 'Pending'],
+          datasets: [{
+            data: [
+              safeNumber(<%= @active_subscriptions || 0 %>),
+              safeNumber(<%= @expired_subscriptions || 0 %>),
+              safeNumber(<%= @pending_subscriptions || 0 %>)
+            ],
+            backgroundColor: ['#2ecc71', '#e74c3c', '#f39c12']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
     }
-  });
+  } catch (e) {
+    console.error('Status chart error:', e);
+  }
 
   // Auto-update timestamp
   setInterval(() => {
-    document.getElementById('last-update-time').textContent = new Date().toLocaleTimeString();
+    const elem = document.getElementById('last-update-time');
+    if (elem) {
+      elem.textContent = new Date().toLocaleTimeString();
+    }
   }, 1000);
 </script>
 

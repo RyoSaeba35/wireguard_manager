@@ -17,6 +17,10 @@ class Server < ApplicationRecord
   scope :inactive, -> { where(active: false) }
   scope :healthy, -> { where(healthy: true) }
 
+  def healthy?
+    healthy == true
+  end
+
   # Get flag emoji from country code
   def flag
     return nil unless country_code.present?
