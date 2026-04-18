@@ -62,17 +62,27 @@ class ClashApiMonitorJob < ApplicationJob
 
   private
 
-  # ⭐ NEW: Monitor WireGuard connections via SSH
+  # ⭐ Monitor WireGuard connections via SSH
   def monitor_wireguard(server)
     active_device_ids = Set.new
-    private_key_path = write_private_key(server)
+    key_file = nil
 
     begin
+      # Write SSH key to temp file
+      key_file = Tempfile.new(['ssh_key', '.pem'])
+      key_content = server.ssh_private_key.strip
+      key_content += "\n" unless key_content.end_with?("\n")
+      key_file.write(key_content)
+      key_file.close
+      File.chmod(0600, key_file.path)
+
       Net::SSH.start(
         server.ip_address,
         server.ssh_user,
-        keys: [private_key_path],
+        keys: [key_file.path],
+        auth_methods: ['publickey'],
         verify_host_key: :never,
+        non_interactive: true,
         timeout: 10
       ) do |ssh|
         # Get WireGuard peer info
@@ -108,17 +118,22 @@ class ClashApiMonitorJob < ApplicationJob
           end
         end
       end
+    rescue Net::SSH::AuthenticationFailed => e
+      Rails.logger.error "SSH auth failed for #{server.name}: #{e.message}"
     rescue => e
       Rails.logger.error "Failed to monitor WireGuard on #{server.name}: #{e.message}"
     ensure
-      File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
+      if key_file
+        key_file.close unless key_file.closed?
+        key_file.unlink
+      end
     end
 
     Rails.logger.info "✅ #{active_device_ids.size} active WireGuard devices on #{server.name}"
     active_device_ids.to_a
   end
 
-  # ⭐ RENAMED: Monitor sing-box connections via Clash API
+  # ⭐ Monitor sing-box connections via Clash API
   def monitor_singbox(server)
     connections = get_active_connections(server)
     Rails.logger.info "🔌 Found #{connections.size} active sing-box connections on #{server.name}"
@@ -202,17 +217,5 @@ class ClashApiMonitorJob < ApplicationJob
     VpnConnection.where(device_id: device_ids, disconnected_at: nil).update_all(disconnected_at: Time.current)
 
     Rails.logger.info "🔓 Released configs for #{device_ids.size} devices"
-  end
-
-  # ⭐ NEW: Write SSH private key to temp file
-  def write_private_key(server)
-    require 'tempfile'
-
-    temp_file = Tempfile.new(['ssh_key', '.pem'])
-    temp_file.write(server.ssh_private_key)
-    temp_file.close
-
-    File.chmod(0600, temp_file.path)
-    temp_file.path
   end
 end
