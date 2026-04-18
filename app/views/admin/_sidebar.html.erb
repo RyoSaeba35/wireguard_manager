@@ -12,6 +12,13 @@
 
 <!-- Admin Sidebar -->
 <aside class="admin-sidebar" id="adminSidebar">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <%= image_tag "Vulcain_VPN_logo_4.png", alt: "Vulcain VPN Logo" %>
+    </div>
+    <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">×</button>
+  </div>
 
   <!-- Admin Badge -->
   <div class="admin-badge">
@@ -151,7 +158,7 @@
     color: #ecf0f1;
     position: fixed;
     left: 0;
-    top: 4.75rem;
+    top: 0;
     height: 100vh;
     display: flex;
     flex-direction: column;
