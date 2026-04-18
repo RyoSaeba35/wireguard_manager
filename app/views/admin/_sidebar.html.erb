@@ -61,10 +61,10 @@
     <% end %>
 
     <!-- Subscriptions -->
-    <%= link_to admin_subscriptions_path, class: "nav-link #{current_page?(admin_subscriptions_path) || controller_name == 'subscriptions' ? 'active' : ''}" do %>
-      <span class="nav-icon">📋</span>
-      <span class="nav-text">Subscriptions</span>
-    <% end %>
+    <%#= link_to admin_subscriptions_path, class: "nav-link #{current_page?(admin_subscriptions_path) || controller_name == 'subscriptions' ? 'active' : ''}" do %>
+      <%# <span class="nav-icon">📋</span> %>
+      <%# <span class="nav-text">Subscriptions</span> %>
+    <%# end %>
 
     <%# ⭐ REMOVED: Connections route doesn't exist yet %>
     <%# Uncomment when you create Admin::ConnectionsController %>
@@ -74,14 +74,14 @@
       <%# <span class="nav-text">Connections</span> %>
     <%# end %>
 
-    <div class="nav-divider"></div>
+    <%# <div class="nav-divider"></div> %>
 
     <!-- Settings -->
     <%# ⭐ FIXED: Changed admin_settings_path to edit_admin_setting_path %>
-    <%= link_to edit_admin_setting_path, class: "nav-link #{current_page?(edit_admin_setting_path) ? 'active' : ''}" do %>
-      <span class="nav-icon">⚙️</span>
-      <span class="nav-text">Settings</span>
-    <% end %>
+    <%#= link_to edit_admin_setting_path, class: "nav-link #{current_page?(edit_admin_setting_path) ? 'active' : ''}" do %>
+      <%# <span class="nav-icon">⚙️</span> %>
+      <%# <span class="nav-text">Settings</span> %>
+    <%# end %>
   </nav>
 
   <!-- Sidebar Footer -->

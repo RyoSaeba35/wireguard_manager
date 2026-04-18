@@ -402,7 +402,7 @@ class VpnConfigSetService
       raise "sing-box config validation failed: #{check_output}"
     end
 
-    ssh.exec!("sudo systemctl reload sing-box")  # reload, NOT restart!
+    ssh.exec!("sudo systemctl restart sing-box")  # reload, NOT restart!
     Rails.logger.info "✅ Reloaded sing-box on #{@server.name}"
   end
 end
