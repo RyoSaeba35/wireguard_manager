@@ -594,7 +594,7 @@
     </div>
 
     <div class="alert alert-info" style="margin-top: 1.5rem;">
-      <strong>💡 Pro Tip:</strong> You can connect up to <%= @active_subscription&.plan&.max_devices || 3 %> devices simultaneously with a single subscription. Each device will automatically receive its own secure configuration.
+      <strong>💡 Pro Tip:</strong> You can connect up to <%= @active_subscription&.max_devices || 3 %> devices simultaneously with a single subscription.
     </div>
   </section>
 
