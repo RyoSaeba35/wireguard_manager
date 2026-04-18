@@ -12,6 +12,10 @@ class VpnConfigSet < ApplicationRecord
   scope :in_use, -> { where(status: 'in_use') }
   scope :used, -> { where(status: 'used') }
 
+  # ⭐ ADD THESE TWO SCOPES
+  scope :for_server, ->(server) { where(server_id: server.id) }
+  scope :available_for_server, ->(server) { available.where(server_id: server.id) }
+
   # Claim this config for a device
   def claim!(device)
     transaction do
