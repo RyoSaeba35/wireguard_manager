@@ -183,20 +183,29 @@ class VpnConfigSetService
         @server.ssh_user,
         keys: [private_key_path],
         verify_host_key: :never,
-        timeout: 600,
-        keepalive: true,
-        keepalive_interval: 30
+        timeout: 600,              # ⭐ 10 minute timeout
+        keepalive: true,           # ⭐ Keep connection alive
+        keepalive_interval: 30     # ⭐ Send keepalive every 30 seconds
       ) do |ssh|
-        # Write WireGuard configs
-        write_wireguard_batch(ssh, config_sets)
+        # Write in batches of 500 to avoid timeout
+        config_sets.each_slice(500) do |batch|
+          Rails.logger.info "Writing batch of #{batch.size} configs to #{@server.name}..."
 
-        # Write sing-box configs if enabled
+          # Write WireGuard configs
+          write_wireguard_batch(ssh, batch)
+
+          # Write sing-box configs if enabled
+          if @server.singbox_active?
+            write_singbox_batch(ssh, batch)
+          end
+        end
+
+        # Validate and reload sing-box (once, after all batches)
         if @server.singbox_active?
-          write_singbox_batch(ssh, config_sets)
           validate_and_reload_singbox(ssh)
         end
 
-        # Reload WireGuard (no downtime)
+        # Reload WireGuard (once, after all batches)
         reload_wireguard(ssh)
       end
     ensure
@@ -205,7 +214,6 @@ class VpnConfigSetService
   end
 
   def write_rotation_to_server(configs)
-    # Rebuild entire config files after rotation
     private_key_path = write_private_key(@server)
 
     begin
@@ -214,11 +222,10 @@ class VpnConfigSetService
         @server.ssh_user,
         keys: [private_key_path],
         verify_host_key: :never,
-        timeout: 600,
-        keepalive: true,
-        keepalive_interval: 30
+        timeout: 600,              # ⭐ 10 minute timeout
+        keepalive: true,           # ⭐ Keep connection alive
+        keepalive_interval: 30     # ⭐ Send keepalive every 30 seconds
       ) do |ssh|
-
         # Rebuild WireGuard config from all current configs
         all_configs = VpnConfigSet.where(server: @server).to_a
         rebuild_wireguard_config(ssh, all_configs)
