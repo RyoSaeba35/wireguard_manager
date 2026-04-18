@@ -305,9 +305,18 @@ class VpnConfigSetService
   end
 
   def reload_wireguard(ssh)
-    # No-downtime reload (better than restart for production)
+    # Use sh -c to run the whole pipeline in one sudo context
+    result = ssh.exec!("sudo sh -c 'wg-quick strip wg0 | wg syncconf wg0 /dev/stdin'")
+
+    if result && (result.include?("error") || result.include?("Permission denied"))
+      raise "WireGuard sync failed: #{result}"
+    end
+
+    Rails.logger.info "✅ Synced WireGuard on #{@server.name} (zero downtime)"
+  rescue => e
+    Rails.logger.error "WireGuard sync failed: #{e.message}, using restart"
     ssh.exec!("sudo systemctl restart wg-quick@wg0")
-    Rails.logger.info "✅ Reloaded WireGuard on #{@server.name}"
+    Rails.logger.info "⚠️ Restarted WireGuard on #{@server.name} (with downtime)"
   end
 
   # ==========================================
