@@ -59,6 +59,16 @@ class ClashApiMonitorJob < ApplicationJob
     connections = get_active_connections(server)
     Rails.logger.info "🔌 Found #{connections.size} active connections on #{server.name}"
 
+    # ⭐ ADD DEBUG LOGGING
+    connections.each do |conn|
+      Rails.logger.info "🔍 RAW CONNECTION: #{conn.inspect}"
+      Rails.logger.info "   sourceIP: #{conn.dig('metadata', 'sourceIP')}"
+      Rails.logger.info "   destinationIP: #{conn.dig('metadata', 'destinationIP')}"
+      Rails.logger.info "   network: #{conn.dig('metadata', 'network')}"
+      Rails.logger.info "   inboundIP: #{conn.dig('metadata', 'inboundIP')}"
+      Rails.logger.info "   All metadata keys: #{conn.dig('metadata')&.keys}"
+    end
+
     active_device_ids = Set.new
     matched_connections = Set.new
 
