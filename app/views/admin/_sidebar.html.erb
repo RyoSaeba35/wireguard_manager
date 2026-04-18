@@ -15,7 +15,7 @@
   <!-- Sidebar Header -->
   <div class="sidebar-header">
     <div class="sidebar-logo">
-      <%= image_tag "Vulcain_VPN_logo_4.png", alt: "Vulcain VPN Logo" %>
+      <%= image_tag "Vulcain_VPN_logo_4.png", alt: "Vulcain VPN Logo", class: "logo" %>
     </div>
     <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">×</button>
   </div>
@@ -98,6 +98,23 @@
 </aside>
 
 <style>
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+    height: 60px; /* Adjust as needed */
+    width: 120px;
+  }
+  .logo-link {
+    display: flex;
+    align-items: center;
+  }
+
+  .logo:hover {
+    text-decoration: none;
+    opacity: 0.9;
+  }
   /* Mobile Menu Toggle Button */
   .mobile-menu-toggle {
     display: none;
