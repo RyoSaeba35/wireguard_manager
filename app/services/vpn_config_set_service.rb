@@ -178,10 +178,15 @@ class VpnConfigSetService
     private_key_path = write_private_key(@server)
 
     begin
-      Net::SSH.start(@server.ip_address, @server.ssh_user,
-                     keys: [private_key_path],
-                     verify_host_key: :never) do |ssh|
-
+      Net::SSH.start(
+        @server.ip_address,
+        @server.ssh_user,
+        keys: [private_key_path],
+        verify_host_key: :never,
+        timeout: 600,
+        keepalive: true,
+        keepalive_interval: 30
+      ) do |ssh|
         # Write WireGuard configs
         write_wireguard_batch(ssh, config_sets)
 
@@ -204,9 +209,15 @@ class VpnConfigSetService
     private_key_path = write_private_key(@server)
 
     begin
-      Net::SSH.start(@server.ip_address, @server.ssh_user,
-                     keys: [private_key_path],
-                     verify_host_key: :never) do |ssh|
+      Net::SSH.start(
+        @server.ip_address,
+        @server.ssh_user,
+        keys: [private_key_path],
+        verify_host_key: :never,
+        timeout: 600,
+        keepalive: true,
+        keepalive_interval: 30
+      ) do |ssh|
 
         # Rebuild WireGuard config from all current configs
         all_configs = VpnConfigSet.where(server: @server).to_a
