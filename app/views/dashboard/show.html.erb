@@ -493,7 +493,7 @@
         <div class="alert-content">
           <h3>✓ Active Subscription</h3>
           <p><strong>Plan:</strong> <%= @active_subscription.plan.name %></p>
-          <p><strong>Devices:</strong> Connect up to <%= @active_subscription.plan.max_devices || 3 %> devices</p>
+          <p><strong>Devices:</strong> Connect up to <%= @active_subscription.max_devices || 3 %> devices</p>
           <p><strong>Expires:</strong> <span id="local-time-text"><%= @active_subscription.expires_at.strftime("%B %d, %Y at %H:%M") %></span></p>
           <p class="countdown">
             <span id="countdown">Calculating...</span>
