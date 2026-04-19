@@ -154,6 +154,8 @@ class VpnConfigSetService
 
       {
         id: config.id,
+        server_id: config.server_id,           # ✅ ADD THIS
+        ip_address: config.ip_address,
         wireguard_private_key: Base64.strict_encode64(private_key_raw),
         wireguard_public_key: Base64.strict_encode64(public_key_raw),
         wireguard_preshared_key: Base64.strict_encode64(preshared_key_raw),

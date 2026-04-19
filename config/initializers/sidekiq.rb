@@ -61,11 +61,11 @@ Sidekiq.configure_server do |config|
         },
 
         # Daily at 3 AM — rotate all credentials (security)
-        'rotate_all_credentials' => {
-          'cron'  => '0 3 * * *',
-          'class' => 'RotateAllCredentialsJob',
-          'queue' => 'default'
-        },
+        # 'rotate_all_credentials' => {
+        #   'cron'  => '0 3 * * *',
+        #   'class' => 'RotateAllCredentialsJob',
+        #   'queue' => 'default'
+        # },
 
         # ==========================================
         # CLEANUP & BACKUP
