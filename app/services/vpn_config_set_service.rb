@@ -456,6 +456,8 @@ class VpnConfigSetService
   # ==========================================
 
   def write_all_singbox_users(ssh, config_sets)
+    Rails.logger.info "Building sing-box config with #{config_sets.size} users..."
+
     # Read base config
     config_json = ssh.exec!("sudo cat /etc/sing-box/config.json")
     config = JSON.parse(config_json)
@@ -480,7 +482,9 @@ class VpnConfigSetService
       { "name" => ip, "password" => password }
     end
 
-    # Write config using SFTP
+    Rails.logger.info "Writing sing-box config to server..."
+
+    # Write config using printf
     write_singbox_config_to_server(ssh, config)
 
     Rails.logger.info "✅ Wrote #{config_sets.size} sing-box users to #{@server.name}"
@@ -555,19 +559,19 @@ class VpnConfigSetService
   end
 
   # ==========================================
-  # WRITE SING-BOX CONFIG USING SFTP (RELIABLE FOR LARGE FILES)
+  # WRITE SING-BOX CONFIG USING PRINTF (HANDLES LARGE FILES)
   # ==========================================
 
   def write_singbox_config_to_server(ssh, config)
     # Generate JSON (400KB for 3000 users)
     updated_config = JSON.pretty_generate(config)
 
-    # Upload using SFTP - much more reliable than echo for large files
-    ssh.sftp.file.open("/tmp/singbox_temp.json", "w") do |file|
-      file.write(updated_config)
-    end
+    # Escape single quotes for shell safety
+    escaped_config = updated_config.gsub("'", "'\\''")
 
-    # Move to final location with proper permissions
+    # Use printf which handles large strings better than echo
+    # Write to temp file first, then move with sudo
+    ssh.exec!("printf '%s' '#{escaped_config}' > /tmp/singbox_temp.json")
     ssh.exec!("sudo mv /tmp/singbox_temp.json /etc/sing-box/config.json")
     ssh.exec!("sudo chown root:root /etc/sing-box/config.json")
     ssh.exec!("sudo chmod 644 /etc/sing-box/config.json")
