@@ -107,7 +107,7 @@ class SubscriptionsController < ApplicationController
     end
 
     # ⭐ NEW: Show devices and connections (no downloadable configs)
-    @devices = @subscription.devices.order(created_at: :desc).to_a
+    all_devices = @subscription.devices.order(created_at: :desc).to_a
     @active_connections = @subscription.vpn_connections.active.includes(:server, :device)
     @recent_connections = @subscription.vpn_connections.completed.order(disconnected_at: :desc).limit(10)
 
