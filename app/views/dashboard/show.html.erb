@@ -75,7 +75,7 @@
 
   <!-- App Download Section -->
   <section class="app-download-section">
-    <h2>📱 Download VulcainVPN</h2>
+    <h2>Download VulcainVPN</h2>
 
     <!-- Smart detection message -->
     <%# <div id="smart-download-message"></div> %>
@@ -412,7 +412,7 @@
         // Platform is available - show download button
         featuredEl.style.display = 'block';
         featuredEl.innerHTML = `
-          <h3>${icon} Download for ${platformName}</h3>
+          <h3>${icon} ${platformName}</h3>
           <a href="${downloadUrl}" class="download-btn-large" ${detectedPlatform === 'android' ? 'target="_blank"' : 'download'}>
             Download Now
           </a>
