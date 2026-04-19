@@ -88,7 +88,8 @@
       All available platforms:
     </p>
 
-    <div class="app-download-grid">
+    <div class="app-download-grid" id="platform-grid">
+      <!-- Cards will be dynamically shown/hidden by JavaScript -->
       <div class="app-card" data-platform="ios">
         <div class="app-icon">🍎</div>
         <h3>iOS</h3>
@@ -122,6 +123,16 @@
         <span class="status-badge available">Available Now</span>
         <a href="/downloads/vulcainvpn-macos.dmg"
           class="download-btn macos-download" download>Download</a>
+      </div>
+
+      <!-- Linux card (hidden by default, shown when another platform is featured) -->
+      <div class="app-card" data-platform="linux" style="display: none;">
+        <div class="app-icon">🐧</div>
+        <h3>Linux</h3>
+        <p>Ubuntu, Debian, Fedora</p>
+        <span class="status-badge available">Available Now</span>
+        <a href="/downloads/vulcainvpn-linux.deb"
+          class="download-btn linux-download" download>Download</a>
       </div>
     </div>
 
@@ -340,13 +351,13 @@
     if (/iPad/i.test(ua)) {
       detectedPlatform = 'ios';
       platformName = 'iPad';
-      downloadUrl = '#'; // App Store URL when ready
+      downloadUrl = '#';
       isAvailable = false;
       icon = '🍎';
     } else if (/iPhone|iPod/i.test(ua)) {
       detectedPlatform = 'ios';
       platformName = 'iPhone';
-      downloadUrl = '#'; // App Store URL when ready
+      downloadUrl = '#';
       isAvailable = false;
       icon = '🍎';
     } else if (/Android/i.test(ua)) {
@@ -379,15 +390,19 @@
       }
     }
 
-    // Highlight the matching card
-    const matchingCard = document.querySelector(`[data-platform="${detectedPlatform}"]`);
-    if (matchingCard) {
-      matchingCard.setAttribute('data-highlight', 'true');
+    // Handle platform grid: replace detected platform with Linux
+    if (detectedPlatform) {
+      // Hide the detected platform card from the grid
+      const detectedCard = document.querySelector(`[data-platform="${detectedPlatform}"]`);
+      if (detectedCard) {
+        detectedCard.style.display = 'none';
+      }
 
-      // Scroll to it smoothly after a short delay
-      setTimeout(() => {
-        matchingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
+      // Show Linux card instead
+      const linuxCard = document.querySelector('[data-platform="linux"]');
+      if (linuxCard) {
+        linuxCard.style.display = 'block';
+      }
     }
 
     // Show featured download
@@ -567,7 +582,7 @@
 
   .app-download-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
     margin-top: 1.5rem;
   }
@@ -963,12 +978,19 @@
     }
 
     .app-download-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr;  /* Stack on mobile */
     }
 
     .quick-step {
       flex-direction: column;
       text-align: center;
+    }
+  }
+
+  /* Tablet: 2 columns */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .app-download-grid {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 </style>
