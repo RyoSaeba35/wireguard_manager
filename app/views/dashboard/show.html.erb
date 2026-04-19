@@ -77,9 +77,6 @@
   <section class="app-download-section">
     <h2>Download VulcainVPN</h2>
 
-    <!-- Smart detection message -->
-    <%# <div id="smart-download-message"></div> %>
-
     <!-- Featured download for detected platform -->
     <div id="featured-download" style="display: none;"></div>
 
@@ -89,9 +86,8 @@
     </p>
 
     <div class="app-download-grid" id="platform-grid">
-      <!-- Cards will be dynamically shown/hidden by JavaScript -->
-
-      <div class="app-card" data-platform="android">
+      <!-- Mobile cards (iOS & Android) - always visible -->
+      <div class="app-card mobile-card" data-platform="android">
         <div class="app-icon">🤖</div>
         <h3>Android</h3>
         <p>Phones & Tablets</p>
@@ -100,7 +96,7 @@
           class="download-btn disabled android-download" target="_blank">Google Play</a>
       </div>
 
-      <div class="app-card" data-platform="ios">
+      <div class="app-card mobile-card" data-platform="ios">
         <div class="app-icon">🍎</div>
         <h3>iOS</h3>
         <p>iPhone & iPad</p>
@@ -108,7 +104,8 @@
         <a href="#" class="download-btn disabled ios-download">App Store</a>
       </div>
 
-      <div class="app-card" data-platform="windows">
+      <!-- Desktop cards (Windows, macOS) - hidden on mobile -->
+      <div class="app-card desktop-card" data-platform="windows">
         <div class="app-icon">🪟</div>
         <h3>Windows</h3>
         <p>Windows 10/11</p>
@@ -117,7 +114,7 @@
           class="download-btn windows-download" download>Download</a>
       </div>
 
-      <div class="app-card" data-platform="macos">
+      <div class="app-card desktop-card" data-platform="macos">
         <div class="app-icon">🍏</div>
         <h3>macOS</h3>
         <p>macOS 11+</p>
@@ -127,7 +124,7 @@
       </div>
 
       <!-- Linux card (hidden by default, shown when another platform is featured) -->
-      <div class="app-card" data-platform="linux" style="display: none;">
+      <div class="app-card desktop-card" data-platform="linux" style="display: none;">
         <div class="app-icon">🐧</div>
         <h3>Linux</h3>
         <p>Ubuntu, Debian, ...</p>
@@ -135,6 +132,16 @@
         <a href="/downloads/vulcainvpn-linux.deb"
           class="download-btn disabled linux-download" download>Download</a>
       </div>
+    </div>
+
+    <!-- Desktop platforms text (mobile only) -->
+    <div class="desktop-platforms-mobile">
+      <p style="text-align: center; margin: 1.5rem 0 0.5rem 0; font-size: 0.95rem; color: rgba(255, 195, 60, 0.9);">
+        Also available for desktop:
+      </p>
+      <p style="text-align: center; margin: 0; font-size: 0.9rem; color: rgba(255, 195, 60, 0.7);">
+        🪟 Windows • 🍏 macOS • 🐧 Linux
+      </p>
     </div>
 
     <div class="alert alert-info" style="margin-top: 2rem; background: rgba(255, 195, 60, 0.1); border: 1px solid rgba(255, 195, 60, 0.3); border-radius: 8px; padding: 1rem;">
@@ -947,6 +954,11 @@
     color: #432923;
   }
 
+  /* Desktop platforms text - hidden on desktop, shown on mobile */
+  .desktop-platforms-mobile {
+    display: none;
+  }
+
   /* Mobile Responsive */
   @media (max-width: 768px) {
     .dashboard-container {
@@ -978,8 +990,19 @@
       margin-bottom: 0.5rem;
     }
 
+    /* Mobile: Show only iOS & Android in 1 row (2 columns) */
     .app-download-grid {
-      grid-template-columns: 1fr;  /* Stack on mobile */
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Hide desktop cards on mobile */
+    .desktop-card {
+      display: none !important;
+    }
+
+    /* Show desktop platforms text on mobile */
+    .desktop-platforms-mobile {
+      display: block;
     }
 
     .quick-step {
@@ -988,7 +1011,7 @@
     }
   }
 
-  /* Tablet: 2 columns */
+  /* Tablet: 2 columns for all cards */
   @media (min-width: 769px) and (max-width: 1024px) {
     .app-download-grid {
       grid-template-columns: repeat(2, 1fr);
