@@ -88,56 +88,6 @@
     </div>
   </section>
 
-  <!-- Protocol Information -->
-  <section class="troubleshooting-section">
-    <h2>Available Protocols</h2>
-
-    <div class="faq-item">
-      <button class="faq-question">
-        WireGuard <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Recommended for:</strong> General use, best balance of speed and security</p>
-        <ul>
-          <li>Modern, lightweight VPN protocol</li>
-          <li>Excellent performance on all devices</li>
-          <li>Low battery consumption on mobile</li>
-          <li>Works on most networks</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question">
-        Hysteria2 <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Recommended for:</strong> Restrictive networks, maximum speed</p>
-        <ul>
-          <li>Bypasses most network restrictions</li>
-          <li>Very fast in high-latency conditions</li>
-          <li>Good for streaming and gaming</li>
-          <li>Built-in obfuscation (Salamander)</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question">
-        Shadowsocks <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Recommended for:</strong> Censored regions, stealth connections</p>
-        <ul>
-          <li>Designed for bypassing censorship</li>
-          <li>Looks like regular HTTPS traffic</li>
-          <li>Works in China and other restricted countries</li>
-          <li>AEAD encryption (2022-blake3-aes-256-gcm)</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
   <!-- Troubleshooting section -->
   <section class="troubleshooting-section">
     <h2>Troubleshooting</h2>
@@ -254,7 +204,7 @@
 
 <!-- Keep the existing JavaScript -->
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("turbo:load", function() {
     // FAQ toggle logic
     document.querySelectorAll('.faq-question').forEach(button => {
       button.addEventListener('click', () => {
