@@ -33,11 +33,10 @@ class VpnConfigSetService
   end
 
   # ==========================================
-  # RECYCLE STALE CONFIGS (Every 15 minutes)
+  # RECYCLE STALE CONFIGS (Every 2 hours)
   # ==========================================
 
   def recycle_stale_configs
-    # Find configs that have been in "used" state for >15 minutes
     stale_configs = VpnConfigSet.where(server: @server, status: 'used')
                                 .where('last_used_at < ?', 15.minutes.ago)
 
@@ -46,8 +45,8 @@ class VpnConfigSetService
 
     Rails.logger.info "Recycling #{count} stale configs for #{@server.name}"
 
-    # Rotate credentials
-    rotate_configs_credentials(stale_configs.to_a)
+    # Rotate credentials AND update server (batch operation - fast!)
+    rotate_and_update_peers(stale_configs.to_a)
 
     # Mark as available
     stale_configs.update_all(
@@ -140,7 +139,7 @@ class VpnConfigSetService
   end
 
   # ==========================================
-  # ROTATE CREDENTIALS
+  # ROTATE CREDENTIALS (for full rotation)
   # ==========================================
 
   def rotate_configs_credentials(configs)
@@ -154,7 +153,7 @@ class VpnConfigSetService
 
       {
         id: config.id,
-        server_id: config.server_id,           # ✅ ADD THIS
+        server_id: config.server_id,
         ip_address: config.ip_address,
         wireguard_private_key: Base64.strict_encode64(private_key_raw),
         wireguard_public_key: Base64.strict_encode64(public_key_raw),
@@ -170,6 +169,144 @@ class VpnConfigSetService
 
     # Write to server
     write_rotation_to_server(configs)
+  end
+
+  # ==========================================
+  # ROTATE AND UPDATE PEERS (for recycling - FAST)
+  # ==========================================
+
+  def rotate_and_update_peers(configs)
+    require 'rbnacl'
+
+    private_key_path = write_private_key(@server)
+
+    begin
+      Net::SSH.start(
+        @server.ip_address,
+        @server.ssh_user,
+        keys: [private_key_path],
+        verify_host_key: :never,
+        timeout: 60
+      ) do |ssh|
+        # ==========================================
+        # STEP 1: Generate all new credentials
+        # ==========================================
+        updates = configs.map do |config|
+          old_pub = config.wireguard_public_key
+
+          # Generate new WireGuard keys
+          new_priv_raw = RbNaCl::Random.random_bytes(32)
+          new_pub = Base64.strict_encode64(RbNaCl::PrivateKey.new(new_priv_raw).public_key.to_bytes)
+          new_psk = Base64.strict_encode64(RbNaCl::Random.random_bytes(32))
+          new_priv = Base64.strict_encode64(new_priv_raw)
+
+          # Generate new sing-box passwords
+          new_hy2_pass = SecureRandom.base64(32)
+          new_ss_pass = SecureRandom.base64(32)
+
+          {
+            config: config,
+            old_pub: old_pub,
+            new_pub: new_pub,
+            new_psk: new_psk,
+            new_priv: new_priv,
+            new_hy2_pass: new_hy2_pass,
+            new_ss_pass: new_ss_pass
+          }
+        end
+
+        # ==========================================
+        # STEP 2: Update WireGuard (batch script)
+        # ==========================================
+        wg_commands = updates.map do |u|
+          <<~WG_CMD.strip
+            wg set wg0 peer #{u[:old_pub]} remove
+            echo '#{u[:new_psk]}' | wg set wg0 peer #{u[:new_pub]} preshared-key /dev/stdin allowed-ips #{u[:config].ip_address}/32
+          WG_CMD
+        end.join("\n")
+
+        # Execute WireGuard updates + save config
+        ssh.exec!(<<~BASH)
+          sudo bash -c '
+          #{wg_commands}
+          wg-quick save wg0
+          '
+        BASH
+
+        Rails.logger.info "✅ Updated #{configs.size} WireGuard peers on #{@server.name}"
+
+        # ==========================================
+        # STEP 3: Update sing-box if active
+        # ==========================================
+        if @server.singbox_active?
+          update_singbox_users(ssh, updates)
+        end
+
+        # ==========================================
+        # STEP 4: Update database (batch)
+        # ==========================================
+        db_updates = updates.map do |u|
+          {
+            id: u[:config].id,
+            server_id: u[:config].server_id,
+            ip_address: u[:config].ip_address,
+            wireguard_private_key: u[:new_priv],
+            wireguard_public_key: u[:new_pub],
+            wireguard_preshared_key: u[:new_psk],
+            hysteria2_password: u[:new_hy2_pass],
+            shadowsocks_password: u[:new_ss_pass],
+            updated_at: Time.current
+          }
+        end
+
+        VpnConfigSet.upsert_all(db_updates, unique_by: :id)
+        Rails.logger.info "✅ Updated #{configs.size} configs in database"
+      end
+    ensure
+      File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
+    end
+  end
+
+  # ==========================================
+  # UPDATE SING-BOX USERS (helper for recycling)
+  # ==========================================
+
+  def update_singbox_users(ssh, updates)
+    # Read current config
+    config_json = ssh.exec!("sudo cat /etc/sing-box/config.json")
+    config = JSON.parse(config_json)
+
+    # Find inbounds
+    hysteria2_inbound = config["inbounds"].find { |i| i["type"] == "hysteria2" }
+    ss_inbound = config["inbounds"].find { |i| i["type"] == "shadowsocks" }
+
+    return unless hysteria2_inbound && ss_inbound
+
+    # Remove old users and add new ones
+    updates.each do |u|
+      ip = u[:config].ip_address
+
+      # Remove old entries
+      hysteria2_inbound["users"].reject! { |user| user["name"] == ip }
+      ss_inbound["users"].reject! { |user| user["name"] == ip }
+
+      # Add new entries with new passwords
+      hysteria2_inbound["users"] << { "name" => ip, "password" => u[:new_hy2_pass] }
+      ss_inbound["users"] << { "name" => ip, "password" => u[:new_ss_pass] }
+    end
+
+    # Write updated config
+    updated_config = JSON.pretty_generate(config)
+    ssh.exec!("sudo tee /etc/sing-box/config.json > /dev/null << 'SINGBOX_EOF'\n#{updated_config}\nSINGBOX_EOF")
+
+    # Validate and reload
+    check_output = ssh.exec!("sudo sing-box check -c /etc/sing-box/config.json 2>&1")
+    if check_output.present? && check_output.include?("FATAL")
+      raise "sing-box config validation failed: #{check_output}"
+    end
+
+    ssh.exec!("sudo systemctl reload sing-box")
+    Rails.logger.info "✅ Updated #{updates.size} sing-box users on #{@server.name}"
   end
 
   # ==========================================
@@ -371,7 +508,7 @@ class VpnConfigSetService
     hysteria2_inbound = config["inbounds"].find { |i| i["type"] == "hysteria2" }
     raise "Hysteria2 inbound not found" unless hysteria2_inbound
 
-    ss_inbound = config["inbounds"].find { |i| i["type"] == "shadowsocks" }  # ✅ FIXED TYPO
+    ss_inbound = config["inbounds"].find { |i| i["type"] == "shadowsocks" }
     raise "Shadowsocks inbound not found" unless ss_inbound
 
     # Rebuild user lists from scratch
@@ -404,7 +541,7 @@ class VpnConfigSetService
       raise "sing-box config validation failed: #{check_output}"
     end
 
-    ssh.exec!("sudo systemctl restart sing-box")  # reload, NOT restart!
+    ssh.exec!("sudo systemctl reload sing-box")
     Rails.logger.info "✅ Reloaded sing-box on #{@server.name}"
   end
 end

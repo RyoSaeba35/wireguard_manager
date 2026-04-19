@@ -34,7 +34,7 @@
   /* Status Banner */
   .status-banner {
     color: #ffc33c;
-    padding: 1.5rem;
+    padding: 1rem;
     box-shadow: 0 4px 20px rgba(67, 41, 35, 0.3);
     text-align: center;
   }
@@ -474,7 +474,7 @@
 <div class="dashboard-container">
   <!-- Dashboard Header -->
   <header class="dashboard-header">
-    <h1>Welcome, <%= current_user.email.split('@').first.capitalize %></h1>
+    <h1>Welcome, <%= current_user.email.capitalize %></h1>
     <p>Manage your VPN subscription and stay protected</p>
   </header>
 
