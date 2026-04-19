@@ -295,7 +295,7 @@ class VpnConfigSetService
       ss_inbound["users"] << { "name" => ip, "password" => u[:new_ss_pass] }
     end
 
-    # Write updated config using safer method
+    # Write updated config using SFTP
     write_singbox_config_to_server(ssh, config)
 
     # Validate and reload
@@ -480,7 +480,7 @@ class VpnConfigSetService
       { "name" => ip, "password" => password }
     end
 
-    # Write config using safer method
+    # Write config using SFTP
     write_singbox_config_to_server(ssh, config)
 
     Rails.logger.info "✅ Wrote #{config_sets.size} sing-box users to #{@server.name}"
@@ -521,7 +521,7 @@ class VpnConfigSetService
       }
     end
 
-    # Write config (EXACTLY as SingboxClientCreator)
+    # Write config using SFTP
     write_singbox_config_to_server(ssh, config)
 
     Rails.logger.info "✅ Wrote #{config_sets.size} sing-box users to #{@server.name}"
@@ -548,26 +548,29 @@ class VpnConfigSetService
       { "name" => cs.ip_address, "password" => cs.shadowsocks_password }
     end
 
-    # Write config
+    # Write config using SFTP
     write_singbox_config_to_server(ssh, config)
 
     Rails.logger.info "✅ Rebuilt sing-box config with #{all_configs.size} users"
   end
 
+  # ==========================================
+  # WRITE SING-BOX CONFIG USING SFTP (RELIABLE FOR LARGE FILES)
+  # ==========================================
+
   def write_singbox_config_to_server(ssh, config)
-    # Safer method for large JSON files: use base64 encoding to avoid heredoc truncation
+    # Generate JSON (400KB for 3000 users)
     updated_config = JSON.pretty_generate(config)
 
-    # Base64 encode to avoid heredoc issues with large files
-    encoded_config = Base64.strict_encode64(updated_config)
+    # Upload using SFTP - much more reliable than echo for large files
+    ssh.sftp.file.open("/tmp/singbox_temp.json", "w") do |file|
+      file.write(updated_config)
+    end
 
-    # Write encoded config to temp file, decode, and move to final location
-    ssh.exec!(<<~BASH)
-      echo '#{encoded_config}' | base64 -d > /tmp/singbox_temp.json
-      sudo mv /tmp/singbox_temp.json /etc/sing-box/config.json
-      sudo chown root:root /etc/sing-box/config.json
-      sudo chmod 644 /etc/sing-box/config.json
-    BASH
+    # Move to final location with proper permissions
+    ssh.exec!("sudo mv /tmp/singbox_temp.json /etc/sing-box/config.json")
+    ssh.exec!("sudo chown root:root /etc/sing-box/config.json")
+    ssh.exec!("sudo chmod 644 /etc/sing-box/config.json")
   end
 
   def validate_and_reload_singbox(ssh)
