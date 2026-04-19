@@ -1,4 +1,421 @@
 <%# app/views/dashboard/show.html.erb %>
+<!-- Status Banner -->
+<% if @vpn_server_ips.include?(@user_ip) %>
+  <div class="status-banner status-banner-vpn">
+    <p class="status-text">🔒 You are protected by VulcainVPN</p>
+    <p class="status-detail">IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
+  </div>
+<% elsif @active_subscription %>
+  <div class="status-banner status-banner-warning">
+    <p class="status-text">⚠️ VPN Not Connected</p>
+    <p class="status-detail">Your IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
+  </div>
+<% else %>
+  <div class="status-banner">
+    <p class="status-text">No Active Subscription</p>
+    <p class="status-detail">Your IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
+  </div>
+<% end %>
+
+<div class="dashboard-container">
+  <!-- Dashboard Header -->
+  <header class="dashboard-header">
+    <h1>Welcome, <%= current_user.email.capitalize %></h1>
+    <p>Manage your VPN subscription and stay protected</p>
+  </header>
+
+  <!-- Subscription Section -->
+  <section class="subscription-section">
+    <h2>📋 Your Subscription</h2>
+
+    <% if @has_subscription && @active_subscription && @active_subscription.expires_at > Time.now %>
+      <!-- Active Subscription -->
+      <div class="subscription-alert">
+        <div class="alert-icon">
+          <svg width="24" height="24" viewBox="0 0 20 20" fill="#ffc33c">
+            <path d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zM8 15l-5-5 1.4-1.4L8 12.2 14.6 5.6 16 7z" />
+          </svg>
+        </div>
+        <div class="alert-content">
+          <h3>✓ Active Subscription</h3>
+          <p><strong>Plan:</strong> <%= @active_subscription.plan.name %></p>
+          <p><strong>Devices:</strong> Connect up to <%= @active_subscription.max_devices || 3 %> devices</p>
+          <p><strong>Expires:</strong> <span id="local-time-text"><%= @active_subscription.expires_at.strftime("%B %d, %Y at %H:%M") %></span></p>
+          <p class="countdown">
+            <span id="countdown">Calculating...</span>
+          </p>
+        </div>
+      </div>
+
+      <%= link_to "View Subscription Details", user_subscription_path(current_user, @active_subscription), class: "btn btn-block" %>
+
+    <% else %>
+      <!-- No Active Subscription -->
+      <div class="alert alert-warning">
+        <p><strong>No active subscription</strong></p>
+        <p>Subscribe now to protect your privacy and secure your connection on up to 3 devices.</p>
+      </div>
+      <%= link_to "Choose a Plan", new_user_subscription_path(current_user), class: "btn btn-block" %>
+    <% end %>
+
+    <!-- Expired Subscriptions -->
+    <% if @expired_subscriptions.any? %>
+      <% last_expired = @expired_subscriptions.last %>
+      <div class="subscription-card">
+        <h3>Last Subscription</h3>
+        <p><strong>Plan:</strong> <%= last_expired.plan.name %></p>
+        <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%B %d, %Y") %></p>
+        <p><strong>Duration:</strong>
+          <% days = (last_expired.expires_at.to_date - last_expired.created_at.to_date).to_i %>
+          <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
+        </p>
+      </div>
+    <% end %>
+  </section>
+
+  <!-- App Download Section -->
+  <section class="app-download-section">
+    <h2>📱 Download VulcainVPN</h2>
+
+    <!-- Smart detection message -->
+    <div id="smart-download-message"></div>
+
+    <!-- Featured download for detected platform -->
+    <div id="featured-download" style="display: none;"></div>
+
+    <!-- All platforms (always visible) -->
+    <p style="text-align: center; margin: 1.5rem 0 1rem 0; opacity: 0.85; font-size: 1rem;">
+      All available platforms:
+    </p>
+
+    <div class="app-download-grid">
+      <div class="app-card" data-platform="ios">
+        <div class="app-icon">🍎</div>
+        <h3>iOS</h3>
+        <p>iPhone & iPad</p>
+        <span class="status-badge coming-soon">Coming Soon</span>
+        <a href="#" class="download-btn disabled ios-download">App Store</a>
+      </div>
+
+      <div class="app-card" data-platform="android">
+        <div class="app-icon">🤖</div>
+        <h3>Android</h3>
+        <p>Phones & Tablets</p>
+        <span class="status-badge available">Available Now</span>
+        <a href="https://play.google.com/store/apps/details?id=com.vulcainvpn"
+          class="download-btn android-download" target="_blank">Google Play</a>
+      </div>
+
+      <div class="app-card" data-platform="windows">
+        <div class="app-icon">🪟</div>
+        <h3>Windows</h3>
+        <p>Windows 10/11</p>
+        <span class="status-badge available">Available Now</span>
+        <a href="/downloads/vulcainvpn-windows.exe"
+          class="download-btn windows-download" download>Download</a>
+      </div>
+
+      <div class="app-card" data-platform="macos">
+        <div class="app-icon">🍏</div>
+        <h3>macOS</h3>
+        <p>macOS 11+</p>
+        <span class="status-badge available">Available Now</span>
+        <a href="/downloads/vulcainvpn-macos.dmg"
+          class="download-btn macos-download" download>Download</a>
+      </div>
+    </div>
+
+    <div class="alert alert-info" style="margin-top: 2rem; background: rgba(255, 195, 60, 0.1); border: 1px solid rgba(255, 195, 60, 0.3); border-radius: 8px; padding: 1rem;">
+      <strong>💡 Need Help?</strong> Check out the <%= link_to "setup guide", setup_dashboard_path %> or contact support at
+      <a href="mailto:support@vulcainvpn.com" style="color: #ff6e08;">support@vulcainvpn.com</a>
+    </div>
+  </section>
+
+  <!-- Quick Start Guide -->
+  <section class="quick-start-section">
+    <h2>🚀 Quick Start Guide</h2>
+
+    <div class="quick-start-steps">
+      <div class="quick-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Download the App</h3>
+          <p>Install VulcainVPN from the App Store (iOS) or Google Play (Android)</p>
+        </div>
+      </div>
+
+      <div class="quick-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Sign In</h3>
+          <p>Open the app and log in with your VulcainVPN account (<%= current_user.email %>)</p>
+        </div>
+      </div>
+
+      <div class="quick-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Connect</h3>
+          <p>Tap the "Connect" button and you're protected! The app automatically selects the best server for you.</p>
+        </div>
+      </div>
+
+      <div class="quick-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Verify Protection</h3>
+          <p>Check your IP address at <a href="https://whatismyip.com" target="_blank" style="color: #ff6e08;">whatismyip.com</a> to confirm your connection</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-info" style="margin-top: 1.5rem;">
+      <strong>💡 Pro Tip:</strong> You can connect up to <%= @active_subscription&.max_devices || 3 %> devices simultaneously with a single subscription.
+    </div>
+  </section>
+
+  <!-- Troubleshooting Section -->
+  <section class="troubleshooting-section">
+    <h2>🔧 Troubleshooting</h2>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Can't connect to VPN <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Try these steps:</strong></p>
+        <ul>
+          <li>Check your internet connection</li>
+          <li>Make sure your subscription is active</li>
+          <li>Restart the VulcainVPN app</li>
+          <li>Restart your device</li>
+          <li>Check if other apps are blocking VPN connections (antivirus, firewall)</li>
+          <li>Try toggling airplane mode on/off</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Connection keeps dropping <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Possible solutions:</strong></p>
+        <ul>
+          <li>Make sure you have a stable internet connection</li>
+          <li>Disable battery optimization for VulcainVPN (Android Settings → Apps → VulcainVPN → Battery)</li>
+          <li>Check if your network blocks VPN traffic (some public WiFi networks do this)</li>
+          <li>Try switching to mobile data to test</li>
+          <li>Update the app to the latest version</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Slow connection speeds <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Speed optimization:</strong></p>
+        <ul>
+          <li>Test your base internet speed without VPN first</li>
+          <li>Close background apps that use internet</li>
+          <li>Restart your router</li>
+          <li>Try connecting to a server closer to your location</li>
+          <li>Check if your ISP is throttling VPN traffic</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Multiple devices not working <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p><strong>Device limit:</strong></p>
+        <ul>
+          <li>Your plan allows up to <%= @active_subscription.max_devices || 3 %> simultaneous connections</li>
+          <li>Each device gets its own unique configuration automatically</li>
+          <li>If you can't connect, check if you've reached your device limit</li>
+          <li>Disconnect unused devices to free up slots</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFAQ(this)">
+        Still need help? <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Contact our support team at <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a></p>
+        <p>Include details about:</p>
+        <ul>
+          <li>Your device type (iPhone 13, Samsung Galaxy S21, etc.)</li>
+          <li>App version</li>
+          <li>When the issue started</li>
+          <li>Error messages you're seeing</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  // Toggle FAQ answers
+  function toggleFAQ(button) {
+    const answer = button.nextElementSibling;
+    const icon = button.querySelector('.faq-icon');
+
+    if (answer.classList.contains('active')) {
+      answer.classList.remove('active');
+      icon.textContent = '+';
+    } else {
+      // Close all other FAQs
+      document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
+      document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
+
+      // Open this one
+      answer.classList.add('active');
+      icon.textContent = '-';
+    }
+  }
+
+  // Update countdown
+  function updateCountdown(expiresAt) {
+    const now = new Date();
+    const diff = expiresAt - now;
+
+    if (diff <= 0) {
+      document.getElementById("countdown").textContent = "⚠️ Subscription expired";
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    let parts = [];
+    if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+    if (hours > 0 || days > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+    parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+
+    document.getElementById("countdown").textContent = `⏱️ ${parts.join(', ')} remaining`;
+  }
+
+  // Initialize countdown
+  <% if @active_subscription && @active_subscription.expires_at > Time.now %>
+    const expiresAt = new Date("<%= @active_subscription.expires_at.iso8601 %>");
+    const localTimeElement = document.getElementById("local-time-text");
+
+    if (localTimeElement) {
+      const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      localTimeElement.textContent = expiresAt.toLocaleString(undefined, options);
+    }
+
+    updateCountdown(expiresAt);
+    setInterval(() => updateCountdown(expiresAt), 60000); // Update every minute
+  <% end %>
+
+  // Platform Detection and Smart Download
+  document.addEventListener('turbo:load', function() {
+    detectAndShowPlatform();
+  });
+
+  function detectAndShowPlatform() {
+    const ua = navigator.userAgent;
+    let detectedPlatform = null;
+    let platformName = '';
+    let downloadUrl = '';
+    let isAvailable = true;
+    let icon = '';
+
+    // Specific platform detection
+    if (/iPad/i.test(ua)) {
+      detectedPlatform = 'ios';
+      platformName = 'iPad';
+      downloadUrl = '#'; // App Store URL when ready
+      isAvailable = false;
+      icon = '🍎';
+    } else if (/iPhone|iPod/i.test(ua)) {
+      detectedPlatform = 'ios';
+      platformName = 'iPhone';
+      downloadUrl = '#'; // App Store URL when ready
+      isAvailable = false;
+      icon = '🍎';
+    } else if (/Android/i.test(ua)) {
+      detectedPlatform = 'android';
+      platformName = 'Android device';
+      downloadUrl = 'https://play.google.com/store/apps/details?id=com.vulcainvpn';
+      isAvailable = true;
+      icon = '🤖';
+    } else if (/Windows/i.test(ua)) {
+      detectedPlatform = 'windows';
+      platformName = 'Windows PC';
+      downloadUrl = '/downloads/vulcainvpn-windows.exe';
+      isAvailable = true;
+      icon = '🪟';
+    } else if (/Macintosh|Mac OS X/i.test(ua)) {
+      detectedPlatform = 'macos';
+      platformName = 'Mac';
+      downloadUrl = '/downloads/vulcainvpn-macos.dmg';
+      isAvailable = true;
+      icon = '🍏';
+    }
+
+    // Show detection message
+    const messageEl = document.getElementById('smart-download-message');
+    if (messageEl) {
+      if (detectedPlatform) {
+        messageEl.innerHTML = `${icon} We detected you're using a <strong>${platformName}</strong>`;
+      } else {
+        messageEl.innerHTML = '💻 Choose your platform below';
+      }
+    }
+
+    // Highlight the matching card
+    const matchingCard = document.querySelector(`[data-platform="${detectedPlatform}"]`);
+    if (matchingCard) {
+      matchingCard.setAttribute('data-highlight', 'true');
+
+      // Scroll to it smoothly after a short delay
+      setTimeout(() => {
+        matchingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+
+    // Show featured download
+    const featuredEl = document.getElementById('featured-download');
+    if (featuredEl && detectedPlatform) {
+      if (isAvailable) {
+        // Platform is available - show download button
+        featuredEl.style.display = 'block';
+        featuredEl.innerHTML = `
+          <h3>${icon} Download for ${platformName}</h3>
+          <a href="${downloadUrl}" class="download-btn-large" ${detectedPlatform === 'android' ? 'target="_blank"' : 'download'}>
+            Download Now
+          </a>
+        `;
+      } else {
+        // Platform coming soon - show notify button
+        featuredEl.style.display = 'block';
+        featuredEl.innerHTML = `
+          <h3>${icon} ${platformName} Version</h3>
+          <p>Coming soon! We're working hard to bring VulcainVPN to iOS.</p>
+          <a href="mailto:support@vulcainvpn.com?subject=Notify%20me%20when%20iOS%20is%20ready&body=Please%20notify%20me%20when%20VulcainVPN%20for%20iOS%20is%20available." class="download-btn-large">
+            Notify Me When Ready
+          </a>
+        `;
+      }
+    }
+  }
+</script>
+
 <style>
   /* Animation */
   @keyframes fadeIn {
@@ -152,6 +569,108 @@
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1.5rem;
     margin-top: 1.5rem;
+  }
+  /* Smart Download Detection Styles */
+  #smart-download-message {
+    text-align: center;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    background: rgba(255, 195, 60, 0.15);
+    border-radius: 8px;
+    font-size: 1.1rem;
+    color: #ffc33c;
+    font-weight: 600;
+  }
+
+  #featured-download {
+    background: rgba(255, 195, 60, 0.1);
+    border: 2px solid #ffc33c;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  #featured-download h3 {
+    color: #ffc33c;
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+  }
+
+  #featured-download p {
+    color: rgba(255, 195, 60, 0.8);
+    margin-bottom: 1rem;
+  }
+
+  #featured-download .download-btn-large {
+    display: inline-block;
+    background: linear-gradient(135deg, #ffc33c 0%, #ff6e08 100%);
+    color: #0f0a0e;
+    padding: 1rem 2.5rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 195, 60, 0.4);
+  }
+
+  #featured-download .download-btn-large:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(255, 195, 60, 0.6);
+    color: #0f0a0e;
+    text-decoration: none;
+  }
+
+  .app-card[data-highlight="true"] {
+    border: 2px solid #ffc33c !important;
+    background: rgba(255, 195, 60, 0.15) !important;
+    transform: scale(1.02);
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 4px 12px rgba(255, 195, 60, 0.3); }
+    50% { box-shadow: 0 8px 24px rgba(255, 195, 60, 0.6); }
+  }
+
+  .app-card[data-highlight="true"] {
+    animation: pulse-glow 2s ease-in-out 3;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .status-badge.available {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.4);
+  }
+
+  .status-badge.coming-soon {
+    background: rgba(255, 195, 60, 0.2);
+    color: #ffc33c;
+    border: 1px solid rgba(255, 195, 60, 0.4);
+  }
+
+  .download-btn.disabled {
+    background: #666;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .download-btn.disabled:hover {
+    background: #666;
+    color: #999;
+    transform: none;
   }
 
   .app-card {
@@ -452,316 +971,3 @@
     }
   }
 </style>
-
-<!-- Status Banner -->
-<% if @vpn_server_ips.include?(@user_ip) %>
-  <div class="status-banner status-banner-vpn">
-    <p class="status-text">🔒 You are protected by VulcainVPN</p>
-    <p class="status-detail">IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
-  </div>
-<% elsif @active_subscription %>
-  <div class="status-banner status-banner-warning">
-    <p class="status-text">⚠️ VPN Not Connected</p>
-    <p class="status-detail">Your IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
-  </div>
-<% else %>
-  <div class="status-banner">
-    <p class="status-text">No Active Subscription</p>
-    <p class="status-detail">Your IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
-  </div>
-<% end %>
-
-<div class="dashboard-container">
-  <!-- Dashboard Header -->
-  <header class="dashboard-header">
-    <h1>Welcome, <%= current_user.email.capitalize %></h1>
-    <p>Manage your VPN subscription and stay protected</p>
-  </header>
-
-  <!-- Subscription Section -->
-  <section class="subscription-section">
-    <h2>📋 Your Subscription</h2>
-
-    <% if @has_subscription && @active_subscription && @active_subscription.expires_at > Time.now %>
-      <!-- Active Subscription -->
-      <div class="subscription-alert">
-        <div class="alert-icon">
-          <svg width="24" height="24" viewBox="0 0 20 20" fill="#ffc33c">
-            <path d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zM8 15l-5-5 1.4-1.4L8 12.2 14.6 5.6 16 7z" />
-          </svg>
-        </div>
-        <div class="alert-content">
-          <h3>✓ Active Subscription</h3>
-          <p><strong>Plan:</strong> <%= @active_subscription.plan.name %></p>
-          <p><strong>Devices:</strong> Connect up to <%= @active_subscription.max_devices || 3 %> devices</p>
-          <p><strong>Expires:</strong> <span id="local-time-text"><%= @active_subscription.expires_at.strftime("%B %d, %Y at %H:%M") %></span></p>
-          <p class="countdown">
-            <span id="countdown">Calculating...</span>
-          </p>
-        </div>
-      </div>
-
-      <%= link_to "View Subscription Details", user_subscription_path(current_user, @active_subscription), class: "btn btn-block" %>
-
-    <% else %>
-      <!-- No Active Subscription -->
-      <div class="alert alert-warning">
-        <p><strong>No active subscription</strong></p>
-        <p>Subscribe now to protect your privacy and secure your connection on up to 3 devices.</p>
-      </div>
-      <%= link_to "Choose a Plan", new_user_subscription_path(current_user), class: "btn btn-block" %>
-    <% end %>
-
-    <!-- Expired Subscriptions -->
-    <% if @expired_subscriptions.any? %>
-      <% last_expired = @expired_subscriptions.last %>
-      <div class="subscription-card">
-        <h3>Last Subscription</h3>
-        <p><strong>Plan:</strong> <%= last_expired.plan.name %></p>
-        <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%B %d, %Y") %></p>
-        <p><strong>Duration:</strong>
-          <% days = (last_expired.expires_at.to_date - last_expired.created_at.to_date).to_i %>
-          <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
-        </p>
-      </div>
-    <% end %>
-  </section>
-
-  <!-- App Download Section -->
-  <section class="app-download-section">
-    <h2>📱 Download VulcainVPN</h2>
-    <p style="text-align: center; margin: 0 0 2rem 0; opacity: 0.85; font-size: 1.1rem;">
-      Get started in seconds with our easy-to-use app
-    </p>
-
-    <div class="app-download-grid">
-      <div class="app-card available">
-        <div class="app-icon">🍎</div>
-        <h3>iOS</h3>
-        <p>iPhone & iPad</p>
-        <span class="status-badge coming-soon">Coming Soon</span>
-        <a href="#" class="download-btn disabled">App Store</a>
-      </div>
-
-      <div class="app-card available">
-        <div class="app-icon">🤖</div>
-        <h3>Android</h3>
-        <p>Phones & Tablets</p>
-        <span class="status-badge available">Available Now</span>
-        <a href="#" class="download-btn" target="_blank">Google Play</a>
-      </div>
-
-      <div class="app-card available">
-        <div class="app-icon">🪟</div>
-        <h3>Windows</h3>
-        <p>Windows 10/11</p>
-        <span class="status-badge available">Available Now</span>
-        <a href="#" class="download-btn" target="_blank">Download</a>
-      </div>
-
-      <div class="app-card available">
-        <div class="app-icon">🍏</div>
-        <h3>macOS</h3>
-        <p>macOS 11+</p>
-        <span class="status-badge available">Available Now</span>
-        <a href="#" class="download-btn" target="_blank">Download</a>
-      </div>
-    </div>
-
-    <div class="alert alert-info" style="margin-top: 2rem; background: rgba(255, 195, 60, 0.1); border: 1px solid rgba(255, 195, 60, 0.3); border-radius: 8px; padding: 1rem;">
-      <strong>💡 Need Help?</strong> Check out the setup guide below or contact support at
-      <a href="mailto:support@vulcainvpn.com" style="color: #ff6e08;">support@vulcainvpn.com</a>
-    </div>
-  </section>
-
-  <!-- Quick Start Guide -->
-  <section class="quick-start-section">
-    <h2>🚀 Quick Start Guide</h2>
-
-    <div class="quick-start-steps">
-      <div class="quick-step">
-        <div class="step-number">1</div>
-        <div class="step-content">
-          <h3>Download the App</h3>
-          <p>Install VulcainVPN from the App Store (iOS) or Google Play (Android)</p>
-        </div>
-      </div>
-
-      <div class="quick-step">
-        <div class="step-number">2</div>
-        <div class="step-content">
-          <h3>Sign In</h3>
-          <p>Open the app and log in with your VulcainVPN account (<%= current_user.email %>)</p>
-        </div>
-      </div>
-
-      <div class="quick-step">
-        <div class="step-number">3</div>
-        <div class="step-content">
-          <h3>Connect</h3>
-          <p>Tap the "Connect" button and you're protected! The app automatically selects the best server for you.</p>
-        </div>
-      </div>
-
-      <div class="quick-step">
-        <div class="step-number">4</div>
-        <div class="step-content">
-          <h3>Verify Protection</h3>
-          <p>Check your IP address at <a href="https://whatismyip.com" target="_blank" style="color: #ff6e08;">whatismyip.com</a> to confirm your connection</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="alert alert-info" style="margin-top: 1.5rem;">
-      <strong>💡 Pro Tip:</strong> You can connect up to <%= @active_subscription&.max_devices || 3 %> devices simultaneously with a single subscription.
-    </div>
-  </section>
-
-  <!-- Troubleshooting Section -->
-  <section class="troubleshooting-section">
-    <h2>🔧 Troubleshooting</h2>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
-        Can't connect to VPN <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Try these steps:</strong></p>
-        <ul>
-          <li>Check your internet connection</li>
-          <li>Make sure your subscription is active</li>
-          <li>Restart the VulcainVPN app</li>
-          <li>Restart your device</li>
-          <li>Check if other apps are blocking VPN connections (antivirus, firewall)</li>
-          <li>Try toggling airplane mode on/off</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
-        Connection keeps dropping <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Possible solutions:</strong></p>
-        <ul>
-          <li>Make sure you have a stable internet connection</li>
-          <li>Disable battery optimization for VulcainVPN (Android Settings → Apps → VulcainVPN → Battery)</li>
-          <li>Check if your network blocks VPN traffic (some public WiFi networks do this)</li>
-          <li>Try switching to mobile data to test</li>
-          <li>Update the app to the latest version</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
-        Slow connection speeds <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Speed optimization:</strong></p>
-        <ul>
-          <li>Test your base internet speed without VPN first</li>
-          <li>Close background apps that use internet</li>
-          <li>Restart your router</li>
-          <li>Try connecting to a server closer to your location</li>
-          <li>Check if your ISP is throttling VPN traffic</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
-        Multiple devices not working <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p><strong>Device limit:</strong></p>
-        <ul>
-          <li>Your plan allows up to <%= @active_subscription.max_devices || 3 %> simultaneous connections</li>
-          <li>Each device gets its own unique configuration automatically</li>
-          <li>If you can't connect, check if you've reached your device limit</li>
-          <li>Disconnect unused devices to free up slots</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
-        Still need help? <span class="faq-icon">+</span>
-      </button>
-      <div class="faq-answer">
-        <p>Contact our support team at <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a></p>
-        <p>Include details about:</p>
-        <ul>
-          <li>Your device type (iPhone 13, Samsung Galaxy S21, etc.)</li>
-          <li>App version</li>
-          <li>When the issue started</li>
-          <li>Error messages you're seeing</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-</div>
-
-<script>
-  // Toggle FAQ answers
-  function toggleFAQ(button) {
-    const answer = button.nextElementSibling;
-    const icon = button.querySelector('.faq-icon');
-
-    if (answer.classList.contains('active')) {
-      answer.classList.remove('active');
-      icon.textContent = '+';
-    } else {
-      // Close all other FAQs
-      document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
-      document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
-
-      // Open this one
-      answer.classList.add('active');
-      icon.textContent = '-';
-    }
-  }
-
-  // Update countdown
-  function updateCountdown(expiresAt) {
-    const now = new Date();
-    const diff = expiresAt - now;
-
-    if (diff <= 0) {
-      document.getElementById("countdown").textContent = "⚠️ Subscription expired";
-      return;
-    }
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-    let parts = [];
-    if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
-    if (hours > 0 || days > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
-    parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
-
-    document.getElementById("countdown").textContent = `⏱️ ${parts.join(', ')} remaining`;
-  }
-
-  // Initialize countdown
-  <% if @active_subscription && @active_subscription.expires_at > Time.now %>
-    const expiresAt = new Date("<%= @active_subscription.expires_at.iso8601 %>");
-    const localTimeElement = document.getElementById("local-time-text");
-
-    if (localTimeElement) {
-      const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      };
-      localTimeElement.textContent = expiresAt.toLocaleString(undefined, options);
-    }
-
-    updateCountdown(expiresAt);
-    setInterval(() => updateCountdown(expiresAt), 60000); // Update every minute
-  <% end %>
-</script>
