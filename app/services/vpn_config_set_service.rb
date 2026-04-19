@@ -295,9 +295,8 @@ class VpnConfigSetService
       ss_inbound["users"] << { "name" => ip, "password" => u[:new_ss_pass] }
     end
 
-    # Write updated config
-    updated_config = JSON.pretty_generate(config)
-    ssh.exec!("sudo tee /etc/sing-box/config.json > /dev/null << 'SINGBOX_EOF'\n#{updated_config}\nSINGBOX_EOF")
+    # Write updated config using safer method
+    write_singbox_config_to_server(ssh, config)
 
     # Validate and reload
     check_output = ssh.exec!("sudo sing-box check -c /etc/sing-box/config.json 2>&1")
@@ -305,7 +304,7 @@ class VpnConfigSetService
       raise "sing-box config validation failed: #{check_output}"
     end
 
-    ssh.exec!("sudo systemctl reload sing-box")
+    ssh.exec!("sudo systemctl restart sing-box")
     Rails.logger.info "✅ Updated #{updates.size} sing-box users on #{@server.name}"
   end
 
@@ -326,25 +325,19 @@ class VpnConfigSetService
         keepalive: true,           # ⭐ Keep connection alive
         keepalive_interval: 30     # ⭐ Send keepalive every 30 seconds
       ) do |ssh|
-        # Write in batches of 500 to avoid timeout
+        # ====== WIREGUARD: Write in batches of 500 ======
         config_sets.each_slice(500) do |batch|
-          Rails.logger.info "Writing batch of #{batch.size} configs to #{@server.name}..."
-
-          # Write WireGuard configs
+          Rails.logger.info "Writing batch of #{batch.size} WireGuard peers to #{@server.name}..."
           write_wireguard_batch(ssh, batch)
-
-          # Write sing-box configs if enabled
-          if @server.singbox_active?
-            write_singbox_batch(ssh, batch)
-          end
         end
 
-        # Validate and reload sing-box (once, after all batches)
+        # ====== SING-BOX: Write all users at once ======
         if @server.singbox_active?
+          write_all_singbox_users(ssh, config_sets)
           validate_and_reload_singbox(ssh)
         end
 
-        # Reload WireGuard (once, after all batches)
+        # ====== Reload WireGuard (once, after all batches) ======
         reload_wireguard(ssh)
       end
     ensure
@@ -459,7 +452,42 @@ class VpnConfigSetService
   end
 
   # ==========================================
-  # SING-BOX BATCH WRITE (EXACTLY as SingboxClientCreator)
+  # SING-BOX: WRITE ALL USERS AT ONCE (NEW - FIXED)
+  # ==========================================
+
+  def write_all_singbox_users(ssh, config_sets)
+    # Read base config
+    config_json = ssh.exec!("sudo cat /etc/sing-box/config.json")
+    config = JSON.parse(config_json)
+
+    # Find inbounds
+    hysteria2_inbound = config["inbounds"].find { |i| i["type"] == "hysteria2" }
+    ss_inbound = config["inbounds"].find { |i| i["type"] == "shadowsocks" }
+
+    raise "Hysteria2 inbound not found in sing-box config" unless hysteria2_inbound
+    raise "Shadowsocks inbound not found in sing-box config" unless ss_inbound
+
+    # Build complete user lists (all 3000 at once)
+    hysteria2_inbound["users"] = config_sets.map do |cs|
+      ip = cs[:ip_address] || cs.ip_address
+      password = cs[:hysteria2_password] || cs.hysteria2_password
+      { "name" => ip, "password" => password }
+    end
+
+    ss_inbound["users"] = config_sets.map do |cs|
+      ip = cs[:ip_address] || cs.ip_address
+      password = cs[:shadowsocks_password] || cs.shadowsocks_password
+      { "name" => ip, "password" => password }
+    end
+
+    # Write config using safer method
+    write_singbox_config_to_server(ssh, config)
+
+    Rails.logger.info "✅ Wrote #{config_sets.size} sing-box users to #{@server.name}"
+  end
+
+  # ==========================================
+  # SING-BOX BATCH WRITE (kept for compatibility, not used in create_pool)
   # ==========================================
 
   def write_singbox_batch(ssh, config_sets)
@@ -527,13 +555,22 @@ class VpnConfigSetService
   end
 
   def write_singbox_config_to_server(ssh, config)
-    # EXACTLY as SingboxClientCreator
+    # Safer method for large JSON files: use base64 encoding to avoid heredoc truncation
     updated_config = JSON.pretty_generate(config)
-    ssh.exec!("sudo tee /etc/sing-box/config.json > /dev/null << 'SINGBOX_EOF'\n#{updated_config}\nSINGBOX_EOF")
+
+    # Base64 encode to avoid heredoc issues with large files
+    encoded_config = Base64.strict_encode64(updated_config)
+
+    # Write encoded config to temp file, decode, and move to final location
+    ssh.exec!(<<~BASH)
+      echo '#{encoded_config}' | base64 -d > /tmp/singbox_temp.json
+      sudo mv /tmp/singbox_temp.json /etc/sing-box/config.json
+      sudo chown root:root /etc/sing-box/config.json
+      sudo chmod 644 /etc/sing-box/config.json
+    BASH
   end
 
   def validate_and_reload_singbox(ssh)
-    # EXACTLY as SingboxClientCreator
     check_output = ssh.exec!("sudo sing-box check -c /etc/sing-box/config.json 2>&1")
 
     if check_output.present? && check_output.include?("FATAL")
@@ -541,7 +578,7 @@ class VpnConfigSetService
       raise "sing-box config validation failed: #{check_output}"
     end
 
-    ssh.exec!("sudo systemctl reload sing-box")
-    Rails.logger.info "✅ Reloaded sing-box on #{@server.name}"
+    ssh.exec!("sudo systemctl restart sing-box")
+    Rails.logger.info "✅ Restarted sing-box on #{@server.name}"
   end
 end
