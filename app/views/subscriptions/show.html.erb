@@ -377,7 +377,12 @@
 
       <!-- Devices Section -->
       <div class="section">
-        <h2>Your Devices (<%= @devices.count %>/<%= @subscription.max_devices %>)</h2>
+        <h2>Your Devices (<%= @devices.count %> registered)</h2>
+
+        <div style="background: #e3f2fd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem;">
+          ℹ️ You can register unlimited devices, but only <strong><%= @subscription.max_devices %></strong> can be connected simultaneously.
+          Currently <strong><%= @active_connections.count %>/<%= @subscription.max_devices %></strong> connections active.
+        </div>
 
         <div class="device-grid">
           <% @devices.each do |device| %>
@@ -401,13 +406,9 @@
           <% end %>
         </div>
 
-        <% if @devices.count < @subscription.max_devices %>
-          <p style="margin-top: 1rem; color: #666;">
-            You can register <%= @subscription.max_devices - @devices.count %> more device<%= @subscription.max_devices - @devices.count == 1 ? '' : 's' %>.
-          </p>
-        <% else %>
+        <% if @active_connections.count >= @subscription.max_devices %>
           <p style="margin-top: 1rem; color: #856404;">
-            ⚠️ Maximum devices reached. Disconnect from a device to add a new one.
+            ⚠️ Maximum simultaneous connections reached (<%= @subscription.max_devices %>). Disconnect from a device to connect another.
           </p>
         <% end %>
       </div>
