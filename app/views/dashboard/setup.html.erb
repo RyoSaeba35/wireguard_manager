@@ -227,78 +227,88 @@
 </script>
 
 <style>
+  /* Animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   /* Base Styles */
   body {
-    background-color: #432923;
-    color: #e0e0e0;
+    background-color: #f5f5f5;
+    color: #432923;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.6;
   }
 
   .dashboard-container {
-    max-width: 1100px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 2rem 1.5rem;
+    padding: 2rem;
   }
 
   /* Header */
   .dashboard-header {
-    background: linear-gradient(135deg, #0f0a0e 0%, #1a1214 100%);
+    background: linear-gradient(135deg, #0f0a0e 0%, #432923 100%);
     padding: 2.5rem 2rem;
     border-radius: 12px;
-    margin-bottom: 2.5rem;
-    border: 1px solid rgba(255, 195, 60, 0.2);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(67, 41, 35, 0.3);
+    text-align: center;
   }
 
   .dashboard-header h1 {
     margin: 0;
     font-size: 2.5rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #ffc33c 0%, #ff6e08 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ffc33c;
   }
 
-  /* Sections */
+  /* Sections with White Background */
   .setup-guide-section,
   .troubleshooting-section {
-    background-color: #0f0a0e;
-    padding: 2.5rem;
+    background-color: white;
+    padding: 2rem;
     border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     margin-bottom: 2rem;
-    border: 1px solid rgba(255, 195, 60, 0.15);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   }
 
   .setup-guide-section h2,
   .troubleshooting-section h2 {
     margin-top: 0;
     margin-bottom: 1.5rem;
-    font-size: 1.8rem;
-    color: #ffc33c;
+    font-size: 1.5rem;
+    color: #0f0a0e;
     font-weight: 600;
     border-bottom: 2px solid #ff6e08;
     padding-bottom: 0.5rem;
   }
 
   .setup-guide-section > p {
-    color: #c0c0c0;
-    font-size: 1.05rem;
+    color: #432923;
+    font-size: 1rem;
     margin-bottom: 2rem;
+    line-height: 1.6;
   }
 
   /* Alert Box */
   .alert {
     border-radius: 8px;
     margin-bottom: 1.5rem;
+    padding: 1rem;
   }
 
   .alert-warning {
-    background-color: rgba(255, 195, 60, 0.15) !important;
-    color: #ffc33c !important;
-    border-left: 4px solid #ffc33c !important;
+    background-color: #fff3cd;
+    color: #856404;
+    border-left: 4px solid #ffc33c;
+  }
+
+  .alert-info {
+    background-color: #fff8e8;
+    color: #432923;
+    border-left: 4px solid #ff6e08;
   }
 
   .alert ul {
@@ -307,7 +317,18 @@
   }
 
   .alert strong {
+    color: #0f0a0e;
+    font-weight: 600;
+  }
+
+  .alert a {
     color: #ff6e08;
+    font-weight: 600;
+  }
+
+  .alert a:hover {
+    color: #ffc33c;
+    text-decoration: underline;
   }
 
   /* Setup Steps */
@@ -317,34 +338,35 @@
   }
 
   .step {
-    background: linear-gradient(135deg, #1a1214 0%, #0f0a0e 100%);
+    background: #fdf8f0;
     padding: 2rem;
     border-radius: 10px;
-    border: 1px solid rgba(255, 110, 8, 0.2);
+    border-left: 4px solid #ff6e08;
     transition: all 0.3s ease;
   }
 
   .step:hover {
-    border-color: rgba(255, 195, 60, 0.5);
-    box-shadow: 0 4px 12px rgba(255, 195, 60, 0.1);
+    background: #fff3d6;
+    box-shadow: 0 4px 12px rgba(255, 110, 8, 0.1);
     transform: translateY(-2px);
   }
 
   .step h3 {
     margin-top: 0;
     margin-bottom: 1rem;
-    font-size: 1.4rem;
-    color: #ffc33c;
+    font-size: 1.3rem;
+    color: #0f0a0e;
     font-weight: 600;
   }
 
   .step p {
-    color: #c0c0c0;
+    color: #432923;
     margin-bottom: 1rem;
+    line-height: 1.6;
   }
 
   .step ul {
-    color: #b0b0b0;
+    color: #432923;
     padding-left: 1.5rem;
     margin-bottom: 1rem;
   }
@@ -354,38 +376,44 @@
   }
 
   .step strong {
-    color: #ffc33c;
+    color: #0f0a0e;
+    font-weight: 600;
   }
 
   .step em {
-    color: #999;
+    color: #666;
     font-size: 0.95rem;
+  }
+
+  .step .alert {
+    margin: 1rem 0;
   }
 
   /* Links */
   a {
-    color: #ffc33c;
+    color: #ff6e08;
     text-decoration: none;
     transition: color 0.2s ease;
   }
 
   a:hover {
-    color: #ff6e08;
+    color: #ffc33c;
     text-decoration: underline;
   }
 
   /* FAQ Items */
   .faq-item {
     margin-bottom: 1rem;
-    background: linear-gradient(135deg, #1a1214 0%, #0f0a0e 100%);
+    background: #fdf8f0;
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid rgba(255, 110, 8, 0.2);
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
   }
 
   .faq-item:hover {
-    border-color: rgba(255, 195, 60, 0.4);
+    background: #fff3d6;
+    border-color: rgba(255, 110, 8, 0.4);
   }
 
   .faq-question {
@@ -396,16 +424,15 @@
     text-align: left;
     font-size: 1.1rem;
     font-weight: 600;
-    color: #ffc33c;
+    color: #0f0a0e;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
   }
 
   .faq-question:hover {
-    background-color: rgba(255, 195, 60, 0.05);
     color: #ff6e08;
   }
 
@@ -420,7 +447,7 @@
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease, padding 0.4s ease;
-    background-color: rgba(67, 41, 35, 0.3);
+    background-color: white;
   }
 
   .faq-answer.active {
@@ -430,16 +457,18 @@
   }
 
   .faq-answer p {
-    color: #c0c0c0;
+    color: #432923;
     margin-bottom: 1rem;
+    line-height: 1.6;
   }
 
   .faq-answer strong {
-    color: #ffc33c;
+    color: #0f0a0e;
+    font-weight: 600;
   }
 
   .faq-answer ul {
-    color: #b0b0b0;
+    color: #432923;
     padding-left: 1.5rem;
     margin-bottom: 0;
   }
@@ -475,17 +504,5 @@
       padding: 1rem;
       font-size: 1rem;
     }
-  }
-
-  /* Alert inside steps */
-  .step .alert {
-    margin: 1rem 0;
-  }
-
-  /* Protocol-specific styling */
-  .troubleshooting-section .faq-item:nth-child(1) .faq-question,
-  .troubleshooting-section .faq-item:nth-child(2) .faq-question,
-  .troubleshooting-section .faq-item:nth-child(3) .faq-question {
-    background: linear-gradient(90deg, rgba(255, 195, 60, 0.05) 0%, transparent 100%);
   }
 </style>
