@@ -18,4 +18,12 @@ class AdminMailer < ApplicationMailer
       subject: "🚨 URGENT: Password Theft Detected - #{username}"
     )
   end
+
+  def server_recovered(server)
+    @server = server
+    mail(
+      to: 'admin@vulcainvpn.com',
+      subject: "✅ Server Recovered: #{server.name}"
+    )
+  end
 end
