@@ -559,22 +559,29 @@ class VpnConfigSetService
   end
 
   # ==========================================
-  # WRITE SING-BOX CONFIG USING PRINTF (HANDLES LARGE FILES)
+  # WRITE SING-BOX CONFIG USING SCP (RELIABLE FOR ANY FILE SIZE)
   # ==========================================
 
   def write_singbox_config_to_server(ssh, config)
-    # Generate JSON (400KB for 3000 users)
-    updated_config = JSON.pretty_generate(config)
+    require 'net/scp'
+    require 'tempfile'
 
-    # Escape single quotes for shell safety
-    escaped_config = updated_config.gsub("'", "'\\''")
+    # Write JSON to local temp file (400KB for 3000 users)
+    temp_file = Tempfile.new(['singbox', '.json'])
+    begin
+      temp_file.write(JSON.pretty_generate(config))
+      temp_file.close
 
-    # Use printf which handles large strings better than echo
-    # Write to temp file first, then move with sudo
-    ssh.exec!("printf '%s' '#{escaped_config}' > /tmp/singbox_temp.json")
-    ssh.exec!("sudo mv /tmp/singbox_temp.json /etc/sing-box/config.json")
-    ssh.exec!("sudo chown root:root /etc/sing-box/config.json")
-    ssh.exec!("sudo chmod 644 /etc/sing-box/config.json")
+      # Upload via SCP (handles files of any size)
+      ssh.scp.upload!(temp_file.path, "/tmp/singbox_temp.json")
+
+      # Move to final location with proper permissions
+      ssh.exec!("sudo mv /tmp/singbox_temp.json /etc/sing-box/config.json")
+      ssh.exec!("sudo chown root:root /etc/sing-box/config.json")
+      ssh.exec!("sudo chmod 644 /etc/sing-box/config.json")
+    ensure
+      temp_file.unlink
+    end
   end
 
   def validate_and_reload_singbox(ssh)
