@@ -858,89 +858,85 @@
 
 <script>
   document.addEventListener('turbo:load', function() {
+    console.log('Plans page loaded'); // Debug
     initializePlansPage();
   });
 
   function initializePlansPage() {
-    // Open Modal
-    document.querySelectorAll('.add-plan-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        document.getElementById('add-plan-modal').style.display = 'block';
-        document.body.style.overflow = 'hidden';
-      });
-    });
+    // Use event delegation - attach to parent container
+    const adminContent = document.querySelector('.admin-content');
 
-    // Close Modal
-    document.querySelectorAll('.close-modal').forEach(btn => {
-      btn.addEventListener('click', function() {
-        document.getElementById('add-plan-modal').style.display = 'none';
-        document.body.style.overflow = 'auto';
-      });
-    });
-
-    // Close on overlay click
-    const overlay = document.querySelector('.modal-overlay');
-    if (overlay) {
-      overlay.addEventListener('click', function() {
-        document.getElementById('add-plan-modal').style.display = 'none';
-        document.body.style.overflow = 'auto';
-      });
+    if (!adminContent) {
+      console.error('Admin content not found');
+      return;
     }
 
-    // Edit Plan - FIXED: Direct event listener without cloning
-    document.querySelectorAll('.edit-plan-btn').forEach(btn => {
-      btn.addEventListener('click', function(e) {
+    console.log('Admin content found, setting up event delegation'); // Debug
+
+    // Event delegation for all clicks
+    adminContent.addEventListener('click', function(e) {
+      const target = e.target;
+
+      // Open Modal
+      if (target.closest('.add-plan-btn')) {
+        console.log('Add plan button clicked'); // Debug
+        document.getElementById('add-plan-modal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        return;
+      }
+
+      // Close Modal
+      if (target.closest('.close-modal')) {
+        console.log('Close modal button clicked'); // Debug
+        document.getElementById('add-plan-modal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        return;
+      }
+
+      // Edit Plan
+      if (target.closest('.edit-plan-btn')) {
         e.preventDefault();
         e.stopPropagation();
 
-        console.log('Edit button clicked!'); // Debug log
+        const btn = target.closest('.edit-plan-btn');
+        const planId = btn.getAttribute('data-plan-id');
 
-        const planId = this.getAttribute('data-plan-id');
-        console.log('Plan ID:', planId); // Debug log
+        console.log('Edit button clicked for plan:', planId); // Debug
 
-        const container = this.closest('[data-plan-id="' + planId + '"]');
-        console.log('Container found:', container); // Debug log
+        const container = btn.closest('[data-plan-id="' + planId + '"]');
 
         if (!container) {
-          console.error('Container not found for plan:', planId);
+          console.error('Container not found');
           alert('Error: Could not find plan container');
           return;
         }
 
-        // Toggle buttons
-        const editBtns = container.querySelectorAll('.edit-plan-btn');
-        const saveBtns = container.querySelectorAll('.save-plan-btn');
-        const cancelBtns = container.querySelectorAll('.cancel-plan-btn');
+        console.log('Container found, making editable'); // Debug
 
-        editBtns.forEach(btn => btn.style.display = 'none');
-        saveBtns.forEach(btn => btn.style.display = 'inline-flex');
-        cancelBtns.forEach(btn => btn.style.display = 'inline-flex');
+        // Hide edit buttons, show save/cancel
+        container.querySelectorAll('.edit-plan-btn').forEach(b => b.style.display = 'none');
+        container.querySelectorAll('.save-plan-btn').forEach(b => b.style.display = 'inline-flex');
+        container.querySelectorAll('.cancel-plan-btn').forEach(b => b.style.display = 'inline-flex');
 
         // Make fields editable
         const editableFields = container.querySelectorAll('.editable[data-plan-id="' + planId + '"]');
-        console.log('Editable fields found:', editableFields.length); // Debug log
+        console.log('Found editable fields:', editableFields.length); // Debug
 
         editableFields.forEach(el => {
           const field = el.getAttribute('data-field');
           let value = el.textContent.trim();
 
-          console.log('Editing field:', field, 'with value:', value); // Debug log
-
           if (field === 'price') {
-            // Extract just the number from "€9.99/month"
             value = value.replace(/[€\/\w\s]/g, '').trim();
           }
 
           if (field === 'description') {
-            // For features, extract just the text
             const featureItems = el.querySelectorAll('.feature-item');
             if (featureItems.length > 0) {
               const features = Array.from(featureItems)
                 .map(item => item.textContent.replace('✓', '').trim())
                 .join(', ');
               value = features;
-            } else {
-              value = el.textContent.trim();
             }
 
             const textarea = document.createElement('textarea');
@@ -961,25 +957,24 @@
             el.appendChild(input);
           }
         });
-      });
-    });
+        return;
+      }
 
-    // Cancel Edit
-    document.querySelectorAll('.cancel-plan-btn').forEach(btn => {
-      btn.addEventListener('click', function(e) {
+      // Cancel Edit
+      if (target.closest('.cancel-plan-btn')) {
         e.preventDefault();
         location.reload();
-      });
-    });
+        return;
+      }
 
-    // Save Plan
-    document.querySelectorAll('.save-plan-btn').forEach(btn => {
-      btn.addEventListener('click', function(e) {
+      // Save Plan
+      if (target.closest('.save-plan-btn')) {
         e.preventDefault();
         e.stopPropagation();
 
-        const planId = this.getAttribute('data-plan-id');
-        const container = this.closest('[data-plan-id="' + planId + '"]');
+        const btn = target.closest('.save-plan-btn');
+        const planId = btn.getAttribute('data-plan-id');
+        const container = btn.closest('[data-plan-id="' + planId + '"]');
 
         if (!container) {
           alert('Error: Could not find plan container');
@@ -988,12 +983,10 @@
 
         const data = {};
 
-        // Collect data from editable fields
-        const editableFields = container.querySelectorAll('.editable[data-plan-id="' + planId + '"]');
-        editableFields.forEach(el => {
+        // Collect data
+        container.querySelectorAll('.editable[data-plan-id="' + planId + '"]').forEach(el => {
           const field = el.getAttribute('data-field');
           const input = el.querySelector('input, textarea');
-
           if (input) {
             data[field] = field === 'price' ? parseFloat(input.value) : input.value;
           }
@@ -1005,10 +998,10 @@
           data.active = activeToggle.checked;
         }
 
-        // Disable button during save
-        this.disabled = true;
-        const originalHTML = this.innerHTML;
-        this.textContent = 'Saving...';
+        // Save
+        btn.disabled = true;
+        const originalHTML = btn.innerHTML;
+        btn.textContent = 'Saving...';
 
         fetch(`/admin/plans/${planId}`, {
           method: 'PATCH',
@@ -1024,20 +1017,30 @@
             location.reload();
           } else {
             alert('Error: ' + (data.error || 'Unknown error'));
-            this.disabled = false;
-            this.innerHTML = originalHTML;
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
           }
         })
         .catch(err => {
           console.error(err);
           alert('An error occurred while saving');
-          this.disabled = false;
-          this.innerHTML = originalHTML;
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
         });
-      });
+        return;
+      }
     });
 
-    // Toggle Active Status
+    // Close modal on overlay click
+    const overlay = document.querySelector('.modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', function() {
+        document.getElementById('add-plan-modal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+      });
+    }
+
+    // Toggle Active Status - needs separate listener since it's a change event
     document.querySelectorAll('.plan-active-toggle').forEach(toggle => {
       toggle.addEventListener('change', function() {
         const planId = this.getAttribute('data-plan-id');
