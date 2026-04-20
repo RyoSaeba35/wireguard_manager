@@ -16,10 +16,10 @@
       <% else %>
         <!-- Regular user links -->
         <%= link_to "Dashboard", root_path %>
-        <%= link_to "Edit Profile", profile_path %>
         <% if current_user.admin? %>
           <%= link_to "Admin", admin_dashboard_path %>
         <% end %>
+        <%= link_to "Edit Profile", profile_path %>
       <% end %>
       <%= button_to "Log Out", destroy_user_session_path, method: :delete, class: "logout-btn" %>
     <% else %>
@@ -155,31 +155,31 @@
 </style>
 
 <script>
-  document.addEventListener('turbo:load', function() {
+  // Use event delegation - attach once to document
+  document.addEventListener('click', function(e) {
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
 
-    if (hamburger && navLinks) {
-      hamburger.addEventListener('click', function(e) {
-        e.stopPropagation();
-        navLinks.classList.toggle('active');
-      });
+    if (!hamburger || !navLinks) return;
 
-      // Close menu when clicking outside
-      document.addEventListener('click', function(e) {
-        if (navLinks.classList.contains('active') &&
-            !navLinks.contains(e.target) &&
-            !hamburger.contains(e.target)) {
-          navLinks.classList.remove('active');
-        }
-      });
+    // If hamburger was clicked
+    if (e.target.closest('.hamburger')) {
+      e.stopPropagation();
+      navLinks.classList.toggle('active');
+      return;
+    }
 
-      // Close menu when clicking a link
-      navLinks.querySelectorAll('a, button').forEach(link => {
-        link.addEventListener('click', function() {
-          navLinks.classList.remove('active');
-        });
-      });
+    // If a nav link was clicked
+    if (e.target.closest('.nav-links a, .nav-links button')) {
+      navLinks.classList.remove('active');
+      return;
+    }
+
+    // If clicked outside (and menu is open)
+    if (navLinks.classList.contains('active') &&
+        !e.target.closest('.nav-links') &&
+        !e.target.closest('.hamburger')) {
+      navLinks.classList.remove('active');
     }
   });
 </script>
