@@ -171,7 +171,6 @@
   .server-badge {
     display: inline-block;
     padding: 0.25rem 0.5rem;
-    background-color: #e9ecef;
     border-radius: 4px;
     font-size: 0.85rem;
   }
@@ -288,7 +287,7 @@
     .connection-table {
       font-size: 0.85rem;
       width: 100%;
-
+      table-layout: fixed;
       border-collapse: collapse;
     }
 
@@ -311,11 +310,10 @@
 
     .device-name {
       font-size: 1.1rem;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.5rem;
     }
 
     .device-status {
-      margin-bottom: 0.75rem;
       font-size: 1rem;
     }
 
@@ -331,7 +329,6 @@
       font-size: 0.85rem;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
     }
 
     .meta-registered,
@@ -340,7 +337,7 @@
     }
 
     .server-badge {
-      background-color: none;
+      background: none;
       padding: 0;
     }
   }
