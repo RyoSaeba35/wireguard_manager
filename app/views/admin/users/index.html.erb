@@ -335,6 +335,53 @@
       }
     });
 
+    // ⭐ NEW: Auto-calculate expiration based on plan interval
+    const planSelect = document.getElementById('subscription-plan');
+    const expiresAtInput = document.getElementById('subscription-expires-at');
+
+    // Store plan data
+    const planData = {
+      <% @plans.each do |plan| %>
+        '<%= plan.id %>': {
+          interval: '<%= plan.interval %>',
+          name: '<%= plan.name %>'
+        },
+      <% end %>
+    };
+
+    function calculateExpiration(interval) {
+      const now = new Date();
+      let expirationDate;
+
+      switch(interval) {
+        case 'week':
+          expirationDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'month':
+          expirationDate = new Date(now.setMonth(now.getMonth() + 1));
+          break;
+        case 'custom':
+          // Default to 1 month for custom
+          expirationDate = new Date(now.setMonth(now.getMonth() + 1));
+          break;
+        default:
+          expirationDate = new Date(now.setMonth(now.getMonth() + 1));
+      }
+
+      return expirationDate.toISOString().slice(0, 16);
+    }
+
+    // Update expiration when plan changes
+    if (planSelect && expiresAtInput) {
+      planSelect.addEventListener('change', function() {
+        const selectedPlanId = this.value;
+        if (selectedPlanId && planData[selectedPlanId]) {
+          const interval = planData[selectedPlanId].interval;
+          expiresAtInput.value = calculateExpiration(interval);
+        }
+      });
+    }
+
     // Add Subscription Modal
     document.querySelectorAll('.add-subscription-btn').forEach(button => {
       button.addEventListener('click', (e) => {
@@ -343,6 +390,7 @@
         document.getElementById('subscription-user-id').value = userId;
         document.getElementById('subscription-plan').selectedIndex = 0;
 
+        // Set default to 1 month from now
         const defaultExpiresAt = new Date();
         defaultExpiresAt.setMonth(defaultExpiresAt.getMonth() + 1);
         const formattedDateTime = defaultExpiresAt.toISOString().slice(0, 16);
