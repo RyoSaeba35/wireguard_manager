@@ -76,13 +76,6 @@
                 <span class="btn-icon">✎</span>
                 Edit Plan
               </button>
-              <button class="btn-save save-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">
-                <span class="btn-icon">✓</span>
-                Save Changes
-              </button>
-              <button class="btn-cancel cancel-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">
-                Cancel
-              </button>
             </div>
           </div>
         <% end %>
@@ -113,8 +106,6 @@
             </div>
             <div class="plan-row-actions">
               <button class="btn-edit-mobile edit-plan-btn" data-plan-id="<%= plan.id %>">Edit</button>
-              <button class="btn-save-mobile save-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">Save</button>
-              <button class="btn-cancel-mobile cancel-plan-btn" data-plan-id="<%= plan.id %>" style="display: none;">Cancel</button>
             </div>
           </div>
         <% end %>
@@ -197,6 +188,61 @@
         <%= form.submit 'Create Plan', class: 'btn-primary' %>
       </div>
     <% end %>
+  </div>
+</div>
+
+<!-- Edit Plan Modal -->
+<div id="edit-plan-modal" class="modal">
+  <div class="modal-overlay"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Edit Plan</h3>
+      <button class="close-modal" data-modal="edit-plan-modal">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" id="edit-plan-id">
+
+      <div class="form-group">
+        <label for="edit-plan-name">Plan Name</label>
+        <input type="text" id="edit-plan-name" class="form-control" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="edit-plan-price">Price (€)</label>
+          <input type="number" id="edit-plan-price" step="0.01" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="edit-plan-interval">Billing Interval</label>
+          <select id="edit-plan-interval" class="form-control" required disabled>
+            <option value="week">Weekly</option>
+            <option value="month">Monthly</option>
+            <option value="year">Yearly</option>
+          </select>
+          <small class="form-hint">Interval cannot be changed after creation</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="edit-plan-description">Features (comma-separated)</label>
+        <textarea id="edit-plan-description" rows="4" class="form-control" placeholder="3 Devices, Unlimited Bandwidth, 24/7 Support" required></textarea>
+        <small class="form-hint">Separate each feature with a comma</small>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="edit-plan-active">
+          <span>Plan is active</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary close-modal" data-modal="edit-plan-modal">Cancel</button>
+      <button type="button" class="btn-primary" id="save-plan-changes">Save Changes</button>
+    </div>
   </div>
 </div>
 
@@ -873,128 +919,111 @@
     adminContent.addEventListener('click', function(e) {
       const target = e.target;
 
-      // Open Modal
+      // Open Add Plan Modal
       if (target.closest('.add-plan-btn')) {
         document.getElementById('add-plan-modal').style.display = 'block';
         document.body.style.overflow = 'hidden';
         return;
       }
 
-      // Close Modal
+      // Close Modals
       if (target.closest('.close-modal')) {
-        document.getElementById('add-plan-modal').style.display = 'none';
+        const modalId = target.closest('.close-modal').getAttribute('data-modal');
+        if (modalId) {
+          document.getElementById(modalId).style.display = 'none';
+        } else {
+          // Close all modals
+          document.querySelectorAll('.modal').forEach(modal => {
+            modal.style.display = 'none';
+          });
+        }
         document.body.style.overflow = 'auto';
         return;
       }
 
-      // Edit Plan - FIXED: Find parent card, not button
+      // Edit Plan - Open Modal
       if (target.closest('.edit-plan-btn')) {
         e.preventDefault();
         e.stopPropagation();
 
         const btn = target.closest('.edit-plan-btn');
         const planId = btn.getAttribute('data-plan-id');
-
-        // FIX: Find the parent plan card/row, not just the nearest element with data-plan-id
         const container = btn.closest('.plan-card') || btn.closest('.plan-row-mobile');
 
         if (!container) {
-          console.error('Container not found');
-          alert('Error: Could not find plan container');
+          alert('Error: Could not find plan');
           return;
         }
 
-        console.log('Container found:', container); // Should now show the card
-
-        // Hide edit buttons, show save/cancel
-        container.querySelectorAll('.edit-plan-btn').forEach(b => b.style.display = 'none');
-        container.querySelectorAll('.save-plan-btn').forEach(b => b.style.display = 'inline-flex');
-        container.querySelectorAll('.cancel-plan-btn').forEach(b => b.style.display = 'inline-flex');
-
-        // Make fields editable
-        const editableFields = container.querySelectorAll('.editable[data-plan-id="' + planId + '"]');
-        console.log('Found editable fields:', editableFields.length);
-
-        editableFields.forEach(el => {
-          const field = el.getAttribute('data-field');
-          let value = el.textContent.trim();
-
-          if (field === 'price') {
-            value = value.replace(/[€\/\w\s]/g, '').trim();
-          }
-
-          if (field === 'description') {
-            const featureItems = el.querySelectorAll('.feature-item');
-            if (featureItems.length > 0) {
-              const features = Array.from(featureItems)
-                .map(item => item.textContent.replace('✓', '').trim())
-                .join(', ');
-              value = features;
-            }
-
-            const textarea = document.createElement('textarea');
-            textarea.className = 'edit-textarea';
-            textarea.value = value;
-            el.innerHTML = '';
-            el.appendChild(textarea);
-          } else {
-            const input = document.createElement('input');
-            input.type = field === 'price' ? 'number' : 'text';
-            if (field === 'price') {
-              input.step = '0.01';
-              input.min = '0';
-            }
-            input.className = 'edit-input';
-            input.value = value;
-            el.innerHTML = '';
-            el.appendChild(input);
-          }
-        });
-        return;
-      }
-
-      // Cancel Edit
-      if (target.closest('.cancel-plan-btn')) {
-        e.preventDefault();
-        location.reload();
-        return;
-      }
-
-      // Save Plan
-      if (target.closest('.save-plan-btn')) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const btn = target.closest('.save-plan-btn');
-        const planId = btn.getAttribute('data-plan-id');
-        const container = btn.closest('.plan-card') || btn.closest('.plan-row-mobile');
-
-        if (!container) {
-          alert('Error: Could not find plan container');
-          return;
-        }
-
-        const data = {};
-
-        // Collect data
-        container.querySelectorAll('.editable[data-plan-id="' + planId + '"]').forEach(el => {
-          const field = el.getAttribute('data-field');
-          const input = el.querySelector('input, textarea');
-          if (input) {
-            data[field] = field === 'price' ? parseFloat(input.value) : input.value;
-          }
-        });
-
-        // Get active status
+        // Get current plan data
+        const nameEl = container.querySelector('.editable[data-field="name"]');
+        const priceEl = container.querySelector('.editable[data-field="price"]');
+        const descriptionEl = container.querySelector('.editable[data-field="description"]');
         const activeToggle = container.querySelector('.plan-active-toggle');
-        if (activeToggle) {
-          data.active = activeToggle.checked;
+        const intervalEl = container.querySelector('.plan-interval');
+
+        // Extract values
+        const name = nameEl ? nameEl.textContent.trim() : '';
+        const priceText = priceEl ? priceEl.textContent.trim() : '';
+        const price = priceText.replace(/[€\/\w\s]/g, '').trim();
+
+        // Get description
+        let description = '';
+        if (descriptionEl) {
+          const featureItems = descriptionEl.querySelectorAll('.feature-item');
+          if (featureItems.length > 0) {
+            description = Array.from(featureItems)
+              .map(item => item.textContent.replace('✓', '').trim())
+              .join(', ');
+          } else {
+            description = descriptionEl.textContent.trim();
+          }
         }
 
-        // Save
-        btn.disabled = true;
-        const originalHTML = btn.innerHTML;
-        btn.textContent = 'Saving...';
+        const active = activeToggle ? activeToggle.checked : false;
+        const interval = intervalEl ? intervalEl.textContent.toLowerCase().replace('ly', '') : 'month';
+
+        // Populate edit modal
+        document.getElementById('edit-plan-id').value = planId;
+        document.getElementById('edit-plan-name').value = name;
+        document.getElementById('edit-plan-price').value = price;
+        document.getElementById('edit-plan-description').value = description;
+        document.getElementById('edit-plan-active').checked = active;
+        document.getElementById('edit-plan-interval').value = interval;
+
+        // Show modal
+        document.getElementById('edit-plan-modal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        return;
+      }
+    });
+
+    // Close modal on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function() {
+        this.closest('.modal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+      });
+    });
+
+    // Save Plan Changes
+    const saveBtn = document.getElementById('save-plan-changes');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function() {
+        const planId = document.getElementById('edit-plan-id').value;
+        const name = document.getElementById('edit-plan-name').value;
+        const price = parseFloat(document.getElementById('edit-plan-price').value);
+        const description = document.getElementById('edit-plan-description').value;
+        const active = document.getElementById('edit-plan-active').checked;
+
+        if (!name || !price || !description) {
+          alert('Please fill in all fields');
+          return;
+        }
+
+        // Disable button
+        this.disabled = true;
+        this.textContent = 'Saving...';
 
         fetch(`/admin/plans/${planId}`, {
           method: 'PATCH',
@@ -1002,7 +1031,14 @@
             'Content-Type': 'application/json',
             'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
           },
-          body: JSON.stringify({ plan: data })
+          body: JSON.stringify({
+            plan: {
+              name: name,
+              price: price,
+              description: description,
+              active: active
+            }
+          })
         })
         .then(res => res.json())
         .then(data => {
@@ -1010,30 +1046,20 @@
             location.reload();
           } else {
             alert('Error: ' + (data.error || 'Unknown error'));
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
+            this.disabled = false;
+            this.textContent = 'Save Changes';
           }
         })
         .catch(err => {
           console.error(err);
           alert('An error occurred while saving');
-          btn.disabled = false;
-          btn.innerHTML = originalHTML;
+          this.disabled = false;
+          this.textContent = 'Save Changes';
         });
-        return;
-      }
-    });
-
-    // Close modal on overlay click
-    const overlay = document.querySelector('.modal-overlay');
-    if (overlay) {
-      overlay.addEventListener('click', function() {
-        document.getElementById('add-plan-modal').style.display = 'none';
-        document.body.style.overflow = 'auto';
       });
     }
 
-    // Toggle Active Status
+    // Toggle Active Status (from the card directly)
     document.querySelectorAll('.plan-active-toggle').forEach(toggle => {
       toggle.addEventListener('change', function() {
         const planId = this.getAttribute('data-plan-id');
