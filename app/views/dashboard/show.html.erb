@@ -37,7 +37,7 @@
           </svg>
         </div>
         <div class="alert-content">
-          <h3>✓ Active Subscription</h3>
+          <h3>Active Subscription</h3>
           <p><strong>Plan:</strong> <%= @active_subscription.plan.name %></p>
           <p><strong>Devices:</strong> Connect up to <%= @active_subscription.max_devices || 3 %> devices</p>
           <p><strong>Expires:</strong> <span id="local-time-text"><%= @active_subscription.expires_at.strftime("%B %d, %Y at %H:%M") %></span></p>
@@ -580,7 +580,7 @@
     color: #ff6e08;
     margin: 0.5rem 0 0;
     font-size: 1rem;
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 0rem;
     border-radius: 4px;
     display: inline-block;
   }
@@ -1038,7 +1038,7 @@
 
     .subscription-alert {
       flex-direction: column;
-      text-align: center;
+      /* text-align: center; */
     }
 
     .alert-icon {
