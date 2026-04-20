@@ -31,7 +31,7 @@
             <% end %>
           </div>
           <% if plan_available %>
-            <%= form_with(model: [current_user, @subscription], id: "subscribe-form-#{plan.id}") do |form| %>
+            <%= form_with(model: [current_user, @subscription], id: "subscribe-form-#{plan.id}", data: { turbo: false }) do |form| %>
               <div class="form-group" style="margin: 0;">
                 <%= form.hidden_field :price, value: plan.price %>
                 <%= form.hidden_field :plan_id, value: plan.id %>
@@ -94,7 +94,7 @@
                   <% end %>
                 </div>
                 <% if plan_available %>
-                  <%= form_with(model: [current_user, @subscription], id: "subscribe-form-mobile-#{plan.id}") do |form| %>
+                  <%= form_with(model: [current_user, @subscription], id: "subscribe-form-mobile-#{plan.id}", data: { turbo: false }) do |form| %>
                     <div class="form-group" style="margin: 0;">
                       <%= form.hidden_field :price, value: plan.price %>
                       <%= form.hidden_field :plan_id, value: plan.id %>
@@ -371,40 +371,6 @@
 <script>
   document.addEventListener('turbo:load', function() {
     // Handle desktop form submissions
-    <% @plans.each do |plan| %>
-      document.getElementById('subscribe-form-<%= plan.id %>')?.addEventListener('ajax:success', function(event) {
-        const [data, status, xhr] = event.detail;
-      // Rails UJS should already parse the JSON, but double-check
-        const response = data;
-        if (response.url) {
-          window.location.href = response.url;
-          return;
-        }
-        const successDiv = document.getElementById('subscribe-success-<%= plan.id %>');
-        successDiv.style.display = 'block';
-        this.querySelector('.plan-btn').disabled = true;
-        this.querySelector('.plan-btn').textContent = 'Subscribed!';
-      });
-    <% end %>
-
-    // Handle mobile form submissions
-    <% @plans.each do |plan| %>
-      document.getElementById('subscribe-form-mobile-<%= plan.id %>')?.addEventListener('ajax:success', function(event) {
-        const [data, status, xhr] = event.detail;
-        // Redirect to Stripe Checkout
-        if (data.url) {
-          window.location.href = data.url;
-          return;
-        }
-        const successDiv = document.getElementById('subscribe-success-mobile-<%= plan.id %>');
-        successDiv.style.display = 'block';
-
-        // Disable the form
-        this.querySelector('.plan-btn').disabled = true;
-        this.querySelector('.plan-btn').textContent = 'Subscribed!';
-      });
-    <% end %>
-
     // Initialize mobile carousel if needed
     if (window.innerWidth <= 768) {
       new Splide('#plan-slider', {

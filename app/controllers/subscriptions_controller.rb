@@ -73,7 +73,7 @@ class SubscriptionsController < ApplicationController
     session = StripeCheckoutService.new(@subscription).create_session
     @subscription.update!(stripe_session_id: session.id)
 
-    redirect_to session.url, status: 303, allow_other_host: true
+    redirect_to session.url, allow_other_host: true
   end
 
   def show

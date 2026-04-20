@@ -336,7 +336,7 @@
     <div class="alert alert-warning">
       <h3 style="margin-top: 0;">⚠️ Payment Pending</h3>
       <p>Your subscription is waiting for payment confirmation.</p>
-      <div style="margin-top: 1rem;">
+      <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
         <%= link_to "Complete Payment", @stripe_session_url, class: "btn" %>
         <%= button_to "Cancel Subscription", cancel_user_subscription_path(current_user, @subscription),
             method: :patch, class: "btn btn-secondary", style: "margin-left: 1rem;",
