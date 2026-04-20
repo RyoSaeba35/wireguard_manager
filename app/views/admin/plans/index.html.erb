@@ -858,9 +858,19 @@
 
 <script>
   document.addEventListener('turbo:load', function() {
+    initializePlansPage();
+  });
+
+  function initializePlansPage() {
+    // Remove old listeners by cloning
+    document.querySelectorAll('.add-plan-btn, .edit-plan-btn, .save-plan-btn, .cancel-plan-btn, .close-modal').forEach(btn => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+    });
+
     // Open Modal
     document.querySelectorAll('.add-plan-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', function() {
         document.getElementById('add-plan-modal').style.display = 'block';
         document.body.style.overflow = 'hidden';
       });
@@ -868,28 +878,43 @@
 
     // Close Modal
     document.querySelectorAll('.close-modal').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', function() {
         document.getElementById('add-plan-modal').style.display = 'none';
         document.body.style.overflow = 'auto';
       });
     });
 
     // Close on overlay click
-    document.querySelector('.modal-overlay')?.addEventListener('click', () => {
-      document.getElementById('add-plan-modal').style.display = 'none';
-      document.body.style.overflow = 'auto';
-    });
+    const overlay = document.querySelector('.modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', function() {
+        document.getElementById('add-plan-modal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+      });
+    }
 
     // Edit Plan
     document.querySelectorAll('.edit-plan-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
         const planId = this.dataset.planId;
         const container = this.closest('[data-plan-id]');
 
+        if (!container) {
+          console.error('Container not found for plan:', planId);
+          return;
+        }
+
         // Toggle buttons
-        container.querySelector('.edit-plan-btn').style.display = 'none';
-        container.querySelector('.save-plan-btn').style.display = 'inline-flex';
-        container.querySelector('.cancel-plan-btn').style.display = 'inline-flex';
+        const editBtn = container.querySelector('.edit-plan-btn');
+        const saveBtn = container.querySelector('.save-plan-btn');
+        const cancelBtn = container.querySelector('.cancel-plan-btn');
+
+        if (editBtn) editBtn.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'inline-flex';
+        if (cancelBtn) cancelBtn.style.display = 'inline-flex';
 
         // Make fields editable
         container.querySelectorAll('.editable').forEach(el => {
@@ -897,15 +922,20 @@
           let value = el.textContent.trim();
 
           if (field === 'price') {
-            value = value.replace(/[€\/\w\s]/g, '');
+            value = value.replace(/[€\/\w\s]/g, '').trim();
           }
 
           if (field === 'description') {
             // For features, extract just the text
-            const features = Array.from(el.querySelectorAll('.feature-item'))
-              .map(item => item.textContent.replace('✓', '').trim())
-              .join(', ');
-            value = features || el.textContent.trim();
+            const featureItems = el.querySelectorAll('.feature-item');
+            if (featureItems.length > 0) {
+              const features = Array.from(featureItems)
+                .map(item => item.textContent.replace('✓', '').trim())
+                .join(', ');
+              value = features;
+            } else {
+              value = el.textContent.trim();
+            }
 
             const textarea = document.createElement('textarea');
             textarea.className = 'edit-textarea';
@@ -915,7 +945,10 @@
           } else {
             const input = document.createElement('input');
             input.type = field === 'price' ? 'number' : 'text';
-            input.step = field === 'price' ? '0.01' : '';
+            if (field === 'price') {
+              input.step = '0.01';
+              input.min = '0';
+            }
             input.className = 'edit-input';
             input.value = value;
             el.innerHTML = '';
@@ -927,23 +960,47 @@
 
     // Cancel Edit
     document.querySelectorAll('.cancel-plan-btn').forEach(btn => {
-      btn.addEventListener('click', () => location.reload());
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        location.reload();
+      });
     });
 
     // Save Plan
     document.querySelectorAll('.save-plan-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
         const planId = this.dataset.planId;
         const container = this.closest('[data-plan-id]');
+
+        if (!container) {
+          alert('Error: Could not find plan container');
+          return;
+        }
+
         const data = {};
 
+        // Collect data from editable fields
         container.querySelectorAll('.editable').forEach(el => {
           const field = el.dataset.field;
           const input = el.querySelector('input, textarea');
-          data[field] = field === 'price' ? parseFloat(input.value) : input.value;
+
+          if (input) {
+            data[field] = field === 'price' ? parseFloat(input.value) : input.value;
+          }
         });
 
-        data.active = container.querySelector('.plan-active-toggle').checked;
+        // Get active status
+        const activeToggle = container.querySelector('.plan-active-toggle');
+        if (activeToggle) {
+          data.active = activeToggle.checked;
+        }
+
+        // Disable button during save
+        this.disabled = true;
+        this.textContent = 'Saving...';
 
         fetch(`/admin/plans/${planId}`, {
           method: 'PATCH',
@@ -959,11 +1016,15 @@
             location.reload();
           } else {
             alert('Error: ' + (data.error || 'Unknown error'));
+            this.disabled = false;
+            this.innerHTML = '<span class="btn-icon">✓</span> Save Changes';
           }
         })
         .catch(err => {
           console.error(err);
           alert('An error occurred while saving');
+          this.disabled = false;
+          this.innerHTML = '<span class="btn-icon">✓</span> Save Changes';
         });
       });
     });
@@ -973,6 +1034,7 @@
       toggle.addEventListener('change', function() {
         const planId = this.dataset.planId;
         const active = this.checked;
+        const statusText = this.closest('.plan-status')?.querySelector('.status-text');
 
         fetch(`/admin/plans/${planId}`, {
           method: 'PATCH',
@@ -984,7 +1046,11 @@
         })
         .then(res => res.json())
         .then(data => {
-          if (!data.success) {
+          if (data.success) {
+            if (statusText) {
+              statusText.textContent = active ? 'Active' : 'Inactive';
+            }
+          } else {
             alert('Error: ' + (data.error || 'Unknown error'));
             this.checked = !this.checked;
           }
@@ -996,5 +1062,5 @@
         });
       });
     });
-  });
+  }
 </script>
