@@ -55,11 +55,27 @@ class Api::DevicesController < ApplicationController
     subscription = current_subscription
     device = current_device
 
-    # ⭐ STEP 1: Check device limit
+    # ⭐ STEP 1: Release any existing config (in_use OR used)
+    existing_config = device.vpn_config_set
+
+    if existing_config
+      Rails.logger.info "Device #{device.id} releasing config #{existing_config.ip_address} (was: #{existing_config.status})"
+      existing_config.release!
+
+      # Close any active connection records
+      device.vpn_connections.where(disconnected_at: nil).update_all(
+        disconnected_at: Time.current
+      )
+    end
+
+    # Reset device state before new connection
+    device.update!(active: false, connected_at: nil)
+
+    # ⭐ STEP 2: Check device limit (excluding current device)
     active_count = subscription.devices
-                                .where(active: true)
-                                .where.not(id: device.id)
-                                .count
+                              .where(active: true)
+                              .where.not(id: device.id)
+                              .count
 
     if active_count >= subscription.max_devices
       render json: {
@@ -69,28 +85,6 @@ class Api::DevicesController < ApplicationController
         active_devices: active_count,
         action_required: "disconnect_device"
       }, status: :too_many_requests
-      return
-    end
-
-    # ⭐ STEP 2: Check if device already has a config
-    existing_config = device.vpn_config_set
-
-    if existing_config&.status == 'in_use'
-      # Device already connected with this config
-      Rails.logger.info "✅ Device #{device.id} already has config #{existing_config.ip_address}"
-
-      device.update!(
-        active: true,
-        last_seen_at: Time.current,
-        last_connection_ip: request.remote_ip
-      )
-
-      credentials = build_credentials_from_config(existing_config)
-
-      render json: {
-        message: "Already connected",
-        credentials: credentials
-      }, status: :ok
       return
     end
 
@@ -104,18 +98,18 @@ class Api::DevicesController < ApplicationController
     unless server
       render json: {
         error: "No servers available",
-        message: "All servers are currently at capacity. Please try again in a few minutes."
+        message: "All servers are currently at capacity."
       }, status: :service_unavailable
       return
     end
 
-    # ⭐ STEP 4: Claim config from pool
+    # ⭐ STEP 4: Claim fresh config from pool
     config_set = nil
 
     VpnConfigSet.transaction do
       config_set = VpnConfigSet.where(server: server, status: 'available')
-                               .lock('FOR UPDATE SKIP LOCKED')
-                               .first
+                              .lock('FOR UPDATE SKIP LOCKED')
+                              .first
 
       if config_set
         config_set.claim!(device)
@@ -125,14 +119,14 @@ class Api::DevicesController < ApplicationController
     unless config_set
       render json: {
         error: "Server at capacity",
-        message: "Selected server is currently full. Trying another server...",
+        message: "Selected server is currently full.",
         retry: true
       }, status: :service_unavailable
       return
     end
 
     # ⭐ STEP 5: Create connection record
-    connection = VpnConnection.create!(
+    VpnConnection.create!(
       user: device.user,
       device: device,
       config_set: config_set,
@@ -165,7 +159,7 @@ class Api::DevicesController < ApplicationController
     Rails.logger.error "Connection failed for device #{device.id}: #{e.message}"
     render json: {
       error: "Connection failed",
-      message: "An error occurred while connecting. Please try again."
+      message: "An error occurred while connecting."
     }, status: :internal_server_error
   end
 
