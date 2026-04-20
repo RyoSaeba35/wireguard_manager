@@ -184,7 +184,7 @@
       </div>
     </div>
 
-    <div class="alert alert-info" style="margin-top: 1.5rem;">
+    <div class="alert alert-tips" style="margin-top: 1.5rem;">
       <strong>💡 Pro Tip:</strong> You can connect up to <%= @active_subscription&.max_devices || 3 %> devices simultaneously with a single subscription.
     </div>
   </section>
@@ -884,6 +884,12 @@
     border-left: 4px solid #ff6e08;
   }
 
+  .alert-tips {
+    background-color: #fff8e8;
+    color: #432923;
+    border-left: 4px solid #ff6e08;
+  }
+
   /* Troubleshooting Section */
   .troubleshooting-section {
     background-color: white;
@@ -1011,6 +1017,10 @@
     }
 
     .alert-info {
+      text-align: center;
+    }
+
+    .alert-tips {
       text-align: center;
     }
 
