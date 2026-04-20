@@ -390,7 +390,6 @@
       isAvailable = false;
       icon = platforms.macos.icon;
     } else if (/Linux/i.test(ua) && !/Android/i.test(ua)) {
-      // Detect Linux (but not Android, which is also Linux-based)
       detectedPlatform = 'linux';
       platformName = platforms.linux.name;
       platformSpec = platforms.linux.spec;
@@ -410,20 +409,11 @@
       if (otherPlatformsEl) {
         otherPlatformsEl.innerHTML = `Also available: ${otherPlatforms}`;
       }
-    }
 
-    // Handle platform grid: hide detected platform, show Linux
-    if (detectedPlatform) {
-      // Hide detected platform card
+      // Hide the detected platform card (both mobile and desktop)
       const detectedCard = document.querySelector(`[data-platform="${detectedPlatform}"]`);
       if (detectedCard) {
-        detectedCard.style.display = 'none';
-      }
-
-      // Show Linux card to replace detected one (desktop only)
-      const linuxCard = document.querySelector('[data-platform="linux"]');
-      if (linuxCard && window.innerWidth > 768) {
-        linuxCard.style.display = 'block';
+        detectedCard.classList.add('hidden-platform');
       }
     }
 
@@ -622,6 +612,11 @@
     gap: 1.5rem;
     margin-top: 1.5rem;
   }
+
+  .app-card.hidden-platform {
+    display: none !important;
+  }
+
   /* Smart Download Detection Styles */
   #smart-download-message {
     text-align: center;
@@ -764,8 +759,8 @@
     display: inline-block;
     background: #ffc33c;
     color: #0f0a0e;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s;
