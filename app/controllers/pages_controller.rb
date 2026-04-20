@@ -1,5 +1,6 @@
 class PagesController < ApplicationController
-  skip_before_action :authenticate_user!
+  before_action :authenticate_user!, only: [:subscriptions_expired]
+  skip_before_action :authenticate_user!, only: [:privacy, :terms, :logging]
 
   def privacy
   end

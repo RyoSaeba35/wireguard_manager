@@ -1,115 +1,327 @@
-<div class="super-container">
-  <h2>Full Expired Subscriptions History</h2>
-  <% if @expired_subscriptions.any? %>
-    <div class="subscription-table-container">
-      <table class="subscription-table">
-        <thead>
-          <tr>
-            <th>Client</th>
-            <th>Plan</th>
-            <th>Started</th>
-            <th>Expired</th>
-            <th>Price</th>
-            <th>Duration</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @expired_subscriptions.each do |subscription| %>
+<!-- app/views/pages/subscriptions_expired.html.erb -->
+<div class="history-container">
+  <div class="history-content">
+    <!-- Header -->
+    <header class="history-header">
+      <h1>📜 Subscription History</h1>
+      <p>View all your past subscriptions</p>
+    </header>
+
+    <% if @expired_subscriptions.any? %>
+      <!-- Desktop Table View -->
+      <div class="table-wrapper desktop-only">
+        <table class="subscription-table">
+          <thead>
             <tr>
-              <td>#<%= subscription.name %></td>
-              <td><%= subscription.plan.name %></td>
-              <td><%= subscription.created_at.strftime("%d/%m/%Y") %></td>
-              <td><%= subscription.expires_at.strftime("%d/%m/%Y") %></td>
-              <td>€<%= '%.2f' % (subscription.price.to_f) %></td>
-              <td>
-                <% days = (subscription.expires_at.to_date - subscription.created_at.to_date).to_i %>
-                <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
-              </td>
+              <th>ID</th>
+              <th>Plan</th>
+              <th>Started</th>
+              <th>Expired</th>
+              <th>Price</th>
+              <th>Duration</th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </div>
-  <% else %>
-    <p>No expired subscriptions.</p>
-  <% end %>
-  <%= link_to "Back", :back, class: "back-button" %>
+          </thead>
+          <tbody>
+            <% @expired_subscriptions.each do |subscription| %>
+              <tr>
+                <td><span class="subscription-id">#<%= subscription.name %></span></td>
+                <td><strong><%= subscription.plan.name %></strong></td>
+                <td><%= subscription.created_at.strftime("%d/%m/%Y") %></td>
+                <td><%= subscription.expires_at.strftime("%d/%m/%Y") %></td>
+                <td class="price">€<%= '%.2f' % subscription.price.to_f %></td>
+                <td>
+                  <% days = (subscription.expires_at.to_date - subscription.created_at.to_date).to_i %>
+                  <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="cards-wrapper mobile-only">
+        <% @expired_subscriptions.each do |subscription| %>
+          <div class="subscription-card">
+            <div class="card-header">
+              <span class="subscription-id">#<%= subscription.name %></span>
+              <span class="plan-name"><%= subscription.plan.name %></span>
+            </div>
+            <div class="card-body">
+              <div class="card-row">
+                <span class="label">Started:</span>
+                <span class="value"><%= subscription.created_at.strftime("%d/%m/%Y") %></span>
+              </div>
+              <div class="card-row">
+                <span class="label">Expired:</span>
+                <span class="value"><%= subscription.expires_at.strftime("%d/%m/%Y") %></span>
+              </div>
+              <div class="card-row">
+                <span class="label">Duration:</span>
+                <span class="value">
+                  <% days = (subscription.expires_at.to_date - subscription.created_at.to_date).to_i %>
+                  <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
+                </span>
+              </div>
+              <div class="card-row price-row">
+                <span class="label">Price:</span>
+                <span class="value price">€<%= '%.2f' % subscription.price.to_f %></span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <!-- Empty State -->
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No Expired Subscriptions</h3>
+        <p>You don't have any expired subscriptions yet.</p>
+      </div>
+    <% end %>
+
+    <!-- Back Button -->
+    <%= link_to dashboard_path, class: "back-btn" do %>
+      ← Back to Dashboard
+    <% end %>
+  </div>
 </div>
 
 <style>
-  .super-container {
+  /* Container */
+  .history-container {
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: calc(100vh - 273px);
-    background-color: #ecf0f1;
-    padding: 20px;
+    min-height: calc(100vh - 80px);
+    background-color: #f4f4f4;
+    padding: 2rem 1rem;
+    padding-top: 4rem;
   }
-  .subscription-table-container {
-    width: 100%;
-    max-width: 800px;
-    overflow-x: auto;
+
+  .history-content {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .history-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .history-header h1 {
+    color: #0f0a0e;
+    font-size: 2rem;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .history-header p {
+    color: #432923;
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  /* Desktop Table */
+  .table-wrapper {
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
   }
+
   .subscription-table {
     width: 100%;
     border-collapse: collapse;
   }
-  .subscription-table th,
-  .subscription-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  .subscription-table th {
-    background-color: #f8f9fa;
-    color: #2c3e50;
-    font-weight: 600;
-  }
-  .subscription-table tr:hover {
-    background-color: #f5f5f5;
-  }
-  .back-button {
-    display: inline-block;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 8px 16px;
-    text-decoration: none;
-    color: #2c3e50;
-    font-weight: 500;
-    transition: background-color 0.2s;
-  }
-  .back-button:hover {
-    background-color: #e0e0e0;
+
+  .subscription-table thead {
+    border-bottom: 2px solid #ff6e08;
   }
 
-  /* Adaptations pour mobile */
-  @media (max-width: 600px) {
-    .super-container {
-      padding: 10px;
+  .subscription-table th {
+    padding: 1rem;
+    text-align: left;
+    color: #0f0a0e;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .subscription-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f0e8d8;
+    color: #432923;
+  }
+
+  .subscription-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .subscription-table tbody tr:hover {
+    background-color: #fdf8f0;
+  }
+
+  .subscription-id {
+    background: #fff8e8;
+    color: #ff6e08;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .price {
+    color: #ff6e08;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  /* Mobile Cards */
+  .cards-wrapper {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .subscription-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: #0f0a0e;
+    color: #ffc33c;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-header .subscription-id {
+    background: rgba(255, 195, 60, 0.2);
+    color: #ffc33c;
+    border: 1px solid rgba(255, 195, 60, 0.4);
+  }
+
+  .card-header .plan-name {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0e8d8;
+  }
+
+  .card-row:last-child {
+    border-bottom: none;
+  }
+
+  .card-row .label {
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  .card-row .value {
+    color: #0f0a0e;
+    font-weight: 600;
+  }
+
+  .card-row.price-row .value {
+    color: #ff6e08;
+    font-size: 1.2rem;
+  }
+
+  /* Back Button */
+  .back-btn {
+    display: inline-block;
+    background-color: #ff6e08;
+    color: #0f0a0e;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    margin: 0 auto;
+    display: block;
+    width: fit-content;
+  }
+
+  .back-btn:hover {
+    background-color: #ffc33c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 110, 8, 0.3);
+  }
+
+  /* Empty State */
+  .empty-state {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+  }
+
+  .empty-state h3 {
+    color: #0f0a0e;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .empty-state p {
+    color: #666;
+    margin: 0;
+  }
+
+  /* Responsive */
+  .mobile-only {
+    display: none;
+  }
+
+  .desktop-only {
+    display: block;
+  }
+
+  @media (max-width: 768px) {
+    .history-container {
+      padding: 1rem 0.5rem;
+      padding-top: 3rem;
     }
-    .super-container h2 {
-      font-size: 1.2rem;
+
+    .history-header h1 {
+      font-size: 1.5rem;
     }
-    .subscription-table-container {
-      padding: 10px;
+
+    .history-header p {
+      font-size: 0.9rem;
     }
-    .subscription-table {
-      font-size: 0.8rem;
+
+    .mobile-only {
+      display: block;
     }
-    .subscription-table th,
-    .subscription-table td {
-      padding: 8px 10px;
+
+    .desktop-only {
+      display: none;
     }
-    .back-button {
-      padding: 12px 24px;
-      width: 100%;
+
+    .back-btn {
+      width: calc(100% - 2rem);
       text-align: center;
     }
   }

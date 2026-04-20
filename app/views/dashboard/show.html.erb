@@ -60,15 +60,8 @@
 
     <!-- Expired Subscriptions -->
     <% if @expired_subscriptions.any? %>
-      <% last_expired = @expired_subscriptions.last %>
-      <div class="subscription-card">
-        <h3>Last Subscription</h3>
-        <p><strong>Plan:</strong> <%= last_expired.plan.name %></p>
-        <p><strong>Expired:</strong> <%= last_expired.expires_at.strftime("%B %d, %Y") %></p>
-        <p><strong>Duration:</strong>
-          <% days = (last_expired.expires_at.to_date - last_expired.created_at.to_date).to_i %>
-          <%= days >= 30 ? "#{days / 30} month".pluralize(days / 30) : "#{days} day".pluralize(days) %>
-        </p>
+      <div style="text-align: center; margin-top: 1rem;">
+        <%= link_to "View Subscription History (#{@expired_subscriptions.count})", expired_subscriptions_path, class: "btn btn-secondary", style: "background-color: #6c757d; max-width: 350px;" %>
       </div>
     <% end %>
   </section>
@@ -590,6 +583,14 @@
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     display: inline-block;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d !important;
+  }
+
+  .btn-secondary:hover {
+    background-color: #5a6268 !important;
   }
 
   /* App Download Section */
