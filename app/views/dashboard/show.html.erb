@@ -356,35 +356,33 @@
     let icon = '';
 
     // Specific platform detection
-    if (/iPad/i.test(ua)) {
-      detectedPlatform = 'ios';
-      platformName = 'iPad';
-      downloadUrl = '#';
-      isAvailable = false;
-      icon = '🍎';
-    } else if (/iPhone|iPod/i.test(ua)) {
+    if (/iPhone|iPad/i.test(ua)) {
       detectedPlatform = 'ios';
       platformName = 'iPhone';
+      platformSpec = 'iOS 14+';
       downloadUrl = '#';
       isAvailable = false;
       icon = '🍎';
     } else if (/Android/i.test(ua)) {
       detectedPlatform = 'android';
-      platformName = 'Android device';
+      platformName = 'Android';
+      platformSpec = 'Phones & Tablets';
       downloadUrl = 'https://play.google.com/store/apps/details?id=com.vulcainvpn';
-      isAvailable = true;
+      isAvailable = false;
       icon = '🤖';
     } else if (/Windows/i.test(ua)) {
       detectedPlatform = 'windows';
       platformName = 'Windows PC';
+      platformSpec = 'Windows 10/11';
       downloadUrl = '/downloads/vulcainvpn-windows.exe';
       isAvailable = true;
       icon = '🪟';
     } else if (/Macintosh|Mac OS X/i.test(ua)) {
       detectedPlatform = 'macos';
       platformName = 'Mac';
+      platformSpec = 'macOS 11+';
       downloadUrl = '/downloads/vulcainvpn-macos.dmg';
-      isAvailable = true;
+      isAvailable = false;
       icon = '🍏';
     }
 
@@ -421,6 +419,7 @@
         featuredEl.style.display = 'block';
         featuredEl.innerHTML = `
           <h3>${icon} ${platformName}</h3>
+          <p>${platformSpec}</p>
           <a href="${downloadUrl}" class="download-btn-large" ${detectedPlatform === 'android' ? 'target="_blank"' : 'download'}>
             Download Now
           </a>
