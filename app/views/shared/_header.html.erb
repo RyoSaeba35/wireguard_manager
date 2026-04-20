@@ -18,7 +18,7 @@
         <%= link_to "Dashboard", root_path %>
         <%= link_to "Edit Profile", profile_path %>
         <% if current_user.admin? %>
-          <%= link_to "⚡ Admin", admin_dashboard_path, class: "admin-badge-link" %>
+          <%= link_to "Admin", admin_dashboard_path %>
         <% end %>
       <% end %>
       <%= button_to "Log Out", destroy_user_session_path, method: :delete, class: "logout-btn" %>
@@ -36,6 +36,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
     z-index: 1002;
   }
 
@@ -104,6 +105,8 @@
     background: none;
     border: none;
     color: white;
+    position: relative;
+    z-index: 1004;
   }
 
   /* Mobile */
@@ -115,7 +118,7 @@
     .nav-links {
       display: none;
       flex-direction: column;
-      position: absolute;
+      position: fixed;
       top: 60px;
       left: 0;
       width: 100%;
@@ -123,6 +126,9 @@
       padding: 1rem;
       gap: 0.5rem;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1003;
+      max-height: calc(100vh - 60px);
+      overflow-y: auto;
     }
 
     .nav-links.active {
@@ -154,8 +160,25 @@
     const navLinks = document.querySelector('.nav-links');
 
     if (hamburger && navLinks) {
-      hamburger.addEventListener('click', function() {
+      hamburger.addEventListener('click', function(e) {
+        e.stopPropagation();
         navLinks.classList.toggle('active');
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (navLinks.classList.contains('active') &&
+            !navLinks.contains(e.target) &&
+            !hamburger.contains(e.target)) {
+          navLinks.classList.remove('active');
+        }
+      });
+
+      // Close menu when clicking a link
+      navLinks.querySelectorAll('a, button').forEach(link => {
+        link.addEventListener('click', function() {
+          navLinks.classList.remove('active');
+        });
       });
     }
   });
