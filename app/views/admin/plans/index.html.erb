@@ -858,12 +858,10 @@
 
 <script>
   document.addEventListener('turbo:load', function() {
-    console.log('Plans page loaded'); // Debug
     initializePlansPage();
   });
 
   function initializePlansPage() {
-    // Use event delegation - attach to parent container
     const adminContent = document.querySelector('.admin-content');
 
     if (!adminContent) {
@@ -871,15 +869,12 @@
       return;
     }
 
-    console.log('Admin content found, setting up event delegation'); // Debug
-
     // Event delegation for all clicks
     adminContent.addEventListener('click', function(e) {
       const target = e.target;
 
       // Open Modal
       if (target.closest('.add-plan-btn')) {
-        console.log('Add plan button clicked'); // Debug
         document.getElementById('add-plan-modal').style.display = 'block';
         document.body.style.overflow = 'hidden';
         return;
@@ -887,13 +882,12 @@
 
       // Close Modal
       if (target.closest('.close-modal')) {
-        console.log('Close modal button clicked'); // Debug
         document.getElementById('add-plan-modal').style.display = 'none';
         document.body.style.overflow = 'auto';
         return;
       }
 
-      // Edit Plan
+      // Edit Plan - FIXED: Find parent card, not button
       if (target.closest('.edit-plan-btn')) {
         e.preventDefault();
         e.stopPropagation();
@@ -901,9 +895,8 @@
         const btn = target.closest('.edit-plan-btn');
         const planId = btn.getAttribute('data-plan-id');
 
-        console.log('Edit button clicked for plan:', planId); // Debug
-
-        const container = btn.closest('[data-plan-id="' + planId + '"]');
+        // FIX: Find the parent plan card/row, not just the nearest element with data-plan-id
+        const container = btn.closest('.plan-card') || btn.closest('.plan-row-mobile');
 
         if (!container) {
           console.error('Container not found');
@@ -911,7 +904,7 @@
           return;
         }
 
-        console.log('Container found, making editable'); // Debug
+        console.log('Container found:', container); // Should now show the card
 
         // Hide edit buttons, show save/cancel
         container.querySelectorAll('.edit-plan-btn').forEach(b => b.style.display = 'none');
@@ -920,7 +913,7 @@
 
         // Make fields editable
         const editableFields = container.querySelectorAll('.editable[data-plan-id="' + planId + '"]');
-        console.log('Found editable fields:', editableFields.length); // Debug
+        console.log('Found editable fields:', editableFields.length);
 
         editableFields.forEach(el => {
           const field = el.getAttribute('data-field');
@@ -974,7 +967,7 @@
 
         const btn = target.closest('.save-plan-btn');
         const planId = btn.getAttribute('data-plan-id');
-        const container = btn.closest('[data-plan-id="' + planId + '"]');
+        const container = btn.closest('.plan-card') || btn.closest('.plan-row-mobile');
 
         if (!container) {
           alert('Error: Could not find plan container');
@@ -1040,7 +1033,7 @@
       });
     }
 
-    // Toggle Active Status - needs separate listener since it's a change event
+    // Toggle Active Status
     document.querySelectorAll('.plan-active-toggle').forEach(toggle => {
       toggle.addEventListener('change', function() {
         const planId = this.getAttribute('data-plan-id');
