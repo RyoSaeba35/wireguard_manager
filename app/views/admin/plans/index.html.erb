@@ -862,12 +862,6 @@
   });
 
   function initializePlansPage() {
-    // Remove old listeners by cloning
-    document.querySelectorAll('.add-plan-btn, .edit-plan-btn, .save-plan-btn, .cancel-plan-btn, .close-modal').forEach(btn => {
-      const newBtn = btn.cloneNode(true);
-      btn.parentNode.replaceChild(newBtn, btn);
-    });
-
     // Open Modal
     document.querySelectorAll('.add-plan-btn').forEach(btn => {
       btn.addEventListener('click', function() {
@@ -893,35 +887,47 @@
       });
     }
 
-    // Edit Plan
+    // Edit Plan - FIXED: Direct event listener without cloning
     document.querySelectorAll('.edit-plan-btn').forEach(btn => {
       btn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
 
-        const planId = this.dataset.planId;
-        const container = this.closest('[data-plan-id]');
+        console.log('Edit button clicked!'); // Debug log
+
+        const planId = this.getAttribute('data-plan-id');
+        console.log('Plan ID:', planId); // Debug log
+
+        const container = this.closest('[data-plan-id="' + planId + '"]');
+        console.log('Container found:', container); // Debug log
 
         if (!container) {
           console.error('Container not found for plan:', planId);
+          alert('Error: Could not find plan container');
           return;
         }
 
         // Toggle buttons
-        const editBtn = container.querySelector('.edit-plan-btn');
-        const saveBtn = container.querySelector('.save-plan-btn');
-        const cancelBtn = container.querySelector('.cancel-plan-btn');
+        const editBtns = container.querySelectorAll('.edit-plan-btn');
+        const saveBtns = container.querySelectorAll('.save-plan-btn');
+        const cancelBtns = container.querySelectorAll('.cancel-plan-btn');
 
-        if (editBtn) editBtn.style.display = 'none';
-        if (saveBtn) saveBtn.style.display = 'inline-flex';
-        if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+        editBtns.forEach(btn => btn.style.display = 'none');
+        saveBtns.forEach(btn => btn.style.display = 'inline-flex');
+        cancelBtns.forEach(btn => btn.style.display = 'inline-flex');
 
         // Make fields editable
-        container.querySelectorAll('.editable').forEach(el => {
-          const field = el.dataset.field;
+        const editableFields = container.querySelectorAll('.editable[data-plan-id="' + planId + '"]');
+        console.log('Editable fields found:', editableFields.length); // Debug log
+
+        editableFields.forEach(el => {
+          const field = el.getAttribute('data-field');
           let value = el.textContent.trim();
 
+          console.log('Editing field:', field, 'with value:', value); // Debug log
+
           if (field === 'price') {
+            // Extract just the number from "€9.99/month"
             value = value.replace(/[€\/\w\s]/g, '').trim();
           }
 
@@ -972,8 +978,8 @@
         e.preventDefault();
         e.stopPropagation();
 
-        const planId = this.dataset.planId;
-        const container = this.closest('[data-plan-id]');
+        const planId = this.getAttribute('data-plan-id');
+        const container = this.closest('[data-plan-id="' + planId + '"]');
 
         if (!container) {
           alert('Error: Could not find plan container');
@@ -983,8 +989,9 @@
         const data = {};
 
         // Collect data from editable fields
-        container.querySelectorAll('.editable').forEach(el => {
-          const field = el.dataset.field;
+        const editableFields = container.querySelectorAll('.editable[data-plan-id="' + planId + '"]');
+        editableFields.forEach(el => {
+          const field = el.getAttribute('data-field');
           const input = el.querySelector('input, textarea');
 
           if (input) {
@@ -1000,6 +1007,7 @@
 
         // Disable button during save
         this.disabled = true;
+        const originalHTML = this.innerHTML;
         this.textContent = 'Saving...';
 
         fetch(`/admin/plans/${planId}`, {
@@ -1017,14 +1025,14 @@
           } else {
             alert('Error: ' + (data.error || 'Unknown error'));
             this.disabled = false;
-            this.innerHTML = '<span class="btn-icon">✓</span> Save Changes';
+            this.innerHTML = originalHTML;
           }
         })
         .catch(err => {
           console.error(err);
           alert('An error occurred while saving');
           this.disabled = false;
-          this.innerHTML = '<span class="btn-icon">✓</span> Save Changes';
+          this.innerHTML = originalHTML;
         });
       });
     });
@@ -1032,7 +1040,7 @@
     // Toggle Active Status
     document.querySelectorAll('.plan-active-toggle').forEach(toggle => {
       toggle.addEventListener('change', function() {
-        const planId = this.dataset.planId;
+        const planId = this.getAttribute('data-plan-id');
         const active = this.checked;
         const statusText = this.closest('.plan-status')?.querySelector('.status-text');
 
