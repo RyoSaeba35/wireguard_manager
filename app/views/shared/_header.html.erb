@@ -155,31 +155,50 @@
 </style>
 
 <script>
-  // Use event delegation - attach once to document
-  document.addEventListener('click', function(e) {
+  let hamburgerClickHandler = null;
+
+  document.addEventListener('turbo:load', initNav);
+  document.addEventListener('turbo:render', initNav);
+
+  function initNav() {
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
 
     if (!hamburger || !navLinks) return;
 
-    // If hamburger was clicked
-    if (e.target.closest('.hamburger')) {
+    // Remove old click handler
+    if (hamburgerClickHandler) {
+      hamburger.removeEventListener('click', hamburgerClickHandler);
+    }
+
+    // Create new click handler
+    hamburgerClickHandler = function(e) {
+      e.preventDefault();
       e.stopPropagation();
+      console.log('Hamburger clicked!'); // Debug log
       navLinks.classList.toggle('active');
-      return;
-    }
+      console.log('Menu active:', navLinks.classList.contains('active')); // Debug log
+    };
 
-    // If a nav link was clicked
-    if (e.target.closest('.nav-links a, .nav-links button')) {
-      navLinks.classList.remove('active');
-      return;
-    }
+    // Attach to hamburger
+    hamburger.addEventListener('click', hamburgerClickHandler);
 
-    // If clicked outside (and menu is open)
-    if (navLinks.classList.contains('active') &&
-        !e.target.closest('.nav-links') &&
-        !e.target.closest('.hamburger')) {
-      navLinks.classList.remove('active');
-    }
-  });
+    // Close on link click
+    navLinks.addEventListener('click', function(e) {
+      if (e.target.closest('a, button')) {
+        console.log('Link clicked, closing menu'); // Debug log
+        navLinks.classList.remove('active');
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!hamburger.contains(e.target) &&
+          !navLinks.contains(e.target) &&
+          navLinks.classList.contains('active')) {
+        console.log('Outside click, closing menu'); // Debug log
+        navLinks.classList.remove('active');
+      }
+    });
+  }
 </script>
