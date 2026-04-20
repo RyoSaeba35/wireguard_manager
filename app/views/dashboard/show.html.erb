@@ -77,71 +77,73 @@
   <section class="app-download-section">
     <h2>Download VulcainVPN</h2>
 
-    <!-- Featured download for detected platform -->
+    <!-- Featured download for detected platform (mobile + desktop) -->
     <div id="featured-download" style="display: none;"></div>
 
-    <!-- All platforms (always visible) -->
-    <p style="text-align: center; margin: 1.5rem 0 1rem 0; opacity: 0.85; font-size: 1rem;">
-      All available platforms:
-    </p>
-
-    <div class="app-download-grid" id="platform-grid">
-      <!-- Mobile cards (iOS & Android) - always visible -->
-      <div class="app-card mobile-card" data-platform="android">
-        <div class="app-icon">🤖</div>
-        <h3>Android</h3>
-        <p>Phones & Tablets</p>
-        <span class="status-badge coming-soon">Coming Soon</span>
-        <a href="https://play.google.com/store/apps/details?id=com.vulcainvpn"
-          class="download-btn disabled android-download" target="_blank">Google Play</a>
-      </div>
-
-      <div class="app-card mobile-card" data-platform="ios">
-        <div class="app-icon">🍎</div>
-        <h3>iOS</h3>
-        <p>iPhone & iPad</p>
-        <span class="status-badge coming-soon">Coming Soon</span>
-        <a href="#" class="download-btn disabled ios-download">App Store</a>
-      </div>
-
-      <!-- Desktop cards (Windows, macOS) - hidden on mobile -->
-      <div class="app-card desktop-card" data-platform="windows">
-        <div class="app-icon">🪟</div>
-        <h3>Windows</h3>
-        <p>Windows 10/11</p>
-        <span class="status-badge available">Available Now</span>
-        <a href="/downloads/vulcainvpn-windows.exe"
-          class="download-btn windows-download" download>Download</a>
-      </div>
-
-      <div class="app-card desktop-card" data-platform="macos">
-        <div class="app-icon">🍏</div>
-        <h3>macOS</h3>
-        <p>macOS 11+</p>
-        <span class="status-badge coming-soon">Coming Soon</span>
-        <a href="/downloads/vulcainvpn-macos.dmg"
-          class="download-btn disabled macos-download" download>Download</a>
-      </div>
-
-      <!-- Linux card (hidden by default, shown when another platform is featured) -->
-      <div class="app-card desktop-card" data-platform="linux" style="display: none;">
-        <div class="app-icon">🐧</div>
-        <h3>Linux</h3>
-        <p>Ubuntu, Debian, ...</p>
-        <span class="status-badge coming-soon">Coming Soon</span>
-        <a href="/downloads/vulcainvpn-linux.deb"
-          class="download-btn disabled linux-download" download>Download</a>
-      </div>
+    <!-- All platforms text (mobile only - minimalist) -->
+    <div class="all-platforms-mobile">
+      <p id="other-platforms-text" style="text-align: center; margin: 1.5rem 0 1rem 0; font-size: 0.95rem; color: rgba(255, 195, 60, 0.85);">
+        <!-- Will be populated by JavaScript -->
+      </p>
+      <button id="expand-platforms-btn" onclick="togglePlatforms()" style="display: block; margin: 0 auto; background: rgba(255, 195, 60, 0.2); border: 1px solid rgba(255, 195, 60, 0.4); color: #ffc33c; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+        Show All Platforms
+      </button>
     </div>
 
-    <!-- Desktop platforms text (mobile only) -->
-    <div class="desktop-platforms-mobile">
-      <p style="text-align: center; margin: 1.5rem 0 0.5rem 0; font-size: 0.95rem; color: rgba(255, 195, 60, 0.9);">
-        Also available for desktop:
+    <!-- Platform grid (desktop: always visible, mobile: hidden until expand) -->
+    <div id="platform-grid-wrapper">
+      <p class="platform-grid-title" style="text-align: center; margin: 1.5rem 0 1rem 0; opacity: 0.85; font-size: 1rem;">
+        All available platforms:
       </p>
-      <p style="text-align: center; margin: 0; font-size: 0.9rem; color: rgba(255, 195, 60, 0.7);">
-        🪟 Windows • 🍏 macOS • 🐧 Linux
-      </p>
+
+      <div class="app-download-grid" id="platform-grid">
+        <!-- Mobile cards (iOS & Android) -->
+        <div class="app-card mobile-card" data-platform="android">
+          <div class="app-icon">🤖</div>
+          <h3>Android</h3>
+          <p>Phones & Tablets</p>
+          <span class="status-badge coming-soon">Coming Soon</span>
+          <a href="https://play.google.com/store/apps/details?id=com.vulcainvpn"
+            class="download-btn disabled android-download" target="_blank">Google Play</a>
+        </div>
+
+        <div class="app-card mobile-card" data-platform="ios">
+          <div class="app-icon">🍎</div>
+          <h3>iOS</h3>
+          <p>iPhone & iPad</p>
+          <span class="status-badge coming-soon">Coming Soon</span>
+          <a href="#" class="download-btn disabled ios-download">App Store</a>
+        </div>
+
+        <!-- Desktop cards (Windows, macOS) -->
+        <div class="app-card desktop-card" data-platform="windows">
+          <div class="app-icon">🪟</div>
+          <h3>Windows</h3>
+          <p>Windows 10/11</p>
+          <span class="status-badge available">Available Now</span>
+          <a href="/downloads/vulcainvpn-windows.exe"
+            class="download-btn windows-download" download>Download</a>
+        </div>
+
+        <div class="app-card desktop-card" data-platform="macos">
+          <div class="app-icon">🍏</div>
+          <h3>macOS</h3>
+          <p>macOS 11+</p>
+          <span class="status-badge coming-soon">Coming Soon</span>
+          <a href="/downloads/vulcainvpn-macos.dmg"
+            class="download-btn disabled macos-download" download>Download</a>
+        </div>
+
+        <!-- Linux card -->
+        <div class="app-card desktop-card" data-platform="linux" style="display: none;">
+          <div class="app-icon">🐧</div>
+          <h3>Linux</h3>
+          <p>Ubuntu, Debian, ...</p>
+          <span class="status-badge coming-soon">Coming Soon</span>
+          <a href="/downloads/vulcainvpn-linux.deb"
+            class="download-btn disabled linux-download" download>Download</a>
+        </div>
+      </div>
     </div>
 
     <div class="alert alert-info" style="margin-top: 2rem; background: rgba(255, 195, 60, 0.1); border: 1px solid rgba(255, 195, 60, 0.3); border-radius: 8px; padding: 1rem;">
@@ -354,57 +356,68 @@
     let downloadUrl = '';
     let isAvailable = true;
     let icon = '';
+    let platformSpec = '';
+
+    // Platform data
+    const platforms = {
+      ios: { icon: '🍎', name: 'iOS', spec: 'iPhone & iPad' },
+      android: { icon: '🤖', name: 'Android', spec: 'Phones & Tablets' },
+      windows: { icon: '🪟', name: 'Windows', spec: 'Windows 10/11' },
+      macos: { icon: '🍏', name: 'macOS', spec: 'macOS 11+' },
+      linux: { icon: '🐧', name: 'Linux', spec: 'Ubuntu, Debian, ...' }
+    };
 
     // Specific platform detection
     if (/iPhone|iPad/i.test(ua)) {
       detectedPlatform = 'ios';
-      platformName = 'iPhone';
-      platformSpec = 'iOS 14+';
+      platformName = platforms.ios.name;
+      platformSpec = platforms.ios.spec;
       downloadUrl = '#';
       isAvailable = false;
-      icon = '🍎';
+      icon = platforms.ios.icon;
     } else if (/Android/i.test(ua)) {
       detectedPlatform = 'android';
-      platformName = 'Android';
-      platformSpec = 'Phones & Tablets';
+      platformName = platforms.android.name;
+      platformSpec = platforms.android.spec;
       downloadUrl = 'https://play.google.com/store/apps/details?id=com.vulcainvpn';
       isAvailable = false;
-      icon = '🤖';
+      icon = platforms.android.icon;
     } else if (/Windows/i.test(ua)) {
       detectedPlatform = 'windows';
-      platformName = 'Windows PC';
-      platformSpec = 'Windows 10/11';
+      platformName = platforms.windows.name;
+      platformSpec = platforms.windows.spec;
       downloadUrl = '/downloads/vulcainvpn-windows.exe';
       isAvailable = true;
-      icon = '🪟';
+      icon = platforms.windows.icon;
     } else if (/Macintosh|Mac OS X/i.test(ua)) {
       detectedPlatform = 'macos';
-      platformName = 'Mac';
-      platformSpec = 'macOS 11+';
+      platformName = platforms.macos.name;
+      platformSpec = platforms.macos.spec;
       downloadUrl = '/downloads/vulcainvpn-macos.dmg';
       isAvailable = false;
-      icon = '🍏';
+      icon = platforms.macos.icon;
     }
 
-    // Show detection message
-    const messageEl = document.getElementById('smart-download-message');
-    if (messageEl) {
-      if (detectedPlatform) {
-        messageEl.innerHTML = `${icon} We detected you're using a <strong>${platformName}</strong>`;
-      } else {
-        messageEl.innerHTML = '💻 Choose your platform below';
+    // Build "other platforms" text for mobile
+    if (detectedPlatform) {
+      const otherPlatforms = Object.keys(platforms)
+        .filter(p => p !== detectedPlatform)
+        .map(p => `${platforms[p].icon} ${platforms[p].name}`)
+        .join(' • ');
+
+      const otherPlatformsEl = document.getElementById('other-platforms-text');
+      if (otherPlatformsEl) {
+        otherPlatformsEl.innerHTML = `Also available: ${otherPlatforms}`;
       }
     }
 
-    // Handle platform grid: replace detected platform with Linux
+    // Handle platform grid: replace detected platform with Linux on desktop
     if (detectedPlatform) {
-      // Hide the detected platform card from the grid
       const detectedCard = document.querySelector(`[data-platform="${detectedPlatform}"]`);
       if (detectedCard) {
         detectedCard.style.display = 'none';
       }
 
-      // Show Linux card instead
       const linuxCard = document.querySelector('[data-platform="linux"]');
       if (linuxCard) {
         linuxCard.style.display = 'block';
@@ -415,7 +428,6 @@
     const featuredEl = document.getElementById('featured-download');
     if (featuredEl && detectedPlatform) {
       if (isAvailable) {
-        // Platform is available - show download button
         featuredEl.style.display = 'block';
         featuredEl.innerHTML = `
           <h3>${icon} ${platformName}</h3>
@@ -425,16 +437,30 @@
           </a>
         `;
       } else {
-        // Platform coming soon - show notify button
         featuredEl.style.display = 'block';
         featuredEl.innerHTML = `
-          <h3>${icon} ${platformName} Version</h3>
-          <p>Coming soon! We're working hard to bring VulcainVPN to iOS.</p>
-          <a href="mailto:support@vulcainvpn.com?subject=Notify%20me%20when%20iOS%20is%20ready&body=Please%20notify%20me%20when%20VulcainVPN%20for%20iOS%20is%20available." class="download-btn-large">
+          <h3>${icon} ${platformName}</h3>
+          <p>${platformSpec}</p>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;">Coming soon!</p>
+          <a href="mailto:support@vulcainvpn.com?subject=Notify%20me%20when%20${platformName}%20is%20ready&body=Please%20notify%20me%20when%20VulcainVPN%20for%20${platformName}%20is%20available." class="download-btn-large">
             Notify Me When Ready
           </a>
         `;
       }
+    }
+  }
+
+ // Toggle platform cards on mobile
+  function togglePlatforms() {
+    const gridWrapper = document.getElementById('platform-grid-wrapper');
+    const btn = document.getElementById('expand-platforms-btn');
+
+    if (gridWrapper.classList.contains('expanded')) {
+      gridWrapper.classList.remove('expanded');
+      btn.textContent = 'Show All Platforms';
+    } else {
+      gridWrapper.classList.add('expanded');
+      btn.textContent = 'Hide Platforms';
     }
   }
 </script>
@@ -958,6 +984,16 @@
     display: none;
   }
 
+  /* All platforms mobile section - hidden on desktop */
+  .all-platforms-mobile {
+    display: none;
+  }
+
+  /* Platform grid wrapper */
+  #platform-grid-wrapper {
+    display: block;
+  }
+
   /* Mobile Responsive */
   @media (max-width: 768px) {
     .dashboard-container {
@@ -989,11 +1025,42 @@
       margin-bottom: 0.5rem;
     }
 
-    /* Mobile: Show only iOS & Android in 1 row (2 columns) */
-    .app-download-grid {
-      grid-template-columns: repeat(1, 1fr);
+    /* Mobile: Hide platform grid initially */
+    #platform-grid-wrapper {
+      display: none;
     }
 
+    #platform-grid-wrapper.expanded {
+      display: block;
+    }
+
+    /* Show "other platforms" section on mobile */
+    .all-platforms-mobile {
+      display: block;
+    }
+
+    /* Hide the grid title on mobile */
+    .platform-grid-title {
+      display: none;
+    }
+
+    /* Mobile expanded: 2x2 grid */
+    .app-download-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    /* Expand button hover effect */
+    #expand-platforms-btn:hover {
+      background: rgba(255, 195, 60, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .quick-step {
+      flex-direction: column;
+      text-align: center;
+    }
+  
     /* Hide desktop cards on mobile */
     .desktop-card {
       display: none !important;
