@@ -425,7 +425,7 @@
   }
 
   // Show flash messages on page load
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('turbo:load', function() {
     const successMessage = document.querySelector('.success-message');
     if (successMessage) {
       setTimeout(() => {

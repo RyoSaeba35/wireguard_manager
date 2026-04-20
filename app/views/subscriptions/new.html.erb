@@ -369,7 +369,7 @@
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('turbo:load', function() {
     // Handle desktop form submissions
     <% @plans.each do |plan| %>
       document.getElementById('subscribe-form-<%= plan.id %>')?.addEventListener('ajax:success', function(event) {
