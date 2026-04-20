@@ -389,6 +389,14 @@
       downloadUrl = '/downloads/vulcainvpn-macos.dmg';
       isAvailable = false;
       icon = platforms.macos.icon;
+    } else if (/Linux/i.test(ua) && !/Android/i.test(ua)) {
+      // Detect Linux (but not Android, which is also Linux-based)
+      detectedPlatform = 'linux';
+      platformName = platforms.linux.name;
+      platformSpec = platforms.linux.spec;
+      downloadUrl = '/downloads/vulcainvpn-linux.deb';
+      isAvailable = false;
+      icon = platforms.linux.icon;
     }
 
     // Build "other platforms" text for mobile
@@ -1042,37 +1050,42 @@
     /* Mobile expanded: 2x2 grid */
     .app-download-grid {
       grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
+      gap: 0.75rem;
+      width: 100%;
+
     }
 
     /* Make cards more square on mobile */
     .app-card {
-      padding: 1.5rem 1rem;
+      padding: 1rem 0.5rem;
       aspect-ratio: 1 / 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      min-height: 0;
+      width: 100%;
     }
 
     .app-card .app-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
+      font-size: 2.2rem;
+      margin-bottom: 0.4rem;
     }
 
     .app-card h3 {
-      font-size: 1.1rem;
-      margin: 0.25rem 0;
+      font-size: 1rem;
+      margin: 0.2rem 0;
     }
 
     .app-card p {
-      font-size: 0.8rem;
-      margin: 0.25rem 0 0.5rem 0;
+      font-size: 0.75rem;
+      margin: 0.2rem 0 0.4rem 0;
+      line-height: 1.2;
     }
 
     .app-card .status-badge {
-      font-size: 0.7rem;
-      padding: 0.25rem 0.6rem;
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
       margin-bottom: 0;
     }
 
