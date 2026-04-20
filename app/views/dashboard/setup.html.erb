@@ -193,26 +193,45 @@
 
 <!-- Keep the existing JavaScript -->
 <script>
-  document.addEventListener("turbo:load", function() {
-    // FAQ toggle logic
+  // Initialize FAQs on turbo:load
+  document.addEventListener('turbo:load', function() {
+    initializeFAQs();
+  });
+
+  function initializeFAQs() {
+    // Remove any existing listeners first by cloning nodes
     document.querySelectorAll('.faq-question').forEach(button => {
-      button.addEventListener('click', () => {
-        const faqItem = button.parentElement;
+      const newButton = button.cloneNode(true);
+      button.parentNode.replaceChild(newButton, button);
+    });
+
+    // Add fresh event listeners
+    document.querySelectorAll('.faq-question').forEach(button => {
+      button.addEventListener('click', function() {
+        const faqItem = this.parentElement;
         const answer = faqItem.querySelector('.faq-answer');
-        const icon = button.querySelector('.faq-icon');
+        const icon = this.querySelector('.faq-icon');
 
         if (answer.classList.contains('active')) {
+          // Close this FAQ
           answer.classList.remove('active');
           icon.textContent = '+';
         } else {
-          document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
-          document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
+          // Close all FAQs first
+          document.querySelectorAll('.faq-answer').forEach(a => {
+            a.classList.remove('active');
+          });
+          document.querySelectorAll('.faq-icon').forEach(i => {
+            i.textContent = '+';
+          });
+
+          // Open this FAQ
           answer.classList.add('active');
           icon.textContent = '-';
         }
       });
     });
-  });
+  }
 </script>
 
 <style>
