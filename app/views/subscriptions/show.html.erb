@@ -273,8 +273,8 @@
 
   @media (max-width: 768px) {
     .subscription-container {
-      padding: 1rem;
-      padding-top: 3rem;
+      padding: 0rem;
+      padding-top: 1rem;
     }
 
     .subscription-header h1 {
@@ -287,6 +287,9 @@
 
     .connection-table {
       font-size: 0.85rem;
+      width: 100%;
+      table-layout: fixed; /* Forces equal column widths */
+      border-collapse: collapse;
     }
 
     .connection-table th,
@@ -454,7 +457,6 @@
             <thead>
               <tr>
                 <th>Device</th>
-                <th>Server</th>
                 <th>Connected</th>
                 <th>Disconnected</th>
                 <th>Duration</th>
@@ -464,11 +466,6 @@
               <% @recent_connections.each do |conn| %>
                 <tr>
                   <td><%= conn.device.name %></td>
-                  <td>
-                    <span class="server-badge">
-                      <%= conn.server.flag %> <%= conn.server.name %>
-                    </span>
-                  </td>
                   <td><%= conn.connected_at.strftime("%d/%m %H:%M") %></td>
                   <td><%= conn.disconnected_at&.strftime("%d/%m %H:%M") || "—" %></td>
                   <td><%= distance_of_time_in_words(conn.connected_at, conn.disconnected_at || Time.current) %></td>
