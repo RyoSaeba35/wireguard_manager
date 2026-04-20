@@ -187,7 +187,7 @@
     <h2>🔧 Troubleshooting</h2>
 
     <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
+      <button class="faq-question">
         Can't connect to VPN <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
@@ -204,7 +204,7 @@
     </div>
 
     <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
+      <button class="faq-question">
         Connection keeps dropping <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
@@ -220,7 +220,7 @@
     </div>
 
     <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
+      <button class="faq-question">
         Slow connection speeds <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
@@ -236,7 +236,7 @@
     </div>
 
     <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
+      <button class="faq-question">
         Multiple devices not working <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
@@ -251,7 +251,7 @@
     </div>
 
     <div class="faq-item">
-      <button class="faq-question" onclick="toggleFAQ(this)">
+      <button class="faq-question">
         Still need help? <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
@@ -269,26 +269,43 @@
 </div>
 
 <script>
-  // Toggle FAQ answers
-  function toggleFAQ(button) {
-    const answer = button.nextElementSibling;
-    const icon = button.querySelector('.faq-icon');
+  // Initialize all functions on turbo:load
+  document.addEventListener('turbo:load', function() {
+    initializeFAQs();
+    initializeCountdown();
+    detectAndShowPlatform();
+  });
 
-    if (answer.classList.contains('active')) {
-      answer.classList.remove('active');
-      icon.textContent = '+';
-    } else {
-      // Close all other FAQs
-      document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
-      document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
+  // FAQ Toggle with event delegation
+  function initializeFAQs() {
+    // Remove any existing listeners first
+    document.querySelectorAll('.faq-question').forEach(button => {
+      button.replaceWith(button.cloneNode(true));
+    });
 
-      // Open this one
-      answer.classList.add('active');
-      icon.textContent = '-';
-    }
+    // Add new listeners
+    document.querySelectorAll('.faq-question').forEach(button => {
+      button.addEventListener('click', function() {
+        const answer = this.nextElementSibling;
+        const icon = this.querySelector('.faq-icon');
+
+        if (answer.classList.contains('active')) {
+          answer.classList.remove('active');
+          icon.textContent = '+';
+        } else {
+          // Close all other FAQs
+          document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
+          document.querySelectorAll('.faq-icon').forEach(i => i.textContent = '+');
+
+          // Open this one
+          answer.classList.add('active');
+          icon.textContent = '-';
+        }
+      });
+    });
   }
 
-  // Update countdown
+  // Countdown functions
   function updateCountdown(expiresAt) {
     const now = new Date();
     const diff = expiresAt - now;
@@ -310,31 +327,28 @@
     document.getElementById("countdown").textContent = `⏱️ ${parts.join(', ')} remaining`;
   }
 
-  // Initialize countdown
-  <% if @active_subscription && @active_subscription.expires_at > Time.now %>
-    const expiresAt = new Date("<%= @active_subscription.expires_at.iso8601 %>");
-    const localTimeElement = document.getElementById("local-time-text");
+  function initializeCountdown() {
+    <% if @active_subscription && @active_subscription.expires_at > Time.now %>
+      const expiresAt = new Date("<%= @active_subscription.expires_at.iso8601 %>");
+      const localTimeElement = document.getElementById("local-time-text");
 
-    if (localTimeElement) {
-      const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      };
-      localTimeElement.textContent = expiresAt.toLocaleString(undefined, options);
-    }
+      if (localTimeElement) {
+        const options = {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        };
+        localTimeElement.textContent = expiresAt.toLocaleString(undefined, options);
+      }
 
-    updateCountdown(expiresAt);
-    setInterval(() => updateCountdown(expiresAt), 60000); // Update every minute
-  <% end %>
+      updateCountdown(expiresAt);
+      setInterval(() => updateCountdown(expiresAt), 60000);
+    <% end %>
+  }
 
-  // Platform Detection and Smart Download
-  document.addEventListener('turbo:load', function() {
-    detectAndShowPlatform();
-  });
-
+  // Platform detection
   function detectAndShowPlatform() {
     const ua = navigator.userAgent;
     let detectedPlatform = null;
@@ -344,7 +358,6 @@
     let icon = '';
     let platformSpec = '';
 
-    // Platform data
     const platforms = {
       ios: { icon: '🍎', name: 'iOS', spec: 'iPhone & iPad' },
       android: { icon: '🤖', name: 'Android', spec: 'Phones & Tablets' },
@@ -353,7 +366,6 @@
       linux: { icon: '🐧', name: 'Linux', spec: 'Ubuntu, Debian, ...' }
     };
 
-    // Specific platform detection
     if (/iPhone|iPad/i.test(ua)) {
       detectedPlatform = 'ios';
       platformName = platforms.ios.name;
@@ -391,7 +403,6 @@
       icon = platforms.linux.icon;
     }
 
-    // Build "other platforms" text for mobile
     if (detectedPlatform) {
       const otherPlatforms = Object.keys(platforms)
         .filter(p => p !== detectedPlatform)
@@ -406,14 +417,12 @@
         `;
       }
 
-      // Hide the detected platform card (both mobile and desktop)
       const detectedCard = document.querySelector(`[data-platform="${detectedPlatform}"]`);
       if (detectedCard) {
         detectedCard.classList.add('hidden-platform');
       }
     }
 
-    // Show featured download
     const featuredEl = document.getElementById('featured-download');
     if (featuredEl && detectedPlatform) {
       if (isAvailable) {
@@ -439,7 +448,7 @@
     }
   }
 
- // Toggle platform cards on mobile
+  // Toggle platforms (keep global for inline onclick)
   function togglePlatforms() {
     const gridWrapper = document.getElementById('platform-grid-wrapper');
     const btn = document.getElementById('expand-platforms-btn');
