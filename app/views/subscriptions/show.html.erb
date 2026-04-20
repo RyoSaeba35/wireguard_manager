@@ -305,12 +305,12 @@
 
     .device-info {
       width: 100%;
-      margin-bottom: 1rem;
+      margin-bottom: 0.25rem;
     }
 
     .device-name {
       font-size: 1.1rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
     .device-status {
@@ -322,13 +322,6 @@
       display: flex;
       flex-direction: column;
       width: 100%;
-    }
-
-    /* Split the text into separate lines */
-    .device-meta {
-      font-size: 0.85rem;
-      display: flex;
-      flex-direction: column;
     }
 
     .meta-registered,
@@ -443,7 +436,7 @@
                     <div class="meta-registered">Registered: <%= device.created_at.strftime("%d/%m/%Y") %></div>
                     <% if is_connected && connection %>
                       <div class="meta-server">
-                        Server: <span class="server-badge"><%= connection.server.flag %> <%= connection.server.name %></span>
+                        Server: <span class="server-badge"> <%= connection.server.name %></span>
                       </div>
                     <% end %>
                   </div>
