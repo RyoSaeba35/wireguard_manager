@@ -10,7 +10,6 @@
       <strong>Important Device Information:</strong>
       <ul style="margin-bottom: 0; padding-left: 1.2rem;">
         <li>Your subscription allows VPN connections on <strong>up to <%= @active_subscription&.max_devices || 3 %> devices</strong> simultaneously.</li>
-        <li>Each device must be registered separately in the app.</li>
         <li>The VPN will automatically select the best server for you.</li>
       </ul>
     </div>
@@ -28,7 +27,7 @@
           <li><a href="#" target="_blank">macOS</a> - Coming soon</li>
           <li><a href="#" target="_blank">Linux</a> - Coming soon</li>
         </ul>
-        <p><em>Note: Currently available for Android only. iOS and desktop versions coming soon.</em></p>
+        <p><em>Note: Currently available for Windows only. Other platforms coming soon.</em></p>
       </div>
 
       <div class="step">
@@ -61,8 +60,7 @@
         <p>Tap the <strong>Connect</strong> button in the app.</p>
         <ul>
           <li>The app will automatically select the best server for you</li>
-          <li>Supports WireGuard, Hysteria2, and Shadowsocks protocols</li>
-          <li>Connection typically takes 2-5 seconds</li>
+          <li>Connection typically takes 2-8 seconds</li>
         </ul>
         <p>Verify your connection at <a href="https://whatismyip.com" target="_blank">whatismyip.com</a>.</p>
       </div>
@@ -74,7 +72,7 @@
           <li>View active devices in your <%= link_to "dashboard", dashboard_path %></li>
           <li>Maximum <%= @active_subscription&.max_devices || 3 %> devices can be connected at once</li>
           <li>Disconnect from one device to free up a slot for another</li>
-          <li>Devices are automatically disconnected after 5 minutes of inactivity</li>
+          <li>Devices are automatically disconnected after 20 minutes of inactivity</li>
         </ul>
       </div>
     </div>
@@ -137,7 +135,7 @@
         <p><strong>Symptoms:</strong> VPN disconnects frequently or won't connect</p>
         <ul>
           <li>Check your internet connection</li>
-          <li>Try switching protocols (WireGuard → Hysteria2 → Shadowsocks)</li>
+          <li>Log out and log in back into the app</li>
           <li>Restart the app</li>
           <li>Restart your device</li>
           <li>Check for app updates</li>
@@ -154,7 +152,6 @@
         <p><strong>Symptoms:</strong> VPN is connected but internet is slow</p>
         <ul>
           <li>Test your base internet speed (disconnect VPN first)</li>
-          <li>Try switching to Hysteria2 protocol (fastest)</li>
           <li>Close background apps consuming bandwidth</li>
           <li>Check server status in <%= link_to "dashboard", dashboard_path %></li>
           <li>Restart your router</li>

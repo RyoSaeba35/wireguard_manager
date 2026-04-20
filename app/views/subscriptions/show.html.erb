@@ -475,7 +475,7 @@
                   <td><%= conn.device.name %></td>
                   <td>
                     <span class="server-badge">
-                      <%= conn.server.flag %> <%= conn.server.name %>
+                      <%= conn.server.name %>
                     </span>
                   </td>
                   <td><%= conn.connected_at.strftime("%d/%m/%Y %H:%M") %></td>
@@ -517,7 +517,7 @@
     <% end %>
 
     <!-- Setup Guide Link -->
-    <div style="text-align: center; margin-top: 2rem;">
+    <div style="text-align: center; margin-top: 1.5rem; margin-bottom: 1.5rem;">
       <%= link_to "📖 View Setup Guide", setup_guide_path, class: "btn btn-secondary" %>
     </div>
 
