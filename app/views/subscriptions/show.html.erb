@@ -323,13 +323,25 @@
       font-size: 0.85rem;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
       width: 100%;
     }
 
     /* Split the text into separate lines */
     .device-meta {
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .meta-registered,
+    .meta-server {
       line-height: 1.6;
+    }
+
+    .server-badge {
+      background-color: none;
+      padding: 0;
     }
   }
 </style>
@@ -430,12 +442,14 @@
             <div class="device-card <%= is_connected ? '' : 'inactive' %>">
               <div class="device-info">
                 <div class="device-name"><%= device.name.capitalize %></div>
-                <div class="device-meta">
-                  Registered: <%= device.created_at.strftime("%d/%m/%Y") %>
-                  <% if is_connected && connection %>
-                     <span class="server-badge"> | Server: <%= connection.server.flag %> <%= connection.server.name %></span>
-                  <% end %>
-                </div>
+                  <div class="device-meta">
+                    <div class="meta-registered">Registered: <%= device.created_at.strftime("%d/%m/%Y") %></div>
+                    <% if is_connected && connection %>
+                      <div class="meta-server">
+                        Server: <span class="server-badge"><%= connection.server.flag %> <%= connection.server.name %></span>
+                      </div>
+                    <% end %>
+                  </div>
               </div>
               <div class="device-status <%= is_connected ? 'connected' : 'disconnected' %>">
                 <%= is_connected ? '🟢 Connected' : '⚫ Disconnected' %>
