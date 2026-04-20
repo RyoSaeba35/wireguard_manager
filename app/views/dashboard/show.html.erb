@@ -249,7 +249,7 @@
       <div class="faq-answer">
         <p><strong>Device limit:</strong></p>
         <ul>
-          <li>Your plan allows up to <%= @active_subscription.max_devices || 3 %> simultaneous connections</li>
+          <li>Your plan allows up to <%= @active_subscription&.max_devices || 3 %> simultaneous connections</li>
           <li>Each device gets its own unique configuration automatically</li>
           <li>If you can't connect, check if you've reached your device limit</li>
           <li>Disconnect unused devices to free up slots</li>
@@ -407,8 +407,10 @@
 
       const otherPlatformsEl = document.getElementById('other-platforms-text');
       if (otherPlatformsEl) {
-        otherPlatformsEl.innerHTML = `Also available:
-        ${otherPlatforms}`;
+        otherPlatformsEl.innerHTML = `
+        <p>Also available:</p>
+        <p>${otherPlatforms}</p>
+        `;
       }
 
       // Hide the detected platform card (both mobile and desktop)
