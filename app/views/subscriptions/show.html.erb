@@ -288,13 +288,48 @@
     .connection-table {
       font-size: 0.85rem;
       width: 100%;
-      table-layout: fixed; /* Forces equal column widths */
+
       border-collapse: collapse;
     }
 
     .connection-table th,
     .connection-table td {
       padding: 0.5rem;
+    }
+
+    .device-card {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 1.5rem 1rem;
+    }
+
+    .device-info {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    .device-name {
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .device-status {
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+    }
+
+    .device-meta {
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    /* Split the text into separate lines */
+    .device-meta {
+      line-height: 1.6;
     }
   }
 </style>
@@ -394,7 +429,7 @@
 
             <div class="device-card <%= is_connected ? '' : 'inactive' %>">
               <div class="device-info">
-                <div class="device-name">📱 <%= device.name %></div>
+                <div class="device-name"><%= device.name.capitalize %></div>
                 <div class="device-meta">
                   Registered: <%= device.created_at.strftime("%d/%m/%Y") %>
                   <% if is_connected && connection %>
