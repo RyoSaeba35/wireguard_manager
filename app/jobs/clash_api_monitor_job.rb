@@ -159,14 +159,14 @@ class ClashApiMonitorJob < ApplicationJob
     connections_by_ip.each do |source_ip, conns|
       next unless source_ip
 
-      # Find ALL active devices from this external IP
+      # Find devices by external IP (regardless of active status for conflict detection)
       devices = Device.joins(:vpn_config_set)
-                      .where(active: true, last_connection_ip: source_ip)
-                      .where(vpn_config_sets: { server_id: server.id, status: 'in_use' })
-                      .limit(conns.size)  # Max as many as we have connections
+                      .where(last_connection_ip: source_ip)
+                      .where(vpn_config_sets: { server_id: server.id })
+                      .limit(conns.size)
 
       if devices.empty?
-        Rails.logger.warn "⚠️ No active devices found for external IP: #{source_ip} (#{conns.size} connections)"
+        Rails.logger.warn "⚠️ No devices found for external IP: #{source_ip} (#{conns.size} connections)"
         next
       end
 
@@ -177,6 +177,29 @@ class ClashApiMonitorJob < ApplicationJob
         end
 
         config_set = device.vpn_config_set
+
+        # ✅ SECURITY CHECK: Detect stale credential conflicts
+        if config_set.status == 'in_use' && config_set.device_id != device.id
+          Rails.logger.error "🚨 CONFLICT DETECTED: Config #{config_set.ip_address} is in_use by device #{config_set.device_id}, but connection detected from device #{device.id}"
+          Rails.logger.error "   External IP: #{source_ip} - This indicates stale credentials being used!"
+          Rails.logger.error "   The app should fetch fresh credentials via /api/connect"
+
+          # Don't self-heal - this is an unauthorized connection using stale credentials
+          # Let the app call /api/connect for fresh credentials
+          next
+        end
+
+        # ✅ Safe to self-heal - this was the original owner or config is available
+        unless device.active?
+          Rails.logger.info "🔄 Self-healing: Reactivating device #{device.id}"
+          device.update!(active: true, last_seen_at: Time.current)
+        end
+
+        if config_set.status != 'in_use'
+          Rails.logger.info "🔄 Self-healing: Reclaiming config #{config_set.ip_address} for original owner device #{device.id}"
+          config_set.update!(status: 'in_use', device_id: device.id)
+        end
+
         Rails.logger.info "✅ sing-box active: External IP #{source_ip} → Device #{device.id} (VPN IP: #{config_set.ip_address})"
         active_device_ids << device.id
       end
