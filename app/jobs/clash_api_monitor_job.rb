@@ -151,35 +151,35 @@ class ClashApiMonitorJob < ApplicationJob
     connections = get_active_connections_via_ssh(server)
     Rails.logger.info "🔌 Found #{connections.size} active sing-box connections on #{server.name}"
 
+    # Group connections by external IP
+    connections_by_ip = connections.group_by { |c| c.dig("metadata", "sourceIP") }
+
     active_device_ids = Set.new
 
-    connections.each do |conn|
-      source_ip = conn.dig("metadata", "sourceIP")
+    connections_by_ip.each do |source_ip, conns|
       next unless source_ip
 
-      # Find the config set by IP
-      config_set = VpnConfigSet.find_by(server: server, ip_address: source_ip, status: 'in_use')
+      # Find ALL active devices from this external IP
+      devices = Device.joins(:vpn_config_set)
+                      .where(active: true, last_connection_ip: source_ip)
+                      .where(vpn_config_sets: { server_id: server.id, status: 'in_use' })
+                      .limit(conns.size)  # Max as many as we have connections
 
-      unless config_set
-        Rails.logger.warn "⚠️ No config set for sing-box IP: #{source_ip}"
+      if devices.empty?
+        Rails.logger.warn "⚠️ No active devices found for external IP: #{source_ip} (#{conns.size} connections)"
         next
       end
 
-      device = config_set.device
-      unless device
-        Rails.logger.warn "⚠️ Config set #{source_ip} has no device"
-        next
-      end
+      devices.each do |device|
+        unless device.subscription&.active?
+          Rails.logger.warn "❌ Device #{device.id} subscription inactive"
+          next
+        end
 
-      # Check subscription status
-      unless device.subscription&.active?
-        kill_connection_via_ssh(server, conn["id"])
-        Rails.logger.warn "❌ Killed unauthorized: #{source_ip}"
-        next
+        config_set = device.vpn_config_set
+        Rails.logger.info "✅ sing-box active: External IP #{source_ip} → Device #{device.id} (VPN IP: #{config_set.ip_address})"
+        active_device_ids << device.id
       end
-
-      Rails.logger.info "✅ sing-box active: #{source_ip} → Device #{device.id}"
-      active_device_ids << device.id
     end
 
     Rails.logger.info "✅ #{active_device_ids.size} active sing-box devices on #{server.name}"
