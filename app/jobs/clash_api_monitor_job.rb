@@ -7,7 +7,7 @@ class ClashApiMonitorJob < ApplicationJob
   queue_as :default
 
   CLASH_API_PORT = 9090
-  WIREGUARD_HANDSHAKE_TIMEOUT = 20.minutes  # ⭐ Allow 20 min of idle before considering inactive
+  WIREGUARD_HANDSHAKE_TIMEOUT = 5.minutes  # ⭐ Allow 5 min of idle before considering inactive
   DEACTIVATION_GRACE_PERIOD = 5.minutes      # Then 5 min grace period
 
   def perform

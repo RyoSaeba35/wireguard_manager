@@ -144,7 +144,6 @@ class Api::DevicesController < ApplicationController
 
     # ⭐ STEP 7: Build and return credentials
     credentials = build_credentials_from_config(config_set)
-    singbox_config = build_singbox_config_from_credentials(credentials)
 
     render json: {
       message: "Connected successfully",
@@ -216,127 +215,6 @@ class Api::DevicesController < ApplicationController
   end
 
   private
-
-  def build_singbox_config_from_credentials(credentials)
-    wg = credentials[:wireguard]
-    ss = credentials[:shadowsocks]
-    hy2 = credentials[:hysteria2]
-
-    {
-      log: {
-        level: "error",
-        timestamp: true
-      },
-      dns: {
-        servers: [
-          {
-            tag: "dns-direct",
-            address: "223.5.5.5",
-            detour: "direct"
-          },
-          {
-            tag: "dns-proxy",
-            address: "https://1.1.1.1/dns-query",
-            detour: "proxy"
-          }
-        ],
-        rules: [
-          { outbound: "any", server: "dns-direct" }
-        ],
-        final: "dns-proxy",
-        strategy: "prefer_ipv4"
-      },
-      inbounds: [
-        {
-          type: "tun",
-          tag: "tun-in",
-          interface_name: "tun0",
-          inet4_address: "172.19.0.1/30",
-          mtu: 1420,
-          auto_route: true,
-          strict_route: true,
-          stack: "mixed",
-          sniff: true,
-          sniff_override_destination: true
-        }
-      ],
-      outbounds: [
-        {
-          type: "selector",
-          tag: "proxy",
-          outbounds: ["auto", "ss-out", "hysteria2", "wireguard_1", "direct"],
-          default: "auto"
-        },
-        {
-          type: "urltest",
-          tag: "auto",
-          outbounds: ["ss-out", "hysteria2", "wireguard_1"],
-          url: "https://www.gstatic.com/generate_204",
-          interval: "10m",
-          tolerance: 50
-        },
-        {
-          type: "wireguard",
-          tag: "wireguard_1",
-          server: wg[:server_ip],
-          server_port: wg[:server_port],
-          system_interface: false,
-          interface_name: "wg0",
-          local_address: ["#{wg[:client_ip]}/32"],
-          private_key: wg[:client_private_key],
-          peer_public_key: wg[:server_public_key],
-          pre_shared_key: wg[:client_preshared_key],
-          mtu: 1420
-        },
-        ss ? {
-          type: "shadowsocks",
-          tag: "ss-out",
-          server: ss[:server],
-          server_port: ss[:port],
-          method: ss[:method],
-          password: ss[:password],
-          multiplex: {
-            enabled: true,
-            protocol: "h2mux",
-            max_connections: 4
-          }
-        } : nil,
-        hy2 ? {
-          type: "hysteria2",
-          tag: "hysteria2",
-          server: hy2[:server],
-          server_port: hy2[:port],
-          password: hy2[:password],
-          tls: {
-            enabled: true,
-            server_name: hy2[:tls_server_name] || "www.cloudflare.com",
-            alpn: ["h3"],
-            insecure: true
-          },
-          obfs: {
-            type: hy2[:obfs_type],
-            password: hy2[:obfs_password]
-          }
-        } : nil,
-        { type: "direct", tag: "direct" },
-        { type: "dns", tag: "dns-out" }
-      ].compact,
-      route: {
-        rules: [
-          { protocol: "dns", outbound: "dns-out" },
-          { ip_is_private: true, outbound: "direct" }
-        ],
-        auto_detect_interface: true,
-        final: "proxy"
-      },
-      experimental: {
-        clash_api: {
-          external_controller: "127.0.0.1:9090",
-          secret: config_set.server.clash_api_secret
-        }
-      }
-    }
-  end
 
   def authenticate_api_user!
     token = request.headers['Authorization']&.split(' ')&.last
