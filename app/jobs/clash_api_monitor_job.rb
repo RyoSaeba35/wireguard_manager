@@ -19,11 +19,23 @@ class ClashApiMonitorJob < ApplicationJob
       devices_with_real_connections.merge(wg_devices)
 
       # ⭐ Monitor sing-box (for Hysteria2/Shadowsocks users)
-      if server.singbox_active?
+      if server.singbox_active? && server.clash_api_secret.present?
         singbox_devices = monitor_singbox(server)
         devices_with_real_connections.merge(singbox_devices)
       end
     end
+
+    # ✅ ALSO trust app heartbeats (backup for server monitoring failures)
+    devices_with_recent_heartbeats = Device
+      .where(active: true)
+      .where('last_seen_at > ?', 5.minutes.ago)  # Heartbeat every 10s, 5min grace for Doze mode
+      .pluck(:id)
+
+    devices_with_real_connections.merge(devices_with_recent_heartbeats)
+
+    Rails.logger.info "📊 Active devices breakdown:"
+    Rails.logger.info "   Total: #{devices_with_real_connections.size}"
+    Rails.logger.info "   Heartbeat-detected: #{devices_with_recent_heartbeats.size}"
 
     # Mark devices with real connections as active
     if devices_with_real_connections.any?
@@ -134,9 +146,9 @@ class ClashApiMonitorJob < ApplicationJob
     active_device_ids.to_a
   end
 
-  # ⭐ Monitor sing-box connections via Clash API
+  # ⭐ Monitor sing-box connections via Clash API (accessed via SSH)
   def monitor_singbox(server)
-    connections = get_active_connections(server)
+    connections = get_active_connections_via_ssh(server)
     Rails.logger.info "🔌 Found #{connections.size} active sing-box connections on #{server.name}"
 
     active_device_ids = Set.new
@@ -161,7 +173,7 @@ class ClashApiMonitorJob < ApplicationJob
 
       # Check subscription status
       unless device.subscription&.active?
-        kill_connection(server, conn["id"])
+        kill_connection_via_ssh(server, conn["id"])
         Rails.logger.warn "❌ Killed unauthorized: #{source_ip}"
         next
       end
@@ -174,36 +186,86 @@ class ClashApiMonitorJob < ApplicationJob
     active_device_ids.to_a
   end
 
-  def get_active_connections(server)
-    uri = URI("http://#{server.ip_address}:#{CLASH_API_PORT}/connections")
+  # ✅ Access Clash API via SSH tunnel (secure - no exposed port)
+  def get_active_connections_via_ssh(server)
+    key_file = nil
 
-    request = Net::HTTP::Get.new(uri)
-    request['Authorization'] = "Bearer #{server.clash_api_secret}"
+    begin
+      # Write SSH key to temp file
+      key_file = Tempfile.new(['ssh_key', '.pem'])
+      key_content = server.ssh_private_key.strip
+      key_content += "\n" unless key_content.end_with?("\n")
+      key_file.write(key_content)
+      key_file.close
+      File.chmod(0600, key_file.path)
 
-    response = Net::HTTP.start(uri.hostname, uri.port, read_timeout: 10) do |http|
-      http.request(request)
+      Net::SSH.start(
+        server.ip_address,
+        server.ssh_user,
+        keys: [key_file.path],
+        auth_methods: ['publickey'],
+        verify_host_key: :never,
+        non_interactive: true,
+        timeout: 10
+      ) do |ssh|
+        # Execute curl command on the remote server to access localhost Clash API
+        command = "curl -s -H 'Authorization: Bearer #{server.clash_api_secret}' http://127.0.0.1:#{CLASH_API_PORT}/connections"
+        output = ssh.exec!(command)
+
+        return [] if output.blank?
+
+        data = JSON.parse(output)
+        return data["connections"] || []
+      end
+    rescue JSON::ParserError => e
+      Rails.logger.error "Failed to parse Clash API response from #{server.name}: #{e.message}"
+      return []
+    rescue Net::SSH::AuthenticationFailed => e
+      Rails.logger.error "SSH auth failed for #{server.name}: #{e.message}"
+      return []
+    rescue => e
+      Rails.logger.error "Failed to get connections from #{server.name}: #{e.message}"
+      return []
+    ensure
+      if key_file
+        key_file.close unless key_file.closed?
+        key_file.unlink
+      end
     end
-
-    return [] unless response.is_a?(Net::HTTPSuccess)
-
-    data = JSON.parse(response.body)
-    data["connections"] || []
-  rescue => e
-    Rails.logger.error "Failed to get connections from #{server.name}: #{e.message}"
-    []
   end
 
-  def kill_connection(server, connection_id)
-    uri = URI("http://#{server.ip_address}:#{CLASH_API_PORT}/connections/#{connection_id}")
+  def kill_connection_via_ssh(server, connection_id)
+    key_file = nil
 
-    request = Net::HTTP::Delete.new(uri)
-    request['Authorization'] = "Bearer #{server.clash_api_secret}"
+    begin
+      key_file = Tempfile.new(['ssh_key', '.pem'])
+      key_content = server.ssh_private_key.strip
+      key_content += "\n" unless key_content.end_with?("\n")
+      key_file.write(key_content)
+      key_file.close
+      File.chmod(0600, key_file.path)
 
-    Net::HTTP.start(uri.hostname, uri.port, read_timeout: 5) do |http|
-      http.request(request)
+      Net::SSH.start(
+        server.ip_address,
+        server.ssh_user,
+        keys: [key_file.path],
+        auth_methods: ['publickey'],
+        verify_host_key: :never,
+        non_interactive: true,
+        timeout: 10
+      ) do |ssh|
+        command = "curl -s -X DELETE -H 'Authorization: Bearer #{server.clash_api_secret}' http://127.0.0.1:#{CLASH_API_PORT}/connections/#{connection_id}"
+        ssh.exec!(command)
+        Rails.logger.info "🔪 Killed connection #{connection_id} on #{server.name}"
+      end
+    rescue => e
+      Rails.logger.error "Failed to kill connection #{connection_id} on #{server.name}: #{e.message}"
+    ensure
+      if key_file
+        key_file.close unless key_file.closed?
+        key_file.unlink
+      end
     end
-  rescue => e
-    Rails.logger.error "Failed to kill connection: #{e.message}"
   end
 
   def release_configs_for_devices(device_ids)
