@@ -8,10 +8,11 @@ class Api::SubscriptionsController < ApplicationController
 
   # GET api/subscription (JWT auth)
   def show
-    subscription = @current_api_user.subscriptions.active.first
+    # ✅ FIXED: Remove .active filter, get any subscription
+    subscription = @current_api_user.subscriptions.order(created_at: :desc).first
 
     unless subscription
-      render json: { error: "No active subscription found" }, status: :not_found
+      render json: { error: "No subscription found" }, status: :not_found
       return
     end
 
