@@ -297,13 +297,94 @@ class ClashApiMonitorJob < ApplicationJob
     return if device_ids.empty?
 
     VpnConfigSet.where(device_id: device_ids, status: 'in_use').find_each do |config_set|
+      server = config_set.server
+
+      # ✅ ACTUALLY KILL THE CONNECTION
+      begin
+        # Kill WireGuard peer
+        kill_wireguard_peer(server, config_set.ip_address)
+
+        # Kill sing-box connections via Clash API
+        if server.singbox_active?
+          kill_singbox_connections_for_ip(server, config_set.ip_address)
+        end
+
+        Rails.logger.info "🔪 Killed VPN connection for #{config_set.ip_address}"
+      rescue => e
+        Rails.logger.error "Failed to kill connection: #{e.message}"
+      end
+
       config_set.release!
       Rails.logger.info "Released config #{config_set.ip_address} back to pool"
     end
 
-    # Close active connections
     VpnConnection.where(device_id: device_ids, disconnected_at: nil).update_all(disconnected_at: Time.current)
-
     Rails.logger.info "🔓 Released configs for #{device_ids.size} devices"
+  end
+
+  private
+
+  # ✅ NEW: Kill WireGuard peer via SSH
+  def kill_wireguard_peer(server, vpn_ip)
+    key_file = nil
+
+    begin
+      key_file = Tempfile.new(['ssh_key', '.pem'])
+      key_content = server.ssh_private_key.strip
+      key_content += "\n" unless key_content.end_with?("\n")
+      key_file.write(key_content)
+      key_file.close
+      File.chmod(0600, key_file.path)
+
+      Net::SSH.start(
+        server.ip_address,
+        server.ssh_user,
+        keys: [key_file.path],
+        auth_methods: ['publickey'],
+        verify_host_key: :never,
+        non_interactive: true,
+        timeout: 10
+      ) do |ssh|
+        # Remove WireGuard peer by public key
+        # First, find the public key for this IP
+        output = ssh.exec!("sudo wg show wg0 dump")
+
+        output.each_line.with_index do |line, index|
+          next if index == 0
+
+          parts = line.strip.split("\t")
+          next if parts.size < 4
+
+          allowed_ip = parts[3].split('/').first
+
+          if allowed_ip == vpn_ip
+            public_key = parts[0]
+            ssh.exec!("sudo wg set wg0 peer #{public_key} remove")
+            Rails.logger.info "🔪 Removed WireGuard peer: #{public_key} (IP: #{vpn_ip})"
+            break
+          end
+        end
+      end
+    ensure
+      if key_file
+        key_file.close unless key_file.closed?
+        key_file.unlink
+      end
+    end
+  end
+
+  # ✅ NEW: Kill sing-box connections for a specific VPN IP
+  def kill_singbox_connections_for_ip(server, vpn_ip)
+    connections = get_active_connections_via_ssh(server)
+
+    connections.each do |conn|
+      # Match by destination IP (the VPN IP the client is using)
+      dest_ip = conn.dig("metadata", "destinationIP")
+
+      if dest_ip == vpn_ip || conn.dig("metadata", "sourceIP") == vpn_ip
+        connection_id = conn["id"]
+        kill_connection_via_ssh(server, connection_id)
+      end
+    end
   end
 end
