@@ -205,12 +205,30 @@ class Api::DevicesController < ApplicationController
   # POST api/heartbeat/:device_id
   def heartbeat
     device = current_device
+    subscription = device.subscription
 
-    device.update!(last_seen_at: Time.current)
+    # ✅ CHECK SUBSCRIPTION BEFORE ACCEPTING HEARTBEAT
+    unless subscription && subscription.active?
+      render json: {
+        status: "subscription_expired",
+        subscription_active: false,
+        subscription_status: subscription&.status,
+        expires_at: subscription&.expires_at,
+        message: "Your subscription has expired",
+        action_required: "renew"
+      }, status: 403
+      return
+    end
+
+    # ✅ Only update last_seen_at if subscription is valid
+    device.update!(
+      last_seen_at: Time.current,
+      last_connection_ip: request.remote_ip
+    )
 
     render json: {
       status: "alive",
-      subscription_active: device.subscription.active?
+      subscription_active: true
     }, status: :ok
   end
 
