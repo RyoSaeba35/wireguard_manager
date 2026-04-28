@@ -39,6 +39,14 @@ class Subscription < ApplicationRecord
     name
   end
 
+  def status
+    return 'canceled' if canceled_at.present?
+    return 'expired' if expires_at.present? && expires_at < Time.current
+
+    # Return DB column value only if not expired
+    self[:status] || 'active'
+  end
+  
   # Status predicate methods
   def active?
     status == "active" && expires_at > Time.current
