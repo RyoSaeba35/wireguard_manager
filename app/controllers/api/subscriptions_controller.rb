@@ -22,13 +22,15 @@ class Api::SubscriptionsController < ApplicationController
 
   # GET api/subscription/device/:device_id (API Key auth)
   def show_by_device
-    subscription = @current_device.user.subscriptions.active.first
+    # ✅ Get subscription regardless of status
+    subscription = @current_device.user.subscriptions.order(created_at: :desc).first
 
     unless subscription
-      render json: { error: "No active subscription found" }, status: :not_found
+      render json: { error: "No subscription found" }, status: :not_found
       return
     end
 
+    # ✅ Return subscription with actual status (active/expired/canceled)
     render json: {
       subscription: subscription_json(subscription)
     }, status: :ok
@@ -37,12 +39,14 @@ class Api::SubscriptionsController < ApplicationController
   private
 
   def subscription_json(subscription)
-    # Get current connection info
-    active_connection = subscription.vpn_connections.active.includes(:server).first
+    # Get current connection info (only if subscription is active)
+    active_connection = subscription.status == 'active' ?
+                        subscription.vpn_connections.active.includes(:server).first :
+                        nil
 
     {
       name: subscription.name,
-      status: subscription.status,
+      status: subscription.status,  # ✅ This will be "expired" when expired!
       expires_at: subscription.expires_at,
       plan: {
         name: subscription.plan.name,
