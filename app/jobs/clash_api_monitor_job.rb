@@ -8,7 +8,7 @@ class ClashApiMonitorJob < ApplicationJob
 
   CLASH_API_PORT = 9090
   WIREGUARD_HANDSHAKE_TIMEOUT = 5.minutes  # ⭐ Allow 5 min of idle before considering inactive
-  DEACTIVATION_GRACE_PERIOD = 5.minutes      # Then 5 min grace period
+  DEACTIVATION_GRACE_PERIOD = 2.minutes      # Then 5 min grace period
 
   def perform
     devices_with_real_connections = Set.new
@@ -169,13 +169,35 @@ class ClashApiMonitorJob < ApplicationJob
                       .limit(conns.size)
 
       if devices.empty?
-        Rails.logger.warn "⚠️ No devices found for external IP: #{source_ip} (#{conns.size} connections)"
+        # 🚨 STOLEN CREDENTIAL DETECTION: Unknown IP with active connections
+        Rails.logger.warn "🚨 UNKNOWN IP DETECTED: #{source_ip} (#{conns.size} connections)"
+        Rails.logger.warn "   Possible causes:"
+        Rails.logger.warn "   1. User's IP changed (harmless - will reconnect)"
+        Rails.logger.warn "   2. Stolen credentials being used (security breach)"
+        Rails.logger.warn "   → Killing connections to force re-authentication via official app"
+
+        # ✅ SECURITY: Kill all connections from unknown IPs
+        # This prevents stolen credentials from being used
+        # Legitimate users will auto-reconnect via the app
+        conns.each do |conn|
+          connection_id = conn["id"]
+          kill_connection_via_ssh(server, connection_id)
+          Rails.logger.info "   🔪 Killed suspicious connection #{connection_id} from #{source_ip}"
+        end
+
         next
       end
 
       devices.each do |device|
         unless device.subscription&.active?
           Rails.logger.warn "❌ Device #{device.id} subscription inactive"
+
+          # Kill connections for expired subscriptions
+          conns.each do |conn|
+            kill_connection_via_ssh(server, conn["id"])
+            Rails.logger.info "   🔪 Killed connection (expired subscription): #{conn['id']}"
+          end
+
           next
         end
 
@@ -187,8 +209,12 @@ class ClashApiMonitorJob < ApplicationJob
           Rails.logger.error "   External IP: #{source_ip} - This indicates stale credentials being used!"
           Rails.logger.error "   The app should fetch fresh credentials via /api/connect"
 
-          # Don't self-heal - this is an unauthorized connection using stale credentials
-          # Let the app call /api/connect for fresh credentials
+          # Kill the conflicting connections
+          conns.each do |conn|
+            kill_connection_via_ssh(server, conn["id"])
+            Rails.logger.info "   🔪 Killed conflicting connection: #{conn['id']}"
+          end
+
           next
         end
 
