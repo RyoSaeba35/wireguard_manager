@@ -38,7 +38,7 @@ class VpnConfigSetService
 
   def recycle_stale_configs
     stale_configs = VpnConfigSet.where(server: @server, status: 'used')
-                                .where('last_used_at < ?', 15.minutes.ago)
+                                .where('last_used_at < ?', 5.minutes.ago)
 
     count = stale_configs.count
     return 0 if count.zero?
