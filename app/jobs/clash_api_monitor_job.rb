@@ -27,9 +27,11 @@ class ClashApiMonitorJob < ApplicationJob
 
     # ✅ ALSO trust app heartbeats (backup for server monitoring failures)
     devices_with_recent_heartbeats = Device
+      .joins(:subscription)
       .where(active: true)
       .where('last_seen_at > ?', 5.minutes.ago)  # Heartbeat every 10s, 5min grace for Doze mode
-      .pluck(:id)
+      .where(subscriptions: { status: 'active' })  # ✅ CHECK SUBSCRIPTION!
+      .pluck('devices.id')
 
     devices_with_real_connections.merge(devices_with_recent_heartbeats)
 
