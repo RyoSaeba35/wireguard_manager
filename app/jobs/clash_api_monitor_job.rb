@@ -298,20 +298,17 @@ class ClashApiMonitorJob < ApplicationJob
 
     VpnConfigSet.where(device_id: device_ids, status: 'in_use').find_each do |config_set|
       server = config_set.server
+      device = config_set.device
 
-      # ✅ ACTUALLY KILL THE CONNECTION
-      begin
-        # Kill WireGuard peer
-        kill_wireguard_peer(server, config_set.ip_address)
-
-        # Kill sing-box connections via Clash API
-        if server.singbox_active?
-          kill_singbox_connections_for_ip(server, config_set.ip_address)
+      # ✅ KILL sing-box connections for this device BEFORE releasing
+      if server.singbox_active? && server.clash_api_secret.present? && device.last_connection_ip.present?
+        begin
+          external_ip = device.last_connection_ip.to_s.split('/').first  # Convert IPAddr to string
+          killed_count = kill_singbox_connections_for_ip(server, external_ip)
+          Rails.logger.info "🔪 Killed #{killed_count} sing-box connections for device #{device.id} (IP: #{external_ip})"
+        rescue => e
+          Rails.logger.error "Failed to kill connections for device #{device.id}: #{e.message}"
         end
-
-        Rails.logger.info "🔪 Killed VPN connection for #{config_set.ip_address}"
-      rescue => e
-        Rails.logger.error "Failed to kill connection: #{e.message}"
       end
 
       config_set.release!
@@ -323,6 +320,24 @@ class ClashApiMonitorJob < ApplicationJob
   end
 
   private
+
+  def kill_singbox_connections_for_ip(server, external_ip)
+    connections = get_active_connections_via_ssh(server)
+    killed_count = 0
+
+    connections.each do |conn|
+      source_ip = conn.dig("metadata", "sourceIP")
+
+      if source_ip == external_ip
+        connection_id = conn["id"]
+        kill_connection_via_ssh(server, connection_id)
+        killed_count += 1
+        Rails.logger.info "   🔪 Killed connection #{connection_id}"
+      end
+    end
+
+    killed_count
+  end
 
   # ✅ NEW: Kill WireGuard peer via SSH
   def kill_wireguard_peer(server, vpn_ip)
