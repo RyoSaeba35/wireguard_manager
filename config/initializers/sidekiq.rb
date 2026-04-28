@@ -55,7 +55,7 @@ Sidekiq.configure_server do |config|
 
         # Every 2 hours — recycle stale config sets
         'recycle_configs' => {
-          'cron'  => '0 */2 * * *',
+          'cron'  => '*/30 * * * *',
           'class' => 'RecycleConfigsJob',
           'queue' => 'default'
         },
