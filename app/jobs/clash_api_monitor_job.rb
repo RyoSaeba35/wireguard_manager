@@ -29,8 +29,9 @@ class ClashApiMonitorJob < ApplicationJob
     devices_with_recent_heartbeats = Device
       .joins(:subscription)
       .where(active: true)
-      .where('last_seen_at > ?', 5.minutes.ago)  # Heartbeat every 10s, 5min grace for Doze mode
-      .where(subscriptions: { status: 'active' })  # ✅ CHECK SUBSCRIPTION!
+      .where('devices.last_seen_at > ?', 5.minutes.ago)
+      .where(subscriptions: { status: 'active' })
+      .where('subscriptions.expires_at IS NULL OR subscriptions.expires_at > ?', Time.current)  # ✅ CHECK EXPIRATION!
       .pluck('devices.id')
 
     devices_with_real_connections.merge(devices_with_recent_heartbeats)
