@@ -53,17 +53,15 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
     address: ENV['SMTP_ADDRESS'],
-    port: ENV['SMTP_PORT'],
+    port: ENV['SMTP_PORT']&.to_i || 465,
     domain: ENV['SMTP_DOMAIN'],
     user_name: ENV['SMTP_USERNAME'],
     password: ENV['SMTP_PASSWORD'],
-    authentication: 'plain',
-    enable_starttls_auto: false,
-    ssl: true,                    # Enable SSL for port 465
-    openssl_verify_mode: 'none',
-    open_timeout: 10,            # Increase open timeout to 10 seconds
-    read_timeout: 10,            # Increase read timeout to 10 seconds
-    from: 'Vulcain VPN <support@vulcainvpn.com>'
+    authentication: :plain,          # Changed from string to symbol
+    enable_starttls_auto: false,     # Disabled for port 465
+    ssl: true,                       # Enable SSL for port 465
+    tls: true,                       # Enable TLS
+    openssl_verify_mode: OpenSSL::SSL::VERIFY_NONE  # Changed from string to constant
   }
   # Set the default "From" address
   config.action_mailer.default_options = {
@@ -85,6 +83,7 @@ Rails.application.configure do
   # Enable DNS rebinding protection.
   config.hosts = [
     'vulcainvpn.com',
+    'www.vulcainvpn.com',
     ENV['APP_DOMAIN'],
     /.*\.#{ENV['APP_DOMAIN']}/ # Allow subdomains
   ]
