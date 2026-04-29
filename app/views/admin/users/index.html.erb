@@ -885,16 +885,16 @@
   }
 
   .dropdown-menu {
-    display: none;
     position: absolute;
-    background: white;
-    min-width: 200px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    z-index: 100;
-    border-radius: 8px;
     right: 0;
-    top: calc(100% + 4px);
-    overflow: hidden;
+    top: 100%;
+    margin-top: 4px;
+    z-index: 1000;
+    min-width: 200px;
+    background: white;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    overflow: visible; /* Ensure no clipping */
   }
 
   .dropdown-menu.show {
@@ -1302,6 +1302,13 @@
     .dropdown-btn-mobile {
       padding: 0.4rem 0.75rem;
       font-size: 1.5rem;
+    }
+
+    .dropdown-menu {
+      right: 0;
+      left: auto;
+      top: 100%;
+      margin-top: 4px;
     }
 
     .modal-content {
