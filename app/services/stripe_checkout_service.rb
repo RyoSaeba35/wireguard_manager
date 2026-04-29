@@ -29,6 +29,8 @@ class StripeCheckoutService
         quantity: 1
       }],
       customer_email: @user.email,
+      allow_promotion_codes: true,
+      billing_address_collection: 'required',
       metadata: {
         subscription_id: @subscription.name,
         plan_type: @subscription.plan.name,
