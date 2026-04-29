@@ -175,6 +175,14 @@ class VpnConfigSetService
   # ROTATE AND UPDATE PEERS (for recycling - FAST)
   # ==========================================
 
+  # FIXED VERSION of rotate_and_update_peers method
+  #
+  # THE PROBLEM: The original code used `wg set` + `wg-quick save wg0`
+  # which doesn't reliably save AllowedIPs and PresharedKey to the config file.
+  #
+  # THE SOLUTION: Update the running config with `wg set` (for zero-downtime),
+  # then rebuild the entire config file using rebuild_wireguard_config.
+
   def rotate_and_update_peers(configs)
     require 'rbnacl'
 
@@ -216,7 +224,7 @@ class VpnConfigSetService
         end
 
         # ==========================================
-        # STEP 2: Update WireGuard (batch script)
+        # STEP 2: Update WireGuard RUNNING config (zero-downtime)
         # ==========================================
         wg_commands = updates.map do |u|
           <<~WG_CMD.strip
@@ -225,25 +233,15 @@ class VpnConfigSetService
           WG_CMD
         end.join("\n")
 
-        # Execute WireGuard updates + save config
+        # Update running config only (don't use wg-quick save!)
         ssh.exec!(<<~BASH)
-          sudo bash -c '
-          #{wg_commands}
-          wg-quick save wg0
-          '
+          sudo bash -c '#{wg_commands}'
         BASH
 
-        Rails.logger.info "✅ Updated #{configs.size} WireGuard peers on #{@server.name}"
+        Rails.logger.info "✅ Updated #{configs.size} WireGuard peers (running config)"
 
         # ==========================================
-        # STEP 3: Update sing-box if active
-        # ==========================================
-        if @server.singbox_active?
-          update_singbox_users(ssh, updates)
-        end
-
-        # ==========================================
-        # STEP 4: Update database (batch)
+        # STEP 3: Update database FIRST
         # ==========================================
         db_updates = updates.map do |u|
           {
@@ -261,6 +259,22 @@ class VpnConfigSetService
 
         VpnConfigSet.upsert_all(db_updates, unique_by: :id)
         Rails.logger.info "✅ Updated #{configs.size} configs in database"
+
+        # ==========================================
+        # STEP 4: Rebuild config FILE with all peers
+        # (This ensures AllowedIPs and PresharedKey are properly saved)
+        # ==========================================
+        all_configs = VpnConfigSet.where(server: @server).to_a
+        rebuild_wireguard_config(ssh, all_configs)
+
+        Rails.logger.info "✅ Rebuilt WireGuard config file on #{@server.name}"
+
+        # ==========================================
+        # STEP 5: Update sing-box if active
+        # ==========================================
+        if @server.singbox_active?
+          update_singbox_users(ssh, updates)
+        end
       end
     ensure
       File.delete(private_key_path) if private_key_path && File.exist?(private_key_path)
@@ -389,12 +403,12 @@ class VpnConfigSetService
       ip = config[:ip_address] || config.ip_address
 
       <<~PEER
-        # #{ip}
+        ### begin #{ip} ###
         [Peer]
         PublicKey = #{public_key}
         PresharedKey = #{preshared_key}
         AllowedIPs = #{ip}/32
-
+        ### end #{ip} ###
       PEER
     end.join
 
@@ -415,12 +429,12 @@ class VpnConfigSetService
     # Generate all peer entries
     peer_entries = all_configs.map do |config|
       <<~PEER
-        # #{config.ip_address}
+        ### begin #{config.ip_address} ###
         [Peer]
         PublicKey = #{config.wireguard_public_key}
         PresharedKey = #{config.wireguard_preshared_key}
         AllowedIPs = #{config.ip_address}/32
-
+        ### end #{config.ip_address} ###
       PEER
     end.join
 
