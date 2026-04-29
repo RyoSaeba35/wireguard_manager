@@ -5,9 +5,11 @@
     <div class="page-header">
       <h1>Users</h1>
       <p class="users-stats">
-        <span class="stat-item">Total: <strong><%= @users.count %></strong></span>
+        <span class="stat-item">Total: <strong><%= @users.total_count %></strong></span>
         <span class="stat-divider">•</span>
-        <span class="stat-item">Active: <strong><%= @users.select { |user| user.subscriptions.active.any? }.count %></strong></span>
+        <span class="stat-item">Page: <strong><%= @users.current_page %> of <%= @users.total_pages %></strong></span>
+        <span class="stat-divider">•</span>
+        <span class="stat-item">Active Users: <strong><%= @active_subscriptions_by_user.keys.count %></strong></span>
       </p>
     </div>
 
@@ -36,31 +38,35 @@
         </thead>
         <tbody id="users-table-body">
           <% @users.each do |user| %>
+            <% active_count = active_subscriptions_count(user) %>
+            <% expired_count = expired_subscriptions_count(user) %>
+            <% has_active = has_active_subscription?(user) %>
+
             <tr class="user-row"
                 data-email="<%= user.email.downcase %>"
-                data-has-active="<%= user.subscriptions.active.any? ? 'true' : 'false' %>"
+                data-has-active="<%= has_active ? 'true' : 'false' %>"
                 data-user-id="<%= user.id %>">
               <td><%= user.email %></td>
               <td>
-                <% if user.subscriptions.active.any? %>
+                <% if active_count > 0 %>
                   <button class="toggle-details" data-target="<%= user.id %>-active" aria-expanded="false">
-                    <%= user.subscriptions.active.count %> <span class="toggle-span">(Show)</span>
+                    <%= active_count %> <span class="toggle-span">(Show)</span>
                   </button>
                 <% else %>
                   <span class="count-display">0</span>
                 <% end %>
               </td>
               <td>
-                <% if user.subscriptions.active.any? %>
+                <% if has_active %>
                   <span class="status-badge status-active">Active</span>
                 <% else %>
                   <span class="status-badge status-inactive">Inactive</span>
                 <% end %>
               </td>
               <td>
-                <% if user.subscriptions.expired.any? %>
+                <% if expired_count > 0 %>
                   <button class="toggle-details" data-target="<%= user.id %>-expired" aria-expanded="false">
-                    <%= user.subscriptions.expired.count %> <span class="toggle-span">(Show)</span>
+                    <%= expired_count %> <span class="toggle-span">(Show)</span>
                   </button>
                 <% else %>
                   <span class="count-display">0</span>
@@ -70,7 +76,7 @@
                 <div class="dropdown">
                   <button class="dropdown-btn">⋮</button>
                   <div class="dropdown-menu">
-                    <% unless user.subscriptions.active.any? %>
+                    <% unless has_active %>
                       <a href="#" class="dropdown-item add-subscription-btn" data-user-id="<%= user.id %>">
                         <span class="dropdown-icon">➕</span> Add Subscription
                       </a>
@@ -97,7 +103,7 @@
             </tr>
 
             <!-- Active Subscriptions Details Row -->
-            <% if user.subscriptions.active.any? %>
+            <% if active_count > 0 %>
               <tr id="<%= user.id %>-active" class="details-row" aria-expanded="false" style="display: none;">
                 <td colspan="5">
                   <div class="details-content">
@@ -112,7 +118,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <% user.subscriptions.active.each do |subscription| %>
+                        <% user_subscriptions(user, :active).each do |subscription| %>
                           <tr>
                             <td><%= subscription.plan&.name || 'Custom' %></td>
                             <td><%= subscription.expires_at&.strftime("%d %b %Y") || 'Never' %></td>
@@ -134,7 +140,7 @@
             <% end %>
 
             <!-- Expired Subscriptions Details Row -->
-            <% if user.subscriptions.expired.any? %>
+            <% if expired_count > 0 %>
               <tr id="<%= user.id %>-expired" class="details-row" aria-expanded="false" style="display: none;">
                 <td colspan="5">
                   <div class="details-content">
@@ -148,7 +154,7 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <% user.subscriptions.expired.each do |subscription| %>
+                        <% user_subscriptions(user, :expired).each do |subscription| %>
                           <tr>
                             <td><%= subscription.plan&.name || 'Custom' %></td>
                             <td><%= subscription.expires_at&.strftime("%d %b %Y") || 'N/A' %></td>
@@ -169,15 +175,19 @@
     <!-- Mobile: User Cards -->
     <div class="mobile-cards">
       <% @users.each do |user| %>
+        <% active_count = active_subscriptions_count(user) %>
+        <% expired_count = expired_subscriptions_count(user) %>
+        <% has_active = has_active_subscription?(user) %>
+
         <div class="user-card"
              data-email="<%= user.email.downcase %>"
-             data-has-active="<%= user.subscriptions.active.any? ? 'true' : 'false' %>"
+             data-has-active="<%= has_active ? 'true' : 'false' %>"
              data-user-id="<%= user.id %>">
 
           <div class="user-card-header">
             <div class="user-info">
               <div class="user-email"><%= user.email %></div>
-              <% if user.subscriptions.active.any? %>
+              <% if has_active %>
                 <span class="status-badge status-active">Active</span>
               <% else %>
                 <span class="status-badge status-inactive">Inactive</span>
@@ -186,7 +196,7 @@
             <div class="dropdown">
               <button class="dropdown-btn-mobile">⋮</button>
               <div class="dropdown-menu">
-                <% unless user.subscriptions.active.any? %>
+                <% unless has_active %>
                   <a href="#" class="dropdown-item add-subscription-btn" data-user-id="<%= user.id %>">
                     ➕ Add Subscription
                   </a>
@@ -215,9 +225,9 @@
             <div class="subscription-info">
               <div class="info-item">
                 <span class="info-label">Active:</span>
-                <% if user.subscriptions.active.any? %>
+                <% if active_count > 0 %>
                   <button class="toggle-details-mobile" data-target="mobile-<%= user.id %>-active">
-                    <%= user.subscriptions.active.count %> <span class="toggle-span">(Show)</span>
+                    <%= active_count %> <span class="toggle-span">(Show)</span>
                   </button>
                 <% else %>
                   <span class="info-value">0</span>
@@ -225,9 +235,9 @@
               </div>
               <div class="info-item">
                 <span class="info-label">Expired:</span>
-                <% if user.subscriptions.expired.any? %>
+                <% if expired_count > 0 %>
                   <button class="toggle-details-mobile" data-target="mobile-<%= user.id %>-expired">
-                    <%= user.subscriptions.expired.count %> <span class="toggle-span">(Show)</span>
+                    <%= expired_count %> <span class="toggle-span">(Show)</span>
                   </button>
                 <% else %>
                   <span class="info-value">0</span>
@@ -236,10 +246,10 @@
             </div>
 
             <!-- Active Subscriptions Details (Mobile) -->
-            <% if user.subscriptions.active.any? %>
+            <% if active_count > 0 %>
               <div id="mobile-<%= user.id %>-active" class="details-mobile" style="display: none;">
                 <div class="details-header">Active Subscriptions</div>
-                <% user.subscriptions.active.each do |subscription| %>
+                <% user_subscriptions(user, :active).each do |subscription| %>
                   <div class="subscription-item">
                     <div class="sub-row">
                       <span class="sub-label">Plan:</span>
@@ -264,10 +274,10 @@
             <% end %>
 
             <!-- Expired Subscriptions Details (Mobile) -->
-            <% if user.subscriptions.expired.any? %>
+            <% if expired_count > 0 %>
               <div id="mobile-<%= user.id %>-expired" class="details-mobile" style="display: none;">
                 <div class="details-header">Expired Subscriptions</div>
-                <% user.subscriptions.expired.each do |subscription| %>
+                <% user_subscriptions(user, :expired).each do |subscription| %>
                   <div class="subscription-item">
                     <div class="sub-row">
                       <span class="sub-label">Plan:</span>
@@ -288,6 +298,11 @@
           </div>
         </div>
       <% end %>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container">
+      <%= paginate @users, theme: 'twitter-bootstrap-4' %>
     </div>
   </div>
 
@@ -1094,6 +1109,49 @@
 
   .btn-secondary:hover {
     background: #7f8c8d;
+  }
+
+  /* Pagination */
+  .pagination-container {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .pagination-container .pagination {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+  }
+
+  .pagination-container .page-item {
+    display: inline-block;
+  }
+
+  .pagination-container .page-link {
+    padding: 0.5rem 0.75rem;
+    border: 2px solid #ecf0f1;
+    border-radius: 6px;
+    color: #2c3e50;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .pagination-container .page-link:hover {
+    background: #f8f9fa;
+    border-color: #9b59b6;
+  }
+
+  .pagination-container .page-item.active .page-link {
+    background: #9b59b6;
+    color: white;
+    border-color: #9b59b6;
+  }
+
+  .pagination-container .page-item.disabled .page-link {
+    color: #95a5a6;
+    cursor: not-allowed;
   }
 
   /* Mobile Responsive */

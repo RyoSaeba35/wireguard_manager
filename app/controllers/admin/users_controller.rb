@@ -6,11 +6,34 @@ module Admin
     before_action :set_user, only: [:destroy]
 
     def index
-      # ⭐ NEW: Updated includes (no wireguard_clients)
-      @users = User.includes(subscriptions: [:plan, devices: :vpn_config_set])
-                   .order(:email)
+      # Pagination for better performance
+      @users = User.includes(
+        subscriptions: [:plan, devices: :vpn_config_set]
+      ).order(:email)
+       .page(params[:page])
+       .per(50)  # Load 50 users per page
+
+      # Preload active and expired subscriptions separately to avoid N+1
+      @active_subscriptions_by_user = Subscription
+        .active
+        .where(user_id: @users.pluck(:id))
+        .group(:user_id)
+        .count
+
+      @expired_subscriptions_by_user = Subscription
+        .expired
+        .where(user_id: @users.pluck(:id))
+        .group(:user_id)
+        .count
+
+      # Get full subscription data for users who will be expanded
+      @subscriptions_data = Subscription
+        .includes(:plan, devices: :vpn_config_set)
+        .where(user_id: @users.pluck(:id))
+        .group_by(&:user_id)
+
       @plans = Plan.order(price: :asc)
-      @servers = Server.active.healthy  # Only show healthy servers
+      @servers = Server.active.healthy
     end
 
     def create

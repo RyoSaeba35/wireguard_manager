@@ -75,6 +75,8 @@ gem 'stripe'
 gem 'net-http'
 gem 'httparty'
 
+gem 'kaminari'
+
 group :development, :test do
   gem "sqlite3", ">= 1.4" # Only for development/test
   gem "debug", platforms: %i[mri windows]
