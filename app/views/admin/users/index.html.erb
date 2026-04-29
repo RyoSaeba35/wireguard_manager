@@ -442,6 +442,7 @@
             !e.target.closest('.dropdown-menu')) {
           document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
             dropdown.classList.remove('show');
+            dropdown.classList.remove('dropup'); // Remove dropup class when closing
           });
           return;
         }
@@ -452,10 +453,25 @@
           // Close all other dropdowns first
           document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
             dropdown.classList.remove('show');
+            dropdown.classList.remove('dropup');
           });
+
           // Open this dropdown
+          const button = e.target.closest('.dropdown-btn') || e.target.closest('.dropdown-btn-mobile');
           const dropdown = e.target.closest('.dropdown').querySelector('.dropdown-menu');
+
           if (dropdown) {
+            // Check if dropdown would be cut off at bottom
+            const rect = button.getBoundingClientRect();
+            const dropdownHeight = 200; // Approximate max dropdown height
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+
+            // If not enough space below but enough above, open upward
+            if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+              dropdown.classList.add('dropup');
+            }
+
             dropdown.classList.add('show');
           }
         }
@@ -470,6 +486,7 @@
           const menu = item.closest('.dropdown-menu');
           if (menu) {
             menu.classList.remove('show');
+            menu.classList.remove('dropup');
           }
         }
       });
@@ -694,7 +711,6 @@
   .admin-container {
     display: flex;
     justify-content: center;
-    min-height: calc(100vh - 208.64px);
   }
 
   .admin-content {
@@ -820,10 +836,6 @@
     transition: background-color 0.2s;
   }
 
-  .user-row, .user-card {
-    overflow: visible !important;
-  }
-
   .users-table tbody tr:hover {
     background-color: #f8f9fa;
   }
@@ -886,16 +898,22 @@
   }
 
   .dropdown-menu {
+    display: none;
     position: absolute;
-    right: 0;
-    top: 100%;
-    margin-top: 4px;
-    z-index: 1000;
-    min-width: 200px;
     background: white;
+    min-width: 200px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
     border-radius: 8px;
-    overflow: visible; /* Ensure no clipping */
+    right: 0;
+    top: calc(100% + 4px);
+    overflow: hidden;
+  }
+
+  /* Dropdown opens upward when near bottom of page */
+  .dropdown-menu.dropup {
+    top: auto;
+    bottom: calc(100% + 4px);
   }
 
   .dropdown-menu.show {
@@ -1303,13 +1321,6 @@
     .dropdown-btn-mobile {
       padding: 0.4rem 0.75rem;
       font-size: 1.5rem;
-    }
-
-    .dropdown-menu {
-      right: 0;
-      left: auto;
-      top: 100%;
-      margin-top: 4px;
     }
 
     .modal-content {
