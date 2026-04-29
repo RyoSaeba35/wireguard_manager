@@ -1,6 +1,5 @@
-<!-- app/views/admin/dashboard/show.html.erb -->
+<!-- app/views/admin/dashboard/index.html.erb -->
 <div class="admin-container">
-
   <div class="admin-content">
     <div class="admin-header">
       <h1>📊 Admin Dashboard</h1>
@@ -54,7 +53,7 @@
         <div class="metric-icon">🔌</div>
         <div class="metric-content">
           <div class="metric-label">Active Connections</div>
-          <div class="metric-value"><%= @active_connections %></div>
+          <div class="metric-value"><%= @current_connections %></div>
           <div class="metric-detail">
             <span class="metric-neutral">
               <%= @total_devices %> devices registered
@@ -74,15 +73,16 @@
               <div class="progress-fill" style="width: <%= @capacity_percent %>%; background-color: <%= @capacity_percent > 90 ? '#e74c3c' : @capacity_percent > 70 ? '#f39c12' : '#2ecc71' %>;"></div>
             </div>
             <span class="metric-detail">
-              <%= @active_connections %>/<%= @total_capacity %> slots used
+              <%= @current_connections %>/<%= @total_capacity %> slots used
             </span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Pool Metrics Section -->
+    <!-- Pool Metrics & Subscription Status Side by Side -->
     <div class="section-row">
+      <!-- Pool Stats -->
       <div class="section-card">
         <h2>🏊 Config Pool Status</h2>
         <div class="pool-stats">
@@ -103,217 +103,165 @@
             <div class="pool-stat-value pool-used"><%= @used_configs %></div>
           </div>
         </div>
-        <canvas id="poolStatusChart"></canvas>
       </div>
 
+      <!-- Subscription Status -->
       <div class="section-card">
-        <h2>🖥️ Server Health</h2>
-        <div class="server-health-summary">
-          <div class="health-stat">
-            <div class="health-icon <%= @healthy_servers == @total_servers ? 'healthy' : 'warning' %>">
-              <%= @healthy_servers == @total_servers ? '✓' : '⚠' %>
+        <h2>📊 Subscription Status</h2>
+        <div class="status-grid">
+          <div class="status-stat">
+            <div class="status-icon status-active-bg">
+              <span class="status-value"><%= @active_subscriptions %></span>
             </div>
-            <div class="health-info">
-              <div class="health-label">Servers Online</div>
-              <div class="health-value">
-                <%= @healthy_servers %>/<%= @total_servers %>
-                <span class="health-percent">
-                  (<%= number_to_percentage((@healthy_servers.to_f / @total_servers * 100), precision: 0) if @total_servers > 0 %>)
-                </span>
-              </div>
+            <div class="status-label">Active</div>
+            <div class="status-percent">
+              <%= number_to_percentage((@active_subscriptions.to_f / [@total_subscriptions, 1].max * 100), precision: 1) %>
+            </div>
+          </div>
+
+          <div class="status-stat">
+            <div class="status-icon status-expired-bg">
+              <span class="status-value"><%= @expired_subscriptions %></span>
+            </div>
+            <div class="status-label">Expired</div>
+            <div class="status-percent">
+              <%= number_to_percentage((@expired_subscriptions.to_f / [@total_subscriptions, 1].max * 100), precision: 1) %>
+            </div>
+          </div>
+
+          <div class="status-stat">
+            <div class="status-icon status-pending-bg">
+              <span class="status-value"><%= @pending_subscriptions %></span>
+            </div>
+            <div class="status-label">Pending</div>
+            <div class="status-percent">
+              <%= number_to_percentage((@pending_subscriptions.to_f / [@total_subscriptions, 1].max * 100), precision: 1) %>
             </div>
           </div>
         </div>
-        <table class="server-table">
-          <thead>
-            <tr>
-              <th>Server</th>
-              <th>Status</th>
-              <th>Load</th>
-              <th>Connections</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @servers_status.each do |server| %>
-              <tr>
-                <td>
-                  <span class="server-flag"><%= server[:flag] %></span>
-                  <%= server[:name] %>
-                </td>
-                <td>
-                  <span class="status-badge status-<%= server[:healthy] ? 'healthy' : 'down' %>">
-                    <%= server[:healthy] ? '🟢 Online' : '🔴 Offline' %>
-                  </span>
-                </td>
-                <td>
-                  <div class="load-indicator">
-                    <div class="load-bar-mini" style="width: <%= server[:load_percent] %>%; background-color: <%= server[:load_percent] > 90 ? '#e74c3c' : server[:load_percent] > 70 ? '#f39c12' : '#2ecc71' %>;"></div>
-                    <span><%= server[:load_percent].round(1) %>%</span>
-                  </div>
-                </td>
-                <td><%= server[:connections] %>/<%= server[:capacity] %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
       </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="charts-row">
-      <div class="chart-card">
-        <h3>📈 Monthly Subscriptions (Past 12 Months)</h3>
-        <canvas id="monthlySubscriptionsChart"></canvas>
-      </div>
-
-      <div class="chart-card">
-        <h3>📊 Subscription Status</h3>
-        <div class="status-summary">
-          <div class="status-item">
-            <span class="status-dot status-active"></span>
-            Active: <%= @active_subscriptions %>
+    <!-- Server Health -->
+    <div class="section-card">
+      <h2>🖥️ Server Health</h2>
+      <div class="server-health-summary">
+        <div class="health-stat">
+          <div class="health-icon <%= @healthy_servers == @total_servers ? 'healthy' : 'warning' %>">
+            <%= @healthy_servers == @total_servers ? '✓' : '⚠' %>
           </div>
-          <div class="status-item">
-            <span class="status-dot status-expired"></span>
-            Expired: <%= @expired_subscriptions %>
-          </div>
-          <div class="status-item">
-            <span class="status-dot status-pending"></span>
-            Pending: <%= @pending_subscriptions %>
+          <div class="health-info">
+            <div class="health-label">Servers Online</div>
+            <div class="health-value">
+              <%= @healthy_servers %>/<%= @total_servers %>
+              <span class="health-percent">
+                (<%= number_to_percentage((@healthy_servers.to_f / @total_servers * 100), precision: 0) if @total_servers > 0 %>)
+              </span>
+            </div>
           </div>
         </div>
-        <canvas id="subscriptionStatusChart"></canvas>
+      </div>
+
+      <table class="server-table">
+        <thead>
+          <tr>
+            <th>Server</th>
+            <th>Status</th>
+            <th>Load</th>
+            <th>Connections</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @servers_status.each do |server| %>
+            <tr>
+              <td>
+                <span class="server-flag"><%= server[:flag] %></span>
+                <%= server[:name] %>
+              </td>
+              <td>
+                <span class="status-badge status-<%= server[:healthy] ? 'healthy' : 'down' %>">
+                  <%= server[:healthy] ? '🟢 Online' : '🔴 Offline' %>
+                </span>
+              </td>
+              <td>
+                <div class="load-indicator">
+                  <div class="load-bar-mini" style="width: <%= [server[:load_percent], 100].min %>%; background-color: <%= server[:load_percent] > 90 ? '#e74c3c' : server[:load_percent] > 70 ? '#f39c12' : '#2ecc71' %>;"></div>
+                  <span><%= server[:load_percent].round(1) %>%</span>
+                </div>
+              </td>
+              <td><%= server[:connections] %>/<%= server[:capacity] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Monthly Stats Summary (Text-based) -->
+    <div class="section-card">
+      <h2>📈 Monthly Subscription Trends (Past 12 Months)</h2>
+      <div class="monthly-stats-grid">
+        <% @monthly_subscriptions.last(12).each do |month_data| %>
+          <div class="month-stat">
+            <div class="month-label">
+              <%= month_data[:month].strftime("%b %Y") %>
+            </div>
+            <div class="month-value">
+              <%= month_data[:count] %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="trend-summary">
+        <% recent_3 = @monthly_subscriptions.last(3).sum { |m| m[:count] } %>
+        <% previous_3 = @monthly_subscriptions[-6..-4].sum { |m| m[:count] } %>
+        <% trend = previous_3 > 0 ? ((recent_3 - previous_3).to_f / previous_3 * 100) : 0 %>
+
+        <div class="trend-item">
+          <span class="trend-label">Last 3 months total:</span>
+          <span class="trend-value"><%= recent_3 %> subscriptions</span>
+        </div>
+        <div class="trend-item">
+          <span class="trend-label">Trend:</span>
+          <span class="trend-value <%= trend >= 0 ? 'metric-positive' : 'metric-negative' %>">
+            <%= trend >= 0 ? '↗' : '↘' %> <%= trend.abs.round(1) %>%
+          </span>
+        </div>
       </div>
     </div>
 
     <!-- Recent Activity -->
     <div class="section-card">
       <h2>🕐 Recent Activity</h2>
-      <table class="activity-table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>User</th>
-            <th>Action</th>
-            <th>Details</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @recent_subscriptions.each do |sub| %>
+      <% if @recent_subscriptions.any? %>
+        <table class="activity-table">
+          <thead>
             <tr>
-              <td><%= time_ago_in_words(sub.created_at) %> ago</td>
-              <td><%= sub.user.email %></td>
-              <td><span class="action-badge action-subscribe">New Subscription</span></td>
-              <td><%= sub.plan.name %> - €<%= sub.price %></td>
+              <th>Time</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Details</th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% @recent_subscriptions.each do |sub| %>
+              <tr>
+                <td><%= time_ago_in_words(sub.created_at) %> ago</td>
+                <td><%= sub.user.email %></td>
+                <td><span class="action-badge action-subscribe">New Subscription</span></td>
+                <td><%= sub.plan.name %> - €<%= sub.price %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="no-data">No recent activity</p>
+      <% end %>
     </div>
   </div>
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // ⭐ SAFETY CHECK - Prevent chart errors
-  const safeNumber = (val) => typeof val === 'number' && !isNaN(val) ? val : 0;
-  const safeArray = (arr) => Array.isArray(arr) ? arr : [];
-
-  // Pool Status Chart
-  try {
-    const poolCtx = document.getElementById('poolStatusChart')?.getContext('2d');
-    if (poolCtx) {
-      new Chart(poolCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Available', 'In Use', 'Used (Recycling)'],
-          datasets: [{
-            data: [
-              safeNumber(<%= @available_configs || 0 %>),
-              safeNumber(<%= @in_use_configs || 0 %>),
-              safeNumber(<%= @used_configs || 0 %>)
-            ],
-            backgroundColor: ['#2ecc71', '#3498db', '#95a5a6']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: { boxWidth: 12, padding: 10, font: { size: 11 } }
-            }
-          }
-        }
-      });
-    }
-  } catch (e) {
-    console.error('Pool chart error:', e);
-  }
-
-  // Monthly Subscriptions Chart
-  try {
-    const monthlyCtx = document.getElementById('monthlySubscriptionsChart')?.getContext('2d');
-    if (monthlyCtx) {
-      const monthlyData = <%= raw (@monthly_subscriptions || []).to_json %>;
-      new Chart(monthlyCtx, {
-        type: 'line',
-        data: {
-          labels: monthlyData.map(m => new Date(m.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })),
-          datasets: [{
-            label: 'Subscriptions',
-            data: monthlyData.map(m => safeNumber(m.count)),
-            borderColor: '#3498db',
-            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-            tension: 0.4,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } } },
-            y: { beginAtZero: true, ticks: { font: { size: 10 } } }
-          }
-        }
-      });
-    }
-  } catch (e) {
-    console.error('Monthly chart error:', e);
-  }
-
-  // Subscription Status Chart
-  try {
-    const statusCtx = document.getElementById('subscriptionStatusChart')?.getContext('2d');
-    if (statusCtx) {
-      new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Active', 'Expired', 'Pending'],
-          datasets: [{
-            data: [
-              safeNumber(<%= @active_subscriptions || 0 %>),
-              safeNumber(<%= @expired_subscriptions || 0 %>),
-              safeNumber(<%= @pending_subscriptions || 0 %>)
-            ],
-            backgroundColor: ['#2ecc71', '#e74c3c', '#f39c12']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } }
-        }
-      });
-    }
-  } catch (e) {
-    console.error('Status chart error:', e);
-  }
-
   // Auto-update timestamp
   setInterval(() => {
     const elem = document.getElementById('last-update-time');
@@ -336,7 +284,6 @@
   .admin-content {
     flex: 1;
     padding: 2rem;
-    margin-left: 0px;
     max-width: 1400px;
   }
 
@@ -479,7 +426,7 @@
   /* Section Cards */
   .section-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
   }
@@ -489,6 +436,7 @@
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
   }
 
   .section-card h2 {
@@ -504,7 +452,6 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
-    margin-bottom: 1.5rem;
   }
 
   .pool-stat {
@@ -529,6 +476,49 @@
   .pool-available { color: #2ecc71; }
   .pool-inuse { color: #3498db; }
   .pool-used { color: #95a5a6; }
+
+  /* Subscription Status Grid */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .status-stat {
+    text-align: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .status-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .status-active-bg { background-color: #2ecc71; }
+  .status-expired-bg { background-color: #e74c3c; }
+  .status-pending-bg { background-color: #f39c12; }
+
+  .status-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+
+  .status-percent {
+    font-size: 0.85rem;
+    color: #95a5a6;
+  }
 
   /* Server Health */
   .server-health-summary {
@@ -582,17 +572,70 @@
     color: #95a5a6;
   }
 
-  /* Server Table */
-  .server-table {
+  /* Monthly Stats Grid */
+  .monthly-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .month-stat {
+    text-align: center;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #3498db;
+  }
+
+  .month-label {
+    font-size: 0.75rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+  }
+
+  .month-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+  }
+
+  .trend-summary {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .trend-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .trend-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+  }
+
+  .trend-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+
+  /* Tables */
+  .server-table, .activity-table {
     width: 100%;
     border-collapse: collapse;
   }
 
-  .server-table thead {
+  .server-table thead, .activity-table thead {
     background-color: #f8f9fa;
   }
 
-  .server-table th {
+  .server-table th, .activity-table th {
     padding: 0.75rem;
     text-align: left;
     font-size: 0.85rem;
@@ -601,13 +644,13 @@
     text-transform: uppercase;
   }
 
-  .server-table td {
+  .server-table td, .activity-table td {
     padding: 0.75rem;
     border-top: 1px solid #ecf0f1;
     font-size: 0.9rem;
   }
 
-  .server-table tr:hover {
+  .server-table tr:hover, .activity-table tr:hover {
     background-color: #f8f9fa;
   }
 
@@ -645,85 +688,6 @@
     min-width: 60px;
   }
 
-  /* Charts */
-  .charts-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .chart-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
-
-  .chart-card h3 {
-    color: #2c3e50;
-    font-size: 1.1rem;
-    margin: 0 0 1rem 0;
-  }
-
-  .chart-card canvas {
-    max-height: 300px;
-  }
-
-  .status-summary {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .status-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    color: #7f8c8d;
-  }
-
-  .status-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-  }
-
-  .status-active { background-color: #2ecc71; }
-  .status-expired { background-color: #e74c3c; }
-  .status-pending { background-color: #f39c12; }
-
-  /* Activity Table */
-  .activity-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .activity-table thead {
-    background-color: #f8f9fa;
-  }
-
-  .activity-table th {
-    padding: 0.75rem;
-    text-align: left;
-    font-size: 0.85rem;
-    color: #7f8c8d;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .activity-table td {
-    padding: 0.75rem;
-    border-top: 1px solid #ecf0f1;
-    font-size: 0.9rem;
-  }
-
-  .activity-table tr:hover {
-    background-color: #f8f9fa;
-  }
-
   .action-badge {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
@@ -736,10 +700,16 @@
     color: #0c5460;
   }
 
+  .no-data {
+    text-align: center;
+    color: #95a5a6;
+    padding: 2rem;
+    font-style: italic;
+  }
+
   /* Mobile Responsive */
   @media (max-width: 1024px) {
     .admin-content {
-      margin-left: 0;
       padding: 1rem;
     }
 
@@ -753,50 +723,21 @@
       text-align: center;
     }
 
-    .metric-icon {
-      font-size: 2rem;
-    }
-
-    .metric-value {
-      font-size: 1.5rem;
-    }
-
-    .section-row,
-    .charts-row {
+    .section-row {
       grid-template-columns: 1fr;
     }
 
-    .admin-header {
+    .status-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .monthly-stats-grid {
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+
+    .trend-summary {
       flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-
-    .header-actions {
-      width: 100%;
-      justify-content: space-between;
-    }
-
-    .pool-stats {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .activity-table,
-    .server-table {
-      font-size: 0.85rem;
-    }
-
-    .activity-table th,
-    .activity-table td,
-    .server-table th,
-    .server-table td {
-      padding: 0.5rem 0.25rem;
-    }
-
-    /* Hide some columns on mobile */
-    .activity-table th:nth-child(4),
-    .activity-table td:nth-child(4) {
-      display: none;
+      gap: 0.5rem;
     }
   }
 
@@ -817,12 +758,10 @@
       grid-template-columns: 1fr;
     }
 
-    .status-summary {
-      flex-direction: column;
-    }
-
     .server-table th:nth-child(4),
-    .server-table td:nth-child(4) {
+    .server-table td:nth-child(4),
+    .activity-table th:nth-child(4),
+    .activity-table td:nth-child(4) {
       display: none;
     }
   }
