@@ -40,18 +40,19 @@ class SystemSetting < ApplicationRecord
     return false unless setting.allow_new_registrations?
 
     available_configs = VpnConfigSet.where(status: 'available').count
-    min_buffer = (setting.max_devices_per_user || 3) * 50
+
+    # Simple: ensure you can handle 20 simultaneous signups
+    # (20 subs × 3 devices = 60 configs)
+    min_buffer = 50 * max_devices_per_user
 
     available_configs >= min_buffer
-  rescue ActiveRecord::StatementInvalid, NoMethodError
-    false
   end
 
   def self.max_active_subscriptions
     total_connections = Server.active.where(healthy: true).sum(:max_concurrent_connections)
     max_devices = instance.max_devices_per_user || 3
     max_subs = total_connections / max_devices
-    safe_limit = (max_subs * 0.8).to_i
+    safe_limit = (max_subs * 1.0).to_i
     safe_limit
   rescue ActiveRecord::StatementInvalid, NoMethodError
     5
