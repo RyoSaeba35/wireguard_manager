@@ -329,207 +329,226 @@
 </div>
 
 <script>
-  document.addEventListener('turbo:load', function() {
-    initializeUsersPage();
-  });
+  // Use a single initialization with proper cleanup
+  (function() {
+    let initialized = false;
 
-  function initializeUsersPage() {
-    // Remove old listeners by cloning the parent container
-    const oldContent = document.querySelector('.admin-content');
-    if (!oldContent) return;
+    function initializeUsersPage() {
+      if (initialized) return;
+      initialized = true;
 
-    const newContent = oldContent.cloneNode(true);
-    oldContent.parentNode.replaceChild(newContent, oldContent);
+      setupEventListeners();
+    }
 
-    // Now attach fresh event listeners
-    setupEventListeners();
-  }
+    // Initialize on Turbo load
+    document.addEventListener('turbo:load', initializeUsersPage);
 
-  function setupEventListeners() {
-    // Toggle Details (Desktop)
-    document.querySelectorAll('.toggle-details').forEach(button => {
-      button.addEventListener('click', function() {
-        const targetId = this.getAttribute('data-target');
-        const detailsRow = document.getElementById(targetId);
-        const isExpanded = detailsRow.getAttribute('aria-expanded') === 'true';
-        this.setAttribute('aria-expanded', !isExpanded);
-        detailsRow.setAttribute('aria-expanded', !isExpanded);
-        detailsRow.style.display = isExpanded ? 'none' : 'table-row';
-        this.querySelector('.toggle-span').textContent = isExpanded ? '(Show)' : '(Hide)';
-      });
+    // Reset on navigation away
+    document.addEventListener('turbo:before-render', function() {
+      initialized = false;
     });
 
-    // Toggle Details (Mobile)
-    document.querySelectorAll('.toggle-details-mobile').forEach(button => {
-      button.addEventListener('click', function() {
-        const targetId = this.getAttribute('data-target');
-        const detailsDiv = document.getElementById(targetId);
-        const isVisible = detailsDiv.style.display !== 'none';
-        detailsDiv.style.display = isVisible ? 'none' : 'block';
-        this.querySelector('.toggle-span').textContent = isVisible ? '(Show)' : '(Hide)';
-      });
-    });
+    function setupEventListeners() {
+      // Use event delegation for all dynamic elements - attach to document once
 
-    // Search and Filter
-    const searchInput = document.getElementById('search-input');
-    const hideInactive = document.getElementById('hide-inactive');
+      // Toggle Details (Desktop) - Event Delegation
+      document.addEventListener('click', function(e) {
+        if (e.target.closest('.toggle-details')) {
+          const button = e.target.closest('.toggle-details');
+          const targetId = button.getAttribute('data-target');
+          const detailsRow = document.getElementById(targetId);
+          if (!detailsRow) return;
 
-    if (searchInput) {
-      searchInput.addEventListener('keyup', filterUsers);
-    }
-    if (hideInactive) {
-      hideInactive.addEventListener('change', filterUsers);
-    }
-
-    function filterUsers() {
-      const searchTerm = searchInput.value.toLowerCase();
-      const hideInactiveChecked = hideInactive.checked;
-
-      // Filter desktop table rows
-      document.querySelectorAll('.user-row').forEach(row => {
-        const email = row.getAttribute('data-email');
-        const hasActive = row.getAttribute('data-has-active') === 'true';
-        const emailMatch = email.includes(searchTerm);
-        row.style.display = ((searchTerm === '' || emailMatch) && (!hideInactiveChecked || hasActive)) ? '' : 'none';
-      });
-
-      // Filter mobile cards
-      document.querySelectorAll('.user-card').forEach(card => {
-        const email = card.getAttribute('data-email');
-        const hasActive = card.getAttribute('data-has-active') === 'true';
-        const emailMatch = email.includes(searchTerm);
-        card.style.display = ((searchTerm === '' || emailMatch) && (!hideInactiveChecked || hasActive)) ? '' : 'none';
-      });
-    }
-
-    // Dropdown functionality - Use event delegation on document
-    document.addEventListener('click', handleDropdownClick);
-
-    function handleDropdownClick(event) {
-      // Close all dropdowns if clicking outside
-      if (!event.target.closest('.dropdown-btn') &&
-          !event.target.closest('.dropdown-btn-mobile') &&
-          !event.target.closest('.dropdown-menu')) {
-        document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
-          dropdown.classList.remove('show');
-        });
-        return;
-      }
-
-      // Toggle dropdown if clicking button
-      if (event.target.closest('.dropdown-btn') || event.target.closest('.dropdown-btn-mobile')) {
-        event.stopPropagation();
-        // Close all other dropdowns first
-        document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
-          dropdown.classList.remove('show');
-        });
-        // Open this dropdown
-        const dropdown = event.target.closest('.dropdown').querySelector('.dropdown-menu');
-        dropdown.classList.add('show');
-      }
-
-      // Close dropdown after clicking an item
-      if (event.target.closest('.dropdown-item')) {
-        const item = event.target.closest('.dropdown-item');
-        if (item.classList.contains('add-subscription-btn')) {
-          event.preventDefault();
+          const isExpanded = detailsRow.getAttribute('aria-expanded') === 'true';
+          button.setAttribute('aria-expanded', !isExpanded);
+          detailsRow.setAttribute('aria-expanded', !isExpanded);
+          detailsRow.style.display = isExpanded ? 'none' : 'table-row';
+          const toggleSpan = button.querySelector('.toggle-span');
+          if (toggleSpan) {
+            toggleSpan.textContent = isExpanded ? '(Show)' : '(Hide)';
+          }
         }
-        item.closest('.dropdown-menu').classList.remove('show');
+      });
+
+      // Toggle Details (Mobile) - Event Delegation
+      document.addEventListener('click', function(e) {
+        if (e.target.closest('.toggle-details-mobile')) {
+          const button = e.target.closest('.toggle-details-mobile');
+          const targetId = button.getAttribute('data-target');
+          const detailsDiv = document.getElementById(targetId);
+          if (!detailsDiv) return;
+
+          const isVisible = detailsDiv.style.display !== 'none';
+          detailsDiv.style.display = isVisible ? 'none' : 'block';
+          const toggleSpan = button.querySelector('.toggle-span');
+          if (toggleSpan) {
+            toggleSpan.textContent = isVisible ? '(Show)' : '(Hide)';
+          }
+        }
+      });
+
+      // Search and Filter
+      const searchInput = document.getElementById('search-input');
+      const hideInactive = document.getElementById('hide-inactive');
+
+      function filterUsers() {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const hideInactiveChecked = hideInactive ? hideInactive.checked : false;
+
+        // Filter desktop table rows
+        document.querySelectorAll('.user-row').forEach(row => {
+          const email = row.getAttribute('data-email');
+          const hasActive = row.getAttribute('data-has-active') === 'true';
+          const emailMatch = email.includes(searchTerm);
+          row.style.display = ((searchTerm === '' || emailMatch) && (!hideInactiveChecked || hasActive)) ? '' : 'none';
+        });
+
+        // Filter mobile cards
+        document.querySelectorAll('.user-card').forEach(card => {
+          const email = card.getAttribute('data-email');
+          const hasActive = card.getAttribute('data-has-active') === 'true';
+          const emailMatch = email.includes(searchTerm);
+          card.style.display = ((searchTerm === '' || emailMatch) && (!hideInactiveChecked || hasActive)) ? '' : 'none';
+        });
       }
-    }
 
-    // Delete User
-    document.querySelectorAll('.delete-user-form').forEach(form => {
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const button = this.querySelector('.delete-user-btn');
-        const userId = button.dataset.userId;
+      if (searchInput) {
+        searchInput.addEventListener('keyup', filterUsers);
+      }
+      if (hideInactive) {
+        hideInactive.addEventListener('change', filterUsers);
+      }
 
-        if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      // Dropdown functionality - Event delegation
+      document.addEventListener('click', function(e) {
+        // Close all dropdowns if clicking outside
+        if (!e.target.closest('.dropdown-btn') &&
+            !e.target.closest('.dropdown-btn-mobile') &&
+            !e.target.closest('.dropdown-menu')) {
+          document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
+            dropdown.classList.remove('show');
+          });
           return;
         }
 
-        const originalText = button.textContent;
-        button.textContent = 'Deleting...';
-        button.disabled = true;
-
-        fetch(this.action, {
-          method: 'DELETE',
-          headers: {
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
+        // Toggle dropdown if clicking button
+        if (e.target.closest('.dropdown-btn') || e.target.closest('.dropdown-btn-mobile')) {
+          e.stopPropagation();
+          // Close all other dropdowns first
+          document.querySelectorAll('.dropdown-menu').forEach(dropdown => {
+            dropdown.classList.remove('show');
+          });
+          // Open this dropdown
+          const dropdown = e.target.closest('.dropdown').querySelector('.dropdown-menu');
+          if (dropdown) {
+            dropdown.classList.add('show');
           }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            document.querySelector(`.user-row[data-user-id="${userId}"]`)?.remove();
-            document.querySelector(`.user-card[data-user-id="${userId}"]`)?.remove();
-            alert('User deleted successfully!');
+        }
 
-            // Update stats
-            const statsElement = document.querySelector('.users-stats');
-            if (statsElement) {
-              const totalUsersMatch = statsElement.textContent.match(/Total:\s*(\d+)/);
-              if (totalUsersMatch) {
-                const currentTotal = parseInt(totalUsersMatch[1]);
-                const activeUsersCount = document.querySelectorAll('[data-has-active="true"]').length;
-                statsElement.innerHTML = `<span class="stat-item">Total: <strong>${currentTotal - 1}</strong></span><span class="stat-divider">•</span><span class="stat-item">Active: <strong>${activeUsersCount}</strong></span>`;
-              }
-            }
-          } else {
-            throw new Error(data.error || 'Failed to delete user');
+        // Handle dropdown item clicks
+        if (e.target.closest('.dropdown-item')) {
+          const item = e.target.closest('.dropdown-item');
+          if (item.classList.contains('add-subscription-btn')) {
+            e.preventDefault();
+            openAddSubscriptionModal(item.getAttribute('data-user-id'));
           }
-        })
-        .catch(error => {
-          button.textContent = originalText;
-          button.disabled = false;
-          alert('Error: ' + error.message);
-        });
-      });
-    });
-
-    // Plan data for auto-calculation
-    const planData = {
-      <% @plans.each do |plan| %>
-        '<%= plan.id %>': { interval: '<%= plan.interval %>' },
-      <% end %>
-    };
-
-    function calculateExpiration(interval) {
-      const now = new Date();
-      let expirationDate;
-      switch(interval) {
-        case 'week':
-          expirationDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-          break;
-        case 'month':
-          expirationDate = new Date(now.setMonth(now.getMonth() + 1));
-          break;
-        default:
-          expirationDate = new Date(now.setMonth(now.getMonth() + 1));
-      }
-      return expirationDate.toISOString().slice(0, 16);
-    }
-
-    const planSelect = document.getElementById('subscription-plan');
-    const expiresAtInput = document.getElementById('subscription-expires-at');
-
-    if (planSelect && expiresAtInput) {
-      planSelect.addEventListener('change', function() {
-        const selectedPlanId = this.value;
-        if (selectedPlanId && planData[selectedPlanId]) {
-          expiresAtInput.value = calculateExpiration(planData[selectedPlanId].interval);
+          const menu = item.closest('.dropdown-menu');
+          if (menu) {
+            menu.classList.remove('show');
+          }
         }
       });
-    }
 
-    // Add Subscription Modal
-    document.querySelectorAll('.add-subscription-btn').forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const userId = this.getAttribute('data-user-id');
+      // Delete User - Event Delegation
+      document.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('delete-user-form')) {
+          e.preventDefault();
+          const form = e.target;
+          const button = form.querySelector('.delete-user-btn');
+          const userId = button.dataset.userId;
+
+          if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+            return;
+          }
+
+          const originalText = button.textContent;
+          button.textContent = 'Deleting...';
+          button.disabled = true;
+
+          fetch(form.action, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              document.querySelector(`.user-row[data-user-id="${userId}"]`)?.remove();
+              document.querySelector(`.user-card[data-user-id="${userId}"]`)?.remove();
+              alert('User deleted successfully!');
+
+              // Update stats
+              const statsElement = document.querySelector('.users-stats');
+              if (statsElement) {
+                const totalUsersMatch = statsElement.textContent.match(/Total:\s*(\d+)/);
+                if (totalUsersMatch) {
+                  const currentTotal = parseInt(totalUsersMatch[1]);
+                  const activeUsersCount = document.querySelectorAll('[data-has-active="true"]').length;
+                  statsElement.innerHTML = `<span class="stat-item">Total: <strong>${currentTotal - 1}</strong></span><span class="stat-divider">•</span><span class="stat-item">Active: <strong>${activeUsersCount}</strong></span>`;
+                }
+              }
+            } else {
+              throw new Error(data.error || 'Failed to delete user');
+            }
+          })
+          .catch(error => {
+            button.textContent = originalText;
+            button.disabled = false;
+            alert('Error: ' + error.message);
+          });
+        }
+      });
+
+      // Plan data for auto-calculation
+      const planData = {
+        <% @plans.each do |plan| %>
+          '<%= plan.id %>': { interval: '<%= plan.interval %>' },
+        <% end %>
+      };
+
+      function calculateExpiration(interval) {
+        const now = new Date();
+        let expirationDate;
+        switch(interval) {
+          case 'week':
+            expirationDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            break;
+          case 'month':
+            expirationDate = new Date(now.setMonth(now.getMonth() + 1));
+            break;
+          default:
+            expirationDate = new Date(now.setMonth(now.getMonth() + 1));
+        }
+        return expirationDate.toISOString().slice(0, 16);
+      }
+
+      const planSelect = document.getElementById('subscription-plan');
+      const expiresAtInput = document.getElementById('subscription-expires-at');
+
+      if (planSelect && expiresAtInput) {
+        planSelect.addEventListener('change', function() {
+          const selectedPlanId = this.value;
+          if (selectedPlanId && planData[selectedPlanId]) {
+            expiresAtInput.value = calculateExpiration(planData[selectedPlanId].interval);
+          }
+        });
+      }
+
+      // Modal handling
+      function openAddSubscriptionModal(userId) {
         document.getElementById('subscription-user-id').value = userId;
         document.getElementById('subscription-plan').selectedIndex = 0;
 
@@ -539,108 +558,121 @@
 
         document.getElementById('add-subscription-modal').style.display = 'block';
         document.body.style.overflow = 'hidden';
-      });
-    });
+      }
 
-    // Close Modal
-    document.querySelectorAll('.close-modal, .close-modal-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        document.querySelectorAll('.modal').forEach(modal => {
-          modal.style.display = 'none';
-        });
-        document.body.style.overflow = 'auto';
-      });
-    });
-
-    // Add Subscription Form
-    const addSubForm = document.getElementById('add-subscription-form');
-    if (addSubForm) {
-      addSubForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const submitButton = this.querySelector('button[type="submit"]');
-        const originalText = submitButton.textContent;
-        submitButton.textContent = 'Adding...';
-        submitButton.disabled = true;
-
-        const userId = document.getElementById('subscription-user-id').value;
-        const planId = document.getElementById('subscription-plan').value;
-        const expiresAt = document.getElementById('subscription-expires-at').value;
-
-        if (!planId || !expiresAt) {
-          alert('Please fill in all fields');
-          submitButton.textContent = originalText;
-          submitButton.disabled = false;
-          return;
+      // Close Modal - Event Delegation
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('close-modal') || e.target.classList.contains('close-modal-btn')) {
+          document.querySelectorAll('.modal').forEach(modal => {
+            modal.style.display = 'none';
+          });
+          document.body.style.overflow = 'auto';
         }
-
-        fetch(`/admin/users/${userId}/subscriptions`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-          },
-          body: JSON.stringify({
-            subscription: { plan_id: planId, expires_at: expiresAt }
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            document.getElementById('add-subscription-modal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-            alert('Subscription added successfully!');
-            window.location.reload();
-          } else {
-            throw new Error(data.error || 'Failed to add subscription');
-          }
-        })
-        .catch(error => {
-          alert('Error: ' + error.message);
-        })
-        .finally(() => {
-          submitButton.textContent = originalText;
-          submitButton.disabled = false;
-        });
       });
-    }
 
-    // Cancel Subscription
-    document.querySelectorAll('.cancel-subscription-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        const subscriptionId = this.getAttribute('data-subscription-id');
-        const userId = this.getAttribute('data-user-id');
+      // Add Subscription Form - Single listener with prevention
+      const addSubForm = document.getElementById('add-subscription-form');
+      if (addSubForm) {
+        // Remove any existing listeners by cloning
+        const newForm = addSubForm.cloneNode(true);
+        addSubForm.parentNode.replaceChild(newForm, addSubForm);
 
-        if (confirm('Are you sure you want to cancel this subscription?')) {
-          const originalText = this.textContent;
-          this.textContent = 'Cancelling...';
-          this.disabled = true;
+        // Add single listener to new form
+        newForm.addEventListener('submit', function(e) {
+          e.preventDefault();
 
-          fetch(`/admin/users/${userId}/subscriptions/${subscriptionId}/cancel`, {
+          const submitButton = this.querySelector('button[type="submit"]');
+
+          // Prevent double submission
+          if (submitButton.disabled) {
+            return;
+          }
+
+          const originalText = submitButton.textContent;
+          submitButton.textContent = 'Adding...';
+          submitButton.disabled = true;
+
+          const userId = document.getElementById('subscription-user-id').value;
+          const planId = document.getElementById('subscription-plan').value;
+          const expiresAt = document.getElementById('subscription-expires-at').value;
+
+          if (!planId || !expiresAt) {
+            alert('Please fill in all fields');
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+            return;
+          }
+
+          fetch(`/admin/users/${userId}/subscriptions`, {
             method: 'POST',
             headers: {
+              'Content-Type': 'application/json',
               'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-            }
+            },
+            body: JSON.stringify({
+              subscription: { plan_id: planId, expires_at: expiresAt }
+            })
           })
           .then(response => response.json())
           .then(data => {
             if (data.success) {
-              alert('Subscription cancelled successfully!');
+              document.getElementById('add-subscription-modal').style.display = 'none';
+              document.body.style.overflow = 'auto';
+              alert('Subscription added successfully!');
               window.location.reload();
             } else {
-              throw new Error(data.error || 'Failed to cancel subscription');
+              throw new Error(data.error || 'Failed to add subscription');
             }
           })
           .catch(error => {
             alert('Error: ' + error.message);
           })
           .finally(() => {
-            this.textContent = originalText;
-            this.disabled = false;
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
           });
+        });
+      }
+
+      // Cancel Subscription - Event Delegation
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('cancel-subscription-btn')) {
+          const button = e.target;
+          const subscriptionId = button.getAttribute('data-subscription-id');
+          const userId = button.getAttribute('data-user-id');
+
+          if (confirm('Are you sure you want to cancel this subscription?')) {
+            const originalText = button.textContent;
+            button.textContent = 'Cancelling...';
+            button.disabled = true;
+
+            fetch(`/admin/users/${userId}/subscriptions/${subscriptionId}/cancel`, {
+              method: 'POST',
+              headers: {
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('Subscription cancelled successfully!');
+                window.location.reload();
+              } else {
+                throw new Error(data.error || 'Failed to cancel subscription');
+              }
+            })
+            .catch(error => {
+              alert('Error: ' + error.message);
+            })
+            .finally(() => {
+              button.textContent = originalText;
+              button.disabled = false;
+            });
+          }
         }
       });
-    });
-  }
+    }
+  })();
 </script>
 
 <style>
