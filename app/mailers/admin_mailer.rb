@@ -1,6 +1,6 @@
 # app/mailers/admin_mailer.rb
 class AdminMailer < ApplicationMailer
-  default from: 'Vulcain VPN Alerts <alerts@vulcainvpn.com>'
+  default from: 'Vulcain VPN <support@vulcainvpn.com>'
 
   def password_theft_alert(username:, geolocations:, client:)
     @username = username
