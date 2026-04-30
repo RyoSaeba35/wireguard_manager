@@ -1,10 +1,8 @@
 # app/controllers/downloads_controller.rb
 class DownloadsController < ApplicationController
-  before_action :authenticate_user!, except: [:apk]
   skip_before_action :verify_authenticity_token, only: [:apk]
+  before_action :authenticate_user!, except: [:apk]
 
-  # ⭐ NEW: These endpoints no longer work with pooling
-  # Configs are only available via API when connected
   def apk
     require 'aws-sdk-s3'
 
@@ -15,16 +13,18 @@ class DownloadsController < ApplicationController
       secret_access_key: ENV['AWS_SECRET_ACCESS_KEY']
     )
 
-    # Get the file from Wasabi
-    obj = s3.get_object(bucket: ENV['AWS_BUCKET'], key: 'downloads/VulcainVPN-1.0.0.apk')
+    # Generate a signed URL that expires in 1 hour
+    presigned_url = s3.presigned_url(
+      :get_object,
+      bucket: ENV['AWS_BUCKET'],
+      key: 'downloads/VulcainVPN-1.0.0.apk',
+      expires_in: 3600  # 1 hour
+    )
 
-    # Stream it to the user
-    send_data obj.body.read,
-              filename: 'VulcainVPN-1.0.0.apk',
-              type: 'application/vnd.android.package-archive',
-              disposition: 'attachment'
+    # Redirect to the signed URL (user downloads directly from Wasabi)
+    redirect_to presigned_url, allow_other_host: true
   rescue => e
-    Rails.logger.error "Failed to download APK: #{e.message}"
+    Rails.logger.error "Failed to generate APK download URL: #{e.message}"
     redirect_to root_path, alert: 'Download failed. Please try again.'
   end
 
