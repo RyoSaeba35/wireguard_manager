@@ -45,17 +45,24 @@ class VpnConfigSetService
 
     Rails.logger.info "Recycling #{count} stale configs for #{@server.name}"
 
-    # Rotate credentials AND update server (batch operation - fast!)
-    rotate_and_update_peers(stale_configs.to_a)
+    begin
+      # Rotate credentials AND update server (batch operation)
+      rotate_and_update_peers(stale_configs.to_a)
 
-    # Mark as available
-    stale_configs.update_all(
-      status: 'available',
-      last_rotated_at: Time.current
-    )
+      # ⭐ Only mark as available if rotation succeeded
+      stale_configs.update_all(
+        status: 'available',
+        last_rotated_at: Time.current
+      )
 
-    Rails.logger.info "✅ Recycled #{count} configs for #{@server.name}"
-    count
+      Rails.logger.info "✅ Recycled #{count} configs for #{@server.name}"
+      count
+    rescue => e
+      # Log error but don't mark as available - they'll be retried next run
+      Rails.logger.error "Failed to recycle configs for #{@server.name}: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      raise # Re-raise so job fails and alerts monitoring
+    end
   end
 
   # ==========================================
@@ -194,7 +201,9 @@ class VpnConfigSetService
         @server.ssh_user,
         keys: [private_key_path],
         verify_host_key: :never,
-        timeout: 60
+        timeout: 600,
+        keepalive: true,
+        keepalive_interval: 30
       ) do |ssh|
         # ==========================================
         # STEP 1: Generate all new credentials
@@ -266,6 +275,8 @@ class VpnConfigSetService
         # ==========================================
         all_configs = VpnConfigSet.where(server: @server).to_a
         rebuild_wireguard_config(ssh, all_configs)
+
+        verify_config_sync(ssh, configs.sample([3, configs.size].min))
 
         Rails.logger.info "✅ Rebuilt WireGuard config file on #{@server.name}"
 
@@ -423,8 +434,17 @@ class VpnConfigSetService
   end
 
   def rebuild_wireguard_config(ssh, all_configs)
+    require 'net/scp'
+    require 'tempfile'
+
+    Rails.logger.info "Rebuilding WireGuard config for #{all_configs.size} peers..."
+
     # Get base interface config (keep existing settings)
     base_config = ssh.exec!("sudo grep -A 10 '^\[Interface\]' /etc/wireguard/wg0.conf | grep -v '^\[Peer\]'")
+
+    if base_config.nil? || base_config.strip.empty?
+      raise "Failed to extract base WireGuard config from server"
+    end
 
     # Generate all peer entries
     peer_entries = all_configs.map do |config|
@@ -440,14 +460,34 @@ class VpnConfigSetService
 
     full_config = base_config.strip + "\n\n" + peer_entries
 
-    # Write complete config
-    ssh.exec!(<<~BASH)
-      sudo tee /etc/wireguard/wg0.conf > /dev/null << 'WIREGUARD_EOF'
-      #{full_config}
-      WIREGUARD_EOF
-    BASH
+    # ⭐ Write via SCP instead of heredoc (handles large files reliably)
+    temp_file = Tempfile.new(['wg0', '.conf'])
+    begin
+      temp_file.write(full_config)
+      temp_file.close
 
-    Rails.logger.info "✅ Rebuilt WireGuard config with #{all_configs.size} peers"
+      # Upload via SCP (same reliable method as sing-box)
+      ssh.scp.upload!(temp_file.path, "/tmp/wg0_temp.conf")
+
+      # Move to final location with proper permissions
+      ssh.exec!("sudo mv /tmp/wg0_temp.conf /etc/wireguard/wg0.conf")
+      ssh.exec!("sudo chown root:root /etc/wireguard/wg0.conf")
+      ssh.exec!("sudo chmod 600 /etc/wireguard/wg0.conf")
+
+      # Verify the file was written correctly
+      verify_result = ssh.exec!("sudo wc -l /etc/wireguard/wg0.conf")
+      actual_lines = verify_result.to_i
+      expected_lines = full_config.lines.count
+
+      if actual_lines < expected_lines - 5  # Allow small variance
+        raise "Config verification failed: expected ~#{expected_lines} lines, got #{actual_lines}"
+      end
+
+      Rails.logger.info "✅ Rebuilt WireGuard config with #{all_configs.size} peers (#{actual_lines} lines)"
+
+    ensure
+      temp_file.unlink
+    end
   end
 
   def reload_wireguard(ssh)
@@ -608,5 +648,17 @@ class VpnConfigSetService
 
     ssh.exec!("sudo systemctl restart sing-box")
     Rails.logger.info "✅ Restarted sing-box on #{@server.name}"
+  end
+
+  def verify_config_sync(ssh, sample_configs)
+    sample_configs.each do |config|
+      server_config = ssh.exec!("sudo grep -A 3 '### begin #{config.ip_address} ###' /etc/wireguard/wg0.conf")
+
+      unless server_config&.include?(config.wireguard_public_key)
+        raise "Config sync verification failed for #{config.ip_address}: public key mismatch"
+      end
+    end
+
+    Rails.logger.info "✅ Verified config file sync for #{sample_configs.size} random samples"
   end
 end
