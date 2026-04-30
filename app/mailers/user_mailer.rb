@@ -1,6 +1,6 @@
 # app/mailers/user_mailer.rb
 class UserMailer < ApplicationMailer
-  default from: 'Vulcain VPN <support@vulcainvpn.com>' # Use a valid email address
+  default from: "Vulcain VPN <support@vulcainvpn.com>" # Use a valid email address
 
   def vpn_config_ready(user, subscription)
     @user = user
@@ -15,9 +15,9 @@ class UserMailer < ApplicationMailer
     # end
 
     # Attach the logo as an inline image
-    logo_path = Rails.root.join('app/assets/images/Vulcain_VPN_logo_3.png')
+    logo_path = Rails.root.join("public", "images", "Vulcain_VPN_logo_3.png")
     if File.exist?(logo_path)
-      attachments.inline['Vulcain_VPN_logo_3.png'] = File.read(logo_path)
+      attachments.inline["Vulcain_VPN_logo_3.png"] = File.read(logo_path)
     else
       Rails.logger.error "Logo not found at #{logo_path}"
     end
