@@ -150,88 +150,98 @@ class ClashApiMonitorJob < ApplicationJob
   end
 
   # ⭐ Monitor sing-box connections via Clash API (accessed via SSH)
+  # ✅ FIXED: Match by VPN IP instead of external IP
   def monitor_singbox(server)
     connections = get_active_connections_via_ssh(server)
     Rails.logger.info "🔌 Found #{connections.size} active sing-box connections on #{server.name}"
 
-    # Group connections by external IP
-    connections_by_ip = connections.group_by { |c| c.dig("metadata", "sourceIP") }
+    # ✅ FIXED: Group connections by VPN IP (sourceIP is the VPN internal IP, not external)
+    connections_by_vpn_ip = connections.group_by { |c| c.dig("metadata", "sourceIP") }
 
     active_device_ids = Set.new
 
-    connections_by_ip.each do |source_ip, conns|
-      next unless source_ip
+    connections_by_vpn_ip.each do |vpn_ip, conns|
+      next unless vpn_ip
 
-      # Find devices by external IP (regardless of active status for conflict detection)
-      devices = Device.joins(:vpn_config_set)
-                      .where(last_connection_ip: source_ip)
-                      .where(vpn_config_sets: { server_id: server.id })
-                      .limit(conns.size)
+      # ✅ FIXED: Find device by VPN IP (not external IP)
+      # sourceIP in Clash API = the VPN internal IP assigned to the device (e.g., 10.155.0.5)
+      config_set = VpnConfigSet.find_by(
+        server: server,
+        ip_address: vpn_ip,
+        status: 'in_use'
+      )
 
-      if devices.empty?
-        # 🚨 STOLEN CREDENTIAL DETECTION: Unknown IP with active connections
-        Rails.logger.warn "🚨 UNKNOWN IP DETECTED: #{source_ip} (#{conns.size} connections)"
+      if config_set.nil?
+        # 🚨 STOLEN CREDENTIAL DETECTION: Unknown VPN IP with active connections
+        Rails.logger.warn "🚨 UNKNOWN VPN IP DETECTED: #{vpn_ip} (#{conns.size} connections)"
+        Rails.logger.warn "   VPN IP #{vpn_ip} is not assigned to any device"
         Rails.logger.warn "   Possible causes:"
-        Rails.logger.warn "   1. User's IP changed (harmless - will reconnect)"
+        Rails.logger.warn "   1. Config was just released but connections still active (harmless - will auto-disconnect)"
         Rails.logger.warn "   2. Stolen credentials being used (security breach)"
         Rails.logger.warn "   → Killing connections to force re-authentication via official app"
 
-        # ✅ SECURITY: Kill all connections from unknown IPs
-        # This prevents stolen credentials from being used
-        # Legitimate users will auto-reconnect via the app
+        # ✅ SECURITY: Kill all connections from unknown VPN IPs
         conns.each do |conn|
           connection_id = conn["id"]
           kill_connection_via_ssh(server, connection_id)
-          Rails.logger.info "   🔪 Killed suspicious connection #{connection_id} from #{source_ip}"
+          Rails.logger.info "   🔪 Killed suspicious connection #{connection_id} from VPN IP #{vpn_ip}"
         end
 
         next
       end
 
-      devices.each do |device|
-        unless device.subscription&.active?
-          Rails.logger.warn "❌ Device #{device.id} subscription inactive"
+      device = config_set.device
 
-          # Kill connections for expired subscriptions
-          conns.each do |conn|
-            kill_connection_via_ssh(server, conn["id"])
-            Rails.logger.info "   🔪 Killed connection (expired subscription): #{conn['id']}"
-          end
-
-          next
+      unless device
+        Rails.logger.warn "⚠️ Config #{vpn_ip} has no associated device (orphaned config)"
+        conns.each do |conn|
+          kill_connection_via_ssh(server, conn["id"])
+          Rails.logger.info "   🔪 Killed connection for orphaned config: #{conn['id']}"
         end
-
-        config_set = device.vpn_config_set
-
-        # ✅ SECURITY CHECK: Detect stale credential conflicts
-        if config_set.status == 'in_use' && config_set.device_id != device.id
-          Rails.logger.error "🚨 CONFLICT DETECTED: Config #{config_set.ip_address} is in_use by device #{config_set.device_id}, but connection detected from device #{device.id}"
-          Rails.logger.error "   External IP: #{source_ip} - This indicates stale credentials being used!"
-          Rails.logger.error "   The app should fetch fresh credentials via /api/connect"
-
-          # Kill the conflicting connections
-          conns.each do |conn|
-            kill_connection_via_ssh(server, conn["id"])
-            Rails.logger.info "   🔪 Killed conflicting connection: #{conn['id']}"
-          end
-
-          next
-        end
-
-        # ✅ Safe to self-heal - this was the original owner or config is available
-        unless device.active?
-          Rails.logger.info "🔄 Self-healing: Reactivating device #{device.id}"
-          device.update!(active: true, last_seen_at: Time.current)
-        end
-
-        if config_set.status != 'in_use'
-          Rails.logger.info "🔄 Self-healing: Reclaiming config #{config_set.ip_address} for original owner device #{device.id}"
-          config_set.update!(status: 'in_use', device_id: device.id)
-        end
-
-        Rails.logger.info "✅ sing-box active: External IP #{source_ip} → Device #{device.id} (VPN IP: #{config_set.ip_address})"
-        active_device_ids << device.id
+        next
       end
+
+      # ✅ Check subscription status
+      unless device.subscription&.active?
+        Rails.logger.warn "❌ Device #{device.id} subscription inactive"
+
+        # Kill connections for expired subscriptions
+        conns.each do |conn|
+          kill_connection_via_ssh(server, conn["id"])
+          Rails.logger.info "   🔪 Killed connection (expired subscription): #{conn['id']}"
+        end
+
+        next
+      end
+
+      # ✅ SECURITY CHECK: Detect config conflicts (should not happen with VPN IP matching)
+      if config_set.status == 'in_use' && config_set.device_id != device.id
+        Rails.logger.error "🚨 CONFLICT DETECTED: Config #{config_set.ip_address} is in_use by device #{config_set.device_id}, but connection detected from device #{device.id}"
+        Rails.logger.error "   This should not happen with VPN IP matching!"
+
+        # Kill the conflicting connections
+        conns.each do |conn|
+          kill_connection_via_ssh(server, conn["id"])
+          Rails.logger.info "   🔪 Killed conflicting connection: #{conn['id']}"
+        end
+
+        next
+      end
+
+      # ✅ Self-heal: Reactivate device if needed
+      unless device.active?
+        Rails.logger.info "🔄 Self-healing: Reactivating device #{device.id}"
+        device.update!(active: true, last_seen_at: Time.current)
+      end
+
+      # ✅ Config should already be in_use, but ensure consistency
+      if config_set.status != 'in_use'
+        Rails.logger.info "🔄 Self-healing: Marking config #{config_set.ip_address} as in_use for device #{device.id}"
+        config_set.update!(status: 'in_use', device_id: device.id)
+      end
+
+      Rails.logger.info "✅ sing-box active: VPN IP #{vpn_ip} → Device #{device.id} (External IP: #{device.last_connection_ip})"
+      active_device_ids << device.id
     end
 
     Rails.logger.info "✅ #{active_device_ids.size} active sing-box devices on #{server.name}"
@@ -327,12 +337,12 @@ class ClashApiMonitorJob < ApplicationJob
       server = config_set.server
       device = config_set.device
 
-      # ✅ KILL sing-box connections for this device BEFORE releasing
-      if server.singbox_active? && server.clash_api_secret.present? && device.last_connection_ip.present?
+      # ✅ KILL sing-box connections for this VPN IP BEFORE releasing
+      if server.singbox_active? && server.clash_api_secret.present?
         begin
-          external_ip = device.last_connection_ip.to_s.split('/').first  # Convert IPAddr to string
-          killed_count = kill_singbox_connections_for_ip(server, external_ip)
-          Rails.logger.info "🔪 Killed #{killed_count} sing-box connections for device #{device.id} (IP: #{external_ip})"
+          vpn_ip = config_set.ip_address
+          killed_count = kill_singbox_connections_for_vpn_ip(server, vpn_ip)
+          Rails.logger.info "🔪 Killed #{killed_count} sing-box connections for device #{device.id} (VPN IP: #{vpn_ip})"
         rescue => e
           Rails.logger.error "Failed to kill connections for device #{device.id}: #{e.message}"
         end
@@ -348,18 +358,19 @@ class ClashApiMonitorJob < ApplicationJob
 
   private
 
-  def kill_singbox_connections_for_ip(server, external_ip)
+  # ✅ FIXED: Match by VPN IP instead of external IP
+  def kill_singbox_connections_for_vpn_ip(server, vpn_ip)
     connections = get_active_connections_via_ssh(server)
     killed_count = 0
 
     connections.each do |conn|
       source_ip = conn.dig("metadata", "sourceIP")
 
-      if source_ip == external_ip
+      if source_ip == vpn_ip
         connection_id = conn["id"]
         kill_connection_via_ssh(server, connection_id)
         killed_count += 1
-        Rails.logger.info "   🔪 Killed connection #{connection_id}"
+        Rails.logger.info "   🔪 Killed connection #{connection_id} from VPN IP #{vpn_ip}"
       end
     end
 
@@ -411,21 +422,6 @@ class ClashApiMonitorJob < ApplicationJob
       if key_file
         key_file.close unless key_file.closed?
         key_file.unlink
-      end
-    end
-  end
-
-  # ✅ NEW: Kill sing-box connections for a specific VPN IP
-  def kill_singbox_connections_for_ip(server, vpn_ip)
-    connections = get_active_connections_via_ssh(server)
-
-    connections.each do |conn|
-      # Match by destination IP (the VPN IP the client is using)
-      dest_ip = conn.dig("metadata", "destinationIP")
-
-      if dest_ip == vpn_ip || conn.dig("metadata", "sourceIP") == vpn_ip
-        connection_id = conn["id"]
-        kill_connection_via_ssh(server, connection_id)
       end
     end
   end
