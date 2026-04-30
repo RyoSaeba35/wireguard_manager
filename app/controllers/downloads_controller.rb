@@ -1,6 +1,7 @@
 # app/controllers/downloads_controller.rb
 class DownloadsController < ApplicationController
   before_action :authenticate_user!, except: [:apk]
+  skip_before_action :verify_authenticity_token, only: [:apk]
 
   # ⭐ NEW: These endpoints no longer work with pooling
   # Configs are only available via API when connected
