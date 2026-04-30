@@ -6,15 +6,19 @@ class DownloadsController < ApplicationController
   def apk
     require 'aws-sdk-s3'
 
-    # Use Presigner, not Client
-    signer = Aws::S3::Presigner.new(
+    # Create S3 client with Wasabi endpoint
+    s3_client = Aws::S3::Client.new(
       region: ENV['AWS_REGION'],
       endpoint: ENV['AWS_ENDPOINT'],
       access_key_id: ENV['AWS_ACCESS_KEY_ID'],
-      secret_access_key: ENV['AWS_SECRET_ACCESS_KEY']
+      secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'],
+      force_path_style: true  # Required for Wasabi
     )
 
-    # Generate a signed URL that expires in 1 hour
+    # Create presigner with the client
+    signer = Aws::S3::Presigner.new(client: s3_client)
+
+    # Generate signed URL
     presigned_url = signer.presigned_url(
       :get_object,
       bucket: ENV['AWS_BUCKET'],
@@ -22,7 +26,6 @@ class DownloadsController < ApplicationController
       expires_in: 3600
     )
 
-    # Redirect to the signed URL
     redirect_to presigned_url, allow_other_host: true
   rescue => e
     Rails.logger.error "Failed to generate APK download URL: #{e.message}"
