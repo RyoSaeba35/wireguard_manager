@@ -35,12 +35,12 @@
         <ul>
           <li>
             <strong>Android:</strong>
-            <a href="/downloads/VulcainVPN-1.0.0.apk" download>Download APK</a> |
+            <%= link_to "Download APK", download_apk_path %> |
             <a href="#" class="coming-soon">Google Play (Coming Soon)</a>
           </li>
           <li>
             <strong>Windows:</strong>
-            <a href="/downloads/VulcainVPN-Setup-1.0.6.exe" download>Download Installer</a>
+            <%= link_to "Download Installer", download_windows_path %>
           </li>
           <li><strong>iOS:</strong> <span class="coming-soon">App Store (Coming Soon)</span></li>
           <li><strong>macOS:</strong> <span class="coming-soon">Coming Soon</span></li>
@@ -50,7 +50,6 @@
           <strong>Android APK:</strong> Enable "Install from Unknown Sources" in settings to install.
         </p>
       </div>
-
       <div class="step">
         <h3>2. Login to Your Account</h3>
         <% if user_signed_in? %>
@@ -77,7 +76,6 @@
         <h3>3. Register Your Device</h3>
         <p>The app will automatically register your device when you first login.</p>
         <ul>
-          <li>Give your device a recognizable name (e.g., "My Phone", "Work Laptop")</li>
           <li>The device will be linked to your subscription</li>
           <% if user_signed_in? %>
             <li>You can manage devices from your <%= link_to "dashboard", dashboard_path %></li>
