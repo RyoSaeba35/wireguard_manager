@@ -11,17 +11,22 @@ class Users::PasswordsController < Devise::PasswordsController
     self.resource = resource_class.send_reset_password_instructions(resource_params)
     yield resource if block_given?
 
+    # ALWAYS show the same message for security (paranoid mode)
+    # This prevents attackers from determining which emails are registered
     if successfully_sent?(resource)
-      # Successfully sent (or pretending to - paranoid mode)
+      # Email was sent successfully
+      set_flash_message! :notice, :send_paranoid_instructions
       respond_with({}, location: after_sending_reset_password_instructions_path_for(resource_name))
     else
-      # Handle errors better
-      if resource.errors.empty?
-        # Paranoid mode: no errors shown, but email wasn't found
-        # Show a helpful message instead of blank error
-        flash.now[:alert] = "If this email is registered with Vulcain VPN, you'll receive password reset instructions within a few minutes. Please check your spam folder."
-      end
-      respond_with(resource)
+      # Email not found OR there was an error
+      # STILL show the same message to prevent email enumeration
+      flash.now[:notice] = "If this email is registered with Vulcain VPN, you'll receive password reset instructions within a few minutes. Please check your spam folder."
+
+      # Clear any errors to avoid showing them
+      resource.errors.clear
+
+      # Re-render the form with the notice message
+      render :new
     end
   end
 
