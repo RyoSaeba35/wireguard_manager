@@ -146,7 +146,13 @@
           </li>
           <li>Verify payment was successful in your email</li>
           <li>Try logging out and back in</li>
-          <li><%= link_to "Renew subscription", subscriptions_path %> if expired</li>
+          <li>
+            <% if user_signed_in? %>
+              <li><%= link_to "Renew subscription", new_user_subscription_path(current_user) %> if expired</li>
+            <% else %>
+              <li>Renew subscription if expired (requires login)</li>
+            <% end %>
+          </li>
         </ul>
       </div>
     </div>
