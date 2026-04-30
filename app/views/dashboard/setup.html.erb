@@ -1,5 +1,4 @@
 <!-- app/views/dashboard/setup.html.erb -->
-<!-- app/views/dashboard/setup.html.erb -->
 <div class="dashboard-container">
   <header class="dashboard-header">
     <h1>VPN Setup Guide</h1>
@@ -54,7 +53,7 @@
           <% unless @has_subscription %>
             <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">
               🔒 You need an active subscription to connect.
-              <%= link_to "Subscribe now", subscriptions_path %>
+              <%= link_to "Subscribe now", new_user_subscription_path(current_user) %>
             </p>
           <% end %>
         <% else %>
@@ -138,11 +137,13 @@
       <div class="faq-answer">
         <p><strong>Symptoms:</strong> App says subscription expired or not found</p>
         <ul>
-          <% if user_signed_in? %>
-            <li>Check your subscription status in <%= link_to "dashboard", dashboard_path %></li>
-          <% else %>
-            <li>Check your subscription status in your dashboard</li>
-          <% end %>
+          <li>
+            <% if user_signed_in? %>
+              <%= link_to "Renew subscription", new_user_subscription_path(current_user) %> if expired
+            <% else %>
+              <%= link_to "Renew subscription", new_user_registration_path %> if expired
+            <% end %>
+          </li>
           <li>Verify payment was successful in your email</li>
           <li>Try logging out and back in</li>
           <li><%= link_to "Renew subscription", subscriptions_path %> if expired</li>
