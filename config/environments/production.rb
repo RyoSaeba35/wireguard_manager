@@ -63,6 +63,8 @@ Rails.application.configure do
     tls: true,                       # Enable TLS
     openssl_verify_mode: OpenSSL::SSL::VERIFY_NONE  # Changed from string to constant
   }
+  config.action_mailer.raise_delivery_errors = true   # ← ADD THIS
+  config.action_mailer.perform_deliveries = true
   # Set the default "From" address
   config.action_mailer.default_options = {
     from: 'Vulcain VPN <support@vulcainvpn.com>',
