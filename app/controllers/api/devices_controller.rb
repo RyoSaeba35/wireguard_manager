@@ -91,7 +91,7 @@ class Api::DevicesController < ApplicationController
     # ⭐ STEP 3: Find best server
     selector = ServerSelectorService.new
     server = selector.find_best_server(
-      user_ip: request.remote_ip,
+      user_ip: client_ip_address, # ✅ FIXED: Use real client IP
       preferred_location: params[:preferred_location]
     )
 
@@ -135,12 +135,15 @@ class Api::DevicesController < ApplicationController
     )
 
     # ⭐ STEP 6: Update device status
+    # ✅ FIXED: Use real client IP
     device.update!(
       active: true,
       connected_at: Time.current,
       last_seen_at: Time.current,
-      last_connection_ip: request.remote_ip
+      last_connection_ip: client_ip_address
     )
+
+    Rails.logger.info "✅ Device #{device.id} connected from IP: #{client_ip_address}"
 
     # ⭐ STEP 7: Build and return credentials
     credentials = build_credentials_from_config(config_set)
@@ -220,11 +223,13 @@ class Api::DevicesController < ApplicationController
       return
     end
 
-    # ✅ Only update last_seen_at if subscription is valid
+    # ✅ FIXED: Use real client IP from proxy headers
     device.update!(
       last_seen_at: Time.current,
-      last_connection_ip: request.remote_ip
+      last_connection_ip: client_ip_address
     )
+
+    Rails.logger.debug "💓 Heartbeat from device #{device.id} at IP: #{client_ip_address}"
 
     render json: {
       status: "alive",
@@ -233,6 +238,32 @@ class Api::DevicesController < ApplicationController
   end
 
   private
+
+  # ✅ NEW: Extract real client IP from proxy headers
+  def client_ip_address
+    # Try forwarded headers first (for proxies/load balancers)
+    forwarded_for = request.headers['HTTP_X_FORWARDED_FOR']
+
+    if forwarded_for.present?
+      # X-Forwarded-For can have multiple IPs (client, proxy1, proxy2)
+      # The first one is the original client
+      ip = forwarded_for.split(',').first.strip
+      Rails.logger.debug "📍 IP from X-Forwarded-For: #{ip}"
+      return ip
+    end
+
+    # Try X-Real-IP header (used by some proxies)
+    real_ip = request.headers['HTTP_X_REAL_IP']
+    if real_ip.present?
+      Rails.logger.debug "📍 IP from X-Real-IP: #{real_ip}"
+      return real_ip
+    end
+
+    # Fallback to remote_ip
+    ip = request.remote_ip
+    Rails.logger.debug "📍 IP from remote_ip: #{ip}"
+    ip
+  end
 
   def authenticate_api_user!
     token = request.headers['Authorization']&.split(' ')&.last
