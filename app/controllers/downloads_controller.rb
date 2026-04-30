@@ -6,7 +6,8 @@ class DownloadsController < ApplicationController
   def apk
     require 'aws-sdk-s3'
 
-    s3 = Aws::S3::Client.new(
+    # Use Presigner, not Client
+    signer = Aws::S3::Presigner.new(
       region: ENV['AWS_REGION'],
       endpoint: ENV['AWS_ENDPOINT'],
       access_key_id: ENV['AWS_ACCESS_KEY_ID'],
@@ -14,14 +15,14 @@ class DownloadsController < ApplicationController
     )
 
     # Generate a signed URL that expires in 1 hour
-    presigned_url = s3.presigned_url(
+    presigned_url = signer.presigned_url(
       :get_object,
       bucket: ENV['AWS_BUCKET'],
       key: 'downloads/VulcainVPN-1.0.0.apk',
-      expires_in: 3600  # 1 hour
+      expires_in: 3600
     )
 
-    # Redirect to the signed URL (user downloads directly from Wasabi)
+    # Redirect to the signed URL
     redirect_to presigned_url, allow_other_host: true
   rescue => e
     Rails.logger.error "Failed to generate APK download URL: #{e.message}"
