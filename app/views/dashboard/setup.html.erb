@@ -20,7 +20,7 @@
         <strong>Getting Started:</strong>
         <p style="margin-bottom: 0;">
           <%= link_to "Sign up", new_user_registration_path %> or
-          <%= link_to "log in", new_user_session_path %> to access your VPN account and connect your devices.
+          <%= link_to "log in", new_user_session_path %> to access your VPN account and buy a subscription.
         </p>
       </div>
     <% end %>
@@ -33,13 +33,22 @@
         <h3>1. Download VulcainVPN</h3>
         <p>Install the VulcainVPN app for your device:</p>
         <ul>
-          <li><a href="#" target="_blank">Android (Google Play)</a> - Coming soon</li>
-          <li><a href="#" target="_blank">Windows</a> - Available now</li>
-          <li><a href="#" target="_blank">iOS (App Store)</a> - Coming soon</li>
-          <li><a href="#" target="_blank">macOS</a> - Coming soon</li>
-          <li><a href="#" target="_blank">Linux</a> - Coming soon</li>
+          <li>
+            <strong>Android:</strong>
+            <a href="/downloads/VulcainVPN.apk" download>Download APK</a> |
+            <a href="#" class="coming-soon">Google Play (Coming Soon)</a>
+          </li>
+          <li>
+            <strong>Windows:</strong>
+            <a href="/downloads/VulcainVPN-Setup-1.0.6.exe" download>Download Installer</a>
+          </li>
+          <li><strong>iOS:</strong> <span class="coming-soon">App Store (Coming Soon)</span></li>
+          <li><strong>macOS:</strong> <span class="coming-soon">Coming Soon</span></li>
+          <li><strong>Linux:</strong> <span class="coming-soon">Coming Soon</span></li>
         </ul>
-        <p><em>Note: Currently available for Windows only. Other platforms coming soon.</em></p>
+        <p class="alert alert-info" style="padding: 0.5rem; margin: 1rem 0 0 0; font-size: 0.9rem;">
+          <strong>Android APK:</strong> Enable "Install from Unknown Sources" in settings to install.
+        </p>
       </div>
 
       <div class="step">
@@ -96,16 +105,14 @@
             <li>View active devices in your <%= link_to "dashboard", dashboard_path %></li>
             <li>Maximum <%= @active_subscription&.max_devices || 3 %> devices can be connected at once</li>
             <li>Disconnect from one device to free up a slot for another</li>
-            <li>Devices are automatically disconnected after 20 minutes of inactivity</li>
-          </ul>
+            </ul>
         <% else %>
           <p>Manage your connected devices:</p>
           <ul>
             <li>View active devices in your dashboard</li>
             <li>Subscriptions support multiple simultaneous connections</li>
             <li>Disconnect from one device to free up a slot for another</li>
-            <li>Devices are automatically disconnected after 20 minutes of inactivity</li>
-          </ul>
+            </ul>
         <% end %>
       </div>
     </div>
@@ -560,5 +567,16 @@
       padding: 1rem;
       font-size: 1rem;
     }
+  }
+  .coming-soon {
+    color: #999;
+    font-style: italic;
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+
+  .step ul li strong {
+    min-width: 80px;
+    display: inline-block;
   }
 </style>
