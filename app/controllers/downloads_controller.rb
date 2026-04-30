@@ -1,6 +1,6 @@
 # app/controllers/downloads_controller.rb
 class DownloadsController < ApplicationController
-  before_action :authenticate_user!
+  before_action :authenticate_user!, except: [:apk]
 
   # ⭐ NEW: These endpoints no longer work with pooling
   # Configs are only available via API when connected
@@ -26,7 +26,7 @@ class DownloadsController < ApplicationController
     Rails.logger.error "Failed to download APK: #{e.message}"
     redirect_to root_path, alert: 'Download failed. Please try again.'
   end
-  
+
   def qr_code
     redirect_to root_path, alert: "QR codes are no longer available. Please use the mobile app to connect."
   end
