@@ -439,14 +439,21 @@ class VpnConfigSetService
 
     Rails.logger.info "Rebuilding WireGuard config for #{all_configs.size} peers..."
 
-    # Get base interface config (keep existing settings)
-    base_config = ssh.exec!("sudo grep -A 10 '^\[Interface\]' /etc/wireguard/wg0.conf | grep -v '^\[Peer\]'")
+    # Read the ENTIRE current config
+    current_config = ssh.exec!("sudo cat /etc/wireguard/wg0.conf")
 
-    if base_config.nil? || base_config.strip.empty?
-      raise "Failed to extract base WireGuard config from server"
+    if current_config.nil? || current_config.empty?
+      raise "Failed to read WireGuard config from server"
     end
 
-    # Generate all peer entries
+    # Extract everything BEFORE the first peer marker
+    interface_section = current_config.split(/^### begin/).first
+
+    if interface_section.nil? || interface_section.strip.empty?
+      raise "Failed to extract interface section from config"
+    end
+
+    # Generate all peer entries from database
     peer_entries = all_configs.map do |config|
       <<~PEER
         ### begin #{config.ip_address} ###
@@ -458,28 +465,26 @@ class VpnConfigSetService
       PEER
     end.join
 
-    full_config = base_config.strip + "\n\n" + peer_entries
+    # Combine interface + all peers
+    full_config = interface_section.strip + "\n" + peer_entries
 
-    # ⭐ Write via SCP instead of heredoc (handles large files reliably)
+    # Write via SCP (same as create_pool approach)
     temp_file = Tempfile.new(['wg0', '.conf'])
     begin
       temp_file.write(full_config)
       temp_file.close
 
-      # Upload via SCP (same reliable method as sing-box)
       ssh.scp.upload!(temp_file.path, "/tmp/wg0_temp.conf")
-
-      # Move to final location with proper permissions
       ssh.exec!("sudo mv /tmp/wg0_temp.conf /etc/wireguard/wg0.conf")
       ssh.exec!("sudo chown root:root /etc/wireguard/wg0.conf")
       ssh.exec!("sudo chmod 600 /etc/wireguard/wg0.conf")
 
-      # Verify the file was written correctly
+      # Verify
       verify_result = ssh.exec!("sudo wc -l /etc/wireguard/wg0.conf")
       actual_lines = verify_result.to_i
       expected_lines = full_config.lines.count
 
-      if actual_lines < expected_lines - 5  # Allow small variance
+      if actual_lines < expected_lines - 5
         raise "Config verification failed: expected ~#{expected_lines} lines, got #{actual_lines}"
       end
 
