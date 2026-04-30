@@ -1,4 +1,5 @@
 <!-- app/views/dashboard/setup.html.erb -->
+<!-- app/views/dashboard/setup.html.erb -->
 <div class="dashboard-container">
   <header class="dashboard-header">
     <h1>VPN Setup Guide</h1>
@@ -6,13 +7,25 @@
 
   <section class="setup-guide-section">
     <h2>How to Set Up Your VPN</h2>
-    <div class="alert alert-warning" style="margin-bottom: 1.5rem; padding: 1rem; background-color: #fff3cd; color: #856404; border-left: 4px solid #ffeeba;">
-      <strong>Important Device Information:</strong>
-      <ul style="margin-bottom: 0; padding-left: 1.2rem;">
-        <li>Your subscription allows VPN connections on <strong>up to <%= @active_subscription&.max_devices || 3 %> devices</strong> simultaneously.</li>
-        <li>The VPN will automatically select the best server for you.</li>
-      </ul>
-    </div>
+
+    <% if user_signed_in? %>
+      <div class="alert alert-warning" style="margin-bottom: 1.5rem; padding: 1rem; background-color: #fff3cd; color: #856404; border-left: 4px solid #ffeeba;">
+        <strong>Important Device Information:</strong>
+        <ul style="margin-bottom: 0; padding-left: 1.2rem;">
+          <li>Your subscription allows VPN connections on <strong>up to <%= @active_subscription&.max_devices || 3 %> devices</strong> simultaneously.</li>
+          <li>The VPN will automatically select the best server for you.</li>
+        </ul>
+      </div>
+    <% else %>
+      <div class="alert alert-info" style="margin-bottom: 1.5rem; padding: 1rem;">
+        <strong>Getting Started:</strong>
+        <p style="margin-bottom: 0;">
+          <%= link_to "Sign up", new_user_registration_path %> or
+          <%= link_to "log in", new_user_session_path %> to access your VPN account and connect your devices.
+        </p>
+      </div>
+    <% end %>
+
     <p>Follow these steps to connect to VulcainVPN:</p>
 
     <!-- Setup steps for VulcainVPN app -->
@@ -32,15 +45,22 @@
 
       <div class="step">
         <h3>2. Login to Your Account</h3>
-        <p>Open the VulcainVPN app and login with your credentials:</p>
-        <ul>
-          <li><strong>Email:</strong> <%= current_user.email %></li>
-          <li><strong>Password:</strong> Your VulcainVPN account password</li>
-        </ul>
-        <% unless @has_subscription %>
-          <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">
-            🔒 You need an active subscription to connect.
-            <%= link_to "Subscribe now", new_user_subscription_path(current_user) %>
+        <% if user_signed_in? %>
+          <p>Open the VulcainVPN app and login with your credentials:</p>
+          <ul>
+            <li><strong>Email:</strong> <%= current_user.email %></li>
+            <li><strong>Password:</strong> Your VulcainVPN account password</li>
+          </ul>
+          <% unless @has_subscription %>
+            <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">
+              🔒 You need an active subscription to connect.
+              <%= link_to "Subscribe now", subscriptions_path %>
+            </p>
+          <% end %>
+        <% else %>
+          <p>Open the VulcainVPN app and login with your account credentials.</p>
+          <p class="alert alert-info" style="padding: 0.5rem; margin: 0.5rem 0;">
+            Don't have an account yet? <%= link_to "Sign up here", new_user_registration_path %>
           </p>
         <% end %>
       </div>
@@ -51,7 +71,11 @@
         <ul>
           <li>Give your device a recognizable name (e.g., "My Phone", "Work Laptop")</li>
           <li>The device will be linked to your subscription</li>
-          <li>You can manage devices from your dashboard</li>
+          <% if user_signed_in? %>
+            <li>You can manage devices from your <%= link_to "dashboard", dashboard_path %></li>
+          <% else %>
+            <li>You can manage devices from your dashboard</li>
+          <% end %>
         </ul>
       </div>
 
@@ -67,13 +91,23 @@
 
       <div class="step">
         <h3>5. Device Management</h3>
-        <p>Your subscription includes up to <%= @active_subscription&.max_devices || 3 %> simultaneous connections:</p>
-        <ul>
-          <li>View active devices in your <%= link_to "dashboard", dashboard_path %></li>
-          <li>Maximum <%= @active_subscription&.max_devices || 3 %> devices can be connected at once</li>
-          <li>Disconnect from one device to free up a slot for another</li>
-          <li>Devices are automatically disconnected after 20 minutes of inactivity</li>
-        </ul>
+        <% if user_signed_in? %>
+          <p>Your subscription includes up to <%= @active_subscription&.max_devices || 3 %> simultaneous connections:</p>
+          <ul>
+            <li>View active devices in your <%= link_to "dashboard", dashboard_path %></li>
+            <li>Maximum <%= @active_subscription&.max_devices || 3 %> devices can be connected at once</li>
+            <li>Disconnect from one device to free up a slot for another</li>
+            <li>Devices are automatically disconnected after 20 minutes of inactivity</li>
+          </ul>
+        <% else %>
+          <p>Manage your connected devices:</p>
+          <ul>
+            <li>View active devices in your dashboard</li>
+            <li>Subscriptions support multiple simultaneous connections</li>
+            <li>Disconnect from one device to free up a slot for another</li>
+            <li>Devices are automatically disconnected after 20 minutes of inactivity</li>
+          </ul>
+        <% end %>
       </div>
     </div>
   </section>
@@ -104,10 +138,14 @@
       <div class="faq-answer">
         <p><strong>Symptoms:</strong> App says subscription expired or not found</p>
         <ul>
-          <li>Check your subscription status in <%= link_to "dashboard", dashboard_path %></li>
+          <% if user_signed_in? %>
+            <li>Check your subscription status in <%= link_to "dashboard", dashboard_path %></li>
+          <% else %>
+            <li>Check your subscription status in your dashboard</li>
+          <% end %>
           <li>Verify payment was successful in your email</li>
           <li>Try logging out and back in</li>
-          <li><%= link_to "Renew subscription", new_user_subscription_path(current_user) %> if expired</li>
+          <li><%= link_to "Renew subscription", subscriptions_path %> if expired</li>
         </ul>
       </div>
     </div>
@@ -119,9 +157,14 @@
       <div class="faq-answer">
         <p><strong>Symptoms:</strong> Can't connect because all device slots are in use</p>
         <ul>
-          <li>You can have <%= @active_subscription&.max_devices || 3 %> devices connected simultaneously</li>
+          <% if user_signed_in? %>
+            <li>You can have <%= @active_subscription&.max_devices || 3 %> devices connected simultaneously</li>
+            <li>Check your <%= link_to "dashboard", dashboard_path %> to see active devices</li>
+          <% else %>
+            <li>Check your subscription's device limit</li>
+            <li>Check your dashboard to see active devices</li>
+          <% end %>
           <li>Disconnect from another device first</li>
-          <li>Check your <%= link_to "dashboard", dashboard_path %> to see active devices</li>
           <li>Devices auto-disconnect after 5 minutes of inactivity</li>
         </ul>
       </div>
@@ -153,7 +196,11 @@
         <ul>
           <li>Test your base internet speed (disconnect VPN first)</li>
           <li>Close background apps consuming bandwidth</li>
-          <li>Check server status in <%= link_to "dashboard", dashboard_path %></li>
+          <% if user_signed_in? %>
+            <li>Check server status in <%= link_to "dashboard", dashboard_path %></li>
+          <% else %>
+            <li>Check server status in your dashboard</li>
+          <% end %>
           <li>Restart your router</li>
         </ul>
       </div>
@@ -186,12 +233,6 @@
   </section>
 </div>
 
-<!-- Keep all the existing CSS styles -->
-<style>
-  /* ... all your existing styles ... */
-</style>
-
-<!-- Keep the existing JavaScript -->
 <script>
   // Initialize FAQs on turbo:load
   document.addEventListener('turbo:load', function() {

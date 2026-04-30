@@ -1,6 +1,6 @@
 # app/controllers/dashboard_controller.rb
 class DashboardController < ApplicationController
-  before_action :authenticate_user!
+  before_action :authenticate_user!, except: [:setup]
 
   def show
     @user_ip = request.env['HTTP_X_FORWARDED_FOR'] || request.remote_ip
