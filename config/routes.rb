@@ -130,8 +130,13 @@ Rails.application.routes.draw do
   get 'setup', to: 'dashboard#setup', as: :setup_guide
   get 'download_config/:filename', to: 'downloads#config', as: :download_config, constraints: { filename: /[^\/]+/ }
   get 'download_qr_code/:filename', to: 'downloads#qr_code', as: :download_qr_code, constraints: { filename: /[^\/]+/ }
-  # config/routes.rb
+
+  # Downloads with clean URLs
   get '/downloads/VulcainVPN-1.0.0.apk', to: 'downloads#apk', as: :download_apk
+  get '/downloads/VulcainVPN-Setup-1.0.6.exe', to: 'downloads#windows', as: :download_windows
+
+  # Generic file download (for flexibility)
+  get '/downloads/:filename', to: 'downloads#file', as: :download_file, constraints: { filename: /[^\/]+\.(apk|exe|dmg|zip|deb|rpm)/ }
 
   # Server status
   get 'dashboard/fetch_server_status', to: 'dashboard#fetch_server_status'
