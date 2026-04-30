@@ -276,7 +276,9 @@ class VpnConfigSetService
         all_configs = VpnConfigSet.where(server: @server).to_a
         rebuild_wireguard_config(ssh, all_configs)
 
-        verify_config_sync(ssh, configs.sample([3, configs.size].min))
+        # Reload fresh from database to verify (configs in memory are stale)
+        fresh_sample = VpnConfigSet.where(id: configs.sample([3, configs.size].min).map(&:id)).to_a
+        verify_config_sync(ssh, fresh_sample)
 
         Rails.logger.info "✅ Rebuilt WireGuard config file on #{@server.name}"
 
