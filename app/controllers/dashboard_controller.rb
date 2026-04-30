@@ -27,8 +27,13 @@ class DashboardController < ApplicationController
   end
 
   def setup
-    @has_subscription = current_user.subscriptions.active.any?
-    @active_subscription = current_user.subscriptions.active.first
+    if user_signed_in?
+      @has_subscription = current_user.subscriptions.active.any?
+      @active_subscription = current_user.subscriptions.active.first
+    else
+      @active_subscription = nil
+      @has_subscription = false
+    end
   end
 
   def fetch_server_status
