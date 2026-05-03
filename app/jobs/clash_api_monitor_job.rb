@@ -40,8 +40,7 @@ class ClashApiMonitorJob < ApplicationJob
       .where('subscriptions.expires_at IS NULL OR subscriptions.expires_at > ?', Time.current)  # ✅ CHECK EXPIRATION!
       .pluck('devices.id')
 
-    # ✅ CRITICAL FIX: Separate real connections from heartbeat-only devices
-    # Don't reset last_seen_at for heartbeat-only devices (lets force-release work)
+    # ✅ Monitoring job tracks connections for cleanup purposes only
     devices_with_server_verified_connections = devices_with_real_connections.dup
     devices_with_real_connections.merge(devices_with_recent_heartbeats)
 
@@ -50,15 +49,8 @@ class ClashApiMonitorJob < ApplicationJob
     Rails.logger.info "   Server-verified connections: #{devices_with_server_verified_connections.size}"
     Rails.logger.info "   Heartbeat-only: #{devices_with_recent_heartbeats.size}"
 
-    # ✅ ONLY update last_seen_at for devices with ACTUAL VPN connections
-    # This allows heartbeat-only devices to age out and trigger force-release
-    if devices_with_server_verified_connections.any?
-      Device.where(id: devices_with_server_verified_connections).update_all(
-        active: true,
-        last_seen_at: Time.current
-      )
-      Rails.logger.info "✅ Updated last_seen_at for #{devices_with_server_verified_connections.size} server-verified devices"
-    end
+    # ✅ Monitoring job does NOT activate devices (only app endpoints do that)
+    # It only DEACTIVATES stale devices (cleanup/watchdog role)
 
     # Deactivate devices that have been inactive for > grace period
     currently_active_device_ids = Device.where(active: true).pluck(:id)
@@ -74,10 +66,8 @@ class ClashApiMonitorJob < ApplicationJob
       if devices_to_deactivate.any?
         release_configs_for_devices(devices_to_deactivate)
 
-        Device.where(id: devices_to_deactivate).update_all(
-          active: false,
-          last_seen_at: Time.current
-        )
+        # ✅ Only update active flag, NOT last_seen_at (that's only for app endpoints)
+        Device.where(id: devices_to_deactivate).update_all(active: false)
 
         Rails.logger.info "🔴 Deactivated #{devices_to_deactivate.size} devices (inactive > #{DEACTIVATION_GRACE_PERIOD.inspect})"
       end
@@ -273,12 +263,8 @@ class ClashApiMonitorJob < ApplicationJob
         next
       end
 
-      # Self-heal device state
-      unless device.active?
-        Rails.logger.info "🔄 Self-healing: Reactivating device #{device.id}"
-        device.update!(active: true, last_seen_at: Time.current)
-      end
-
+      # ✅ Device has active subscription and real connection
+      # Just track it, don't modify state (app endpoints manage active flag)
       active_device_ids << device.id
     end
 
