@@ -40,18 +40,24 @@ class ClashApiMonitorJob < ApplicationJob
       .where('subscriptions.expires_at IS NULL OR subscriptions.expires_at > ?', Time.current)  # ✅ CHECK EXPIRATION!
       .pluck('devices.id')
 
+    # ✅ CRITICAL FIX: Separate real connections from heartbeat-only devices
+    # Don't reset last_seen_at for heartbeat-only devices (lets force-release work)
+    devices_with_server_verified_connections = devices_with_real_connections.dup
     devices_with_real_connections.merge(devices_with_recent_heartbeats)
 
     Rails.logger.info "📊 Active devices breakdown:"
     Rails.logger.info "   Total: #{devices_with_real_connections.size}"
-    Rails.logger.info "   Heartbeat-detected: #{devices_with_recent_heartbeats.size}"
+    Rails.logger.info "   Server-verified connections: #{devices_with_server_verified_connections.size}"
+    Rails.logger.info "   Heartbeat-only: #{devices_with_recent_heartbeats.size}"
 
-    # Mark devices with real connections as active
-    if devices_with_real_connections.any?
-      Device.where(id: devices_with_real_connections).update_all(
+    # ✅ ONLY update last_seen_at for devices with ACTUAL VPN connections
+    # This allows heartbeat-only devices to age out and trigger force-release
+    if devices_with_server_verified_connections.any?
+      Device.where(id: devices_with_server_verified_connections).update_all(
         active: true,
         last_seen_at: Time.current
       )
+      Rails.logger.info "✅ Updated last_seen_at for #{devices_with_server_verified_connections.size} server-verified devices"
     end
 
     # Deactivate devices that have been inactive for > grace period
