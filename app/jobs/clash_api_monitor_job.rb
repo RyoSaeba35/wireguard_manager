@@ -211,11 +211,11 @@ class ClashApiMonitorJob < ApplicationJob
     connections_by_ip.each do |source_ip, conns|
       next unless source_ip
 
-      # ⭐ NEW: Try two matching strategies
+      # ⭐ NEW: Try three matching strategies
       device = nil
       config_set = nil
 
-      # Strategy 1: Match by VPN IP (for WireGuard)
+      # Strategy 1: Match by VPN internal IP (for WireGuard passthrough)
       config_set = VpnConfigSet.find_by(
         server: server,
         ip_address: source_ip,
@@ -226,8 +226,7 @@ class ClashApiMonitorJob < ApplicationJob
         device = config_set.device
         Rails.logger.info "✅ Matched by VPN IP: #{source_ip} → Device #{device&.id}"
       else
-        # Strategy 2: Match by external IP (for sing-box proxy)
-        # Find device where last_connection_ip matches the sourceIP from Clash API
+        # Strategy 2: Match by external IP
         device = Device.joins(:vpn_config_set)
           .where(active: true, last_connection_ip: source_ip)
           .where(vpn_config_sets: { server_id: server.id, status: 'in_use' })
@@ -235,11 +234,24 @@ class ClashApiMonitorJob < ApplicationJob
 
         if device
           config_set = device.vpn_config_set
-          Rails.logger.info "✅ Matched by external IP: #{source_ip} → Device #{device.id} (VPN IP: #{config_set.ip_address})"
+          Rails.logger.info "✅ Matched by external IP: #{source_ip} → Device #{device.id}"
+        else
+          # ⭐ Strategy 3: Check if ANY device on this server has recent heartbeats from this IP
+          # This handles heartbeat-through-VPN case where last_connection_ip is VPN server
+          device = Device.joins(:vpn_config_set)
+            .where(active: true)
+            .where('devices.last_seen_at > ?', 2.minutes.ago)  # Recent heartbeat
+            .where(vpn_config_sets: { server_id: server.id, status: 'in_use' })
+            .find_by('vpn_config_sets.server_id': server.id)
+
+          if device
+            config_set = device.vpn_config_set
+            Rails.logger.info "✅ Matched by recent heartbeat: #{source_ip} → Device #{device.id} (VPN IP: #{config_set.ip_address})"
+          end
         end
       end
 
-      # Handle no match (stolen credentials or orphaned connection)
+      # ⭐ ONLY kill if NO match AND no recent heartbeats
       if device.nil?
         Rails.logger.warn "🚨 UNKNOWN IP: #{source_ip} (#{conns.size} connections)"
         Rails.logger.warn "   → Killing connections to force re-authentication"
@@ -257,14 +269,11 @@ class ClashApiMonitorJob < ApplicationJob
         conns.each do |conn|
           kill_connection_via_ssh(server, conn["id"])
         end
-        # ⭐ ALSO mark device inactive when killing
         device.update!(active: false, connected_at: nil)
         device.vpn_connections.active.update_all(disconnected_at: Time.current)
         next
       end
 
-      # ✅ Device has active subscription and real connection
-      # Just track it, don't modify state (app endpoints manage active flag)
       active_device_ids << device.id
     end
 
