@@ -10,7 +10,13 @@ class ClashApiMonitorJob < ApplicationJob
   WIREGUARD_HANDSHAKE_TIMEOUT = 5.minutes  # ⭐ Allow 5 min of idle before considering inactive
   DEACTIVATION_GRACE_PERIOD = 5.minutes      # Then 5 min grace period
 
+  # ✅ NEW: Force-release configs stuck as "in_use" without activity > 15 min
+  FORCE_RELEASE_TIMEOUT = 15.minutes
+
   def perform
+    # ✅ NEW: Force-release abandoned configs FIRST (safety net for DNS failures)
+    force_release_abandoned_configs
+
     devices_with_real_connections = Set.new
 
     Server.active.healthy.find_each do |server|
@@ -53,9 +59,10 @@ class ClashApiMonitorJob < ApplicationJob
     potentially_inactive_device_ids = currently_active_device_ids - devices_with_real_connections.to_a
 
     if potentially_inactive_device_ids.any?
+      # ✅ FIXED: Handle NULL last_seen_at (catches devices that never sent heartbeat)
       devices_to_deactivate = Device
         .where(id: potentially_inactive_device_ids)
-        .where('last_seen_at < ?', DEACTIVATION_GRACE_PERIOD.ago)
+        .where('last_seen_at IS NULL OR last_seen_at < ?', DEACTIVATION_GRACE_PERIOD.ago)
         .pluck(:id)
 
       if devices_to_deactivate.any?
@@ -77,6 +84,53 @@ class ClashApiMonitorJob < ApplicationJob
   end
 
   private
+
+  # ✅ NEW: Force-release configs stuck as "in_use" without activity
+  # Catches cases where app couldn't notify backend (DNS failure, network issue)
+  # Runs FIRST in every monitoring job as a safety net
+  def force_release_abandoned_configs
+    abandoned_configs = VpnConfigSet
+      .where(status: 'in_use')
+      .joins(:device)
+      .where(
+        'devices.last_seen_at IS NULL OR devices.last_seen_at < ?',
+        FORCE_RELEASE_TIMEOUT.ago
+      )
+      .includes(:device, :server)
+
+    return if abandoned_configs.empty?
+
+    Rails.logger.warn "🚨 FORCE-RELEASING #{abandoned_configs.count} ABANDONED CONFIGS (no activity > #{FORCE_RELEASE_TIMEOUT.inspect}):"
+
+    abandoned_configs.find_each do |config_set|
+      device = config_set.device
+      last_seen = device.last_seen_at&.strftime('%Y-%m-%d %H:%M:%S') || 'NEVER'
+
+      Rails.logger.warn "   Device #{device.id}: IP #{config_set.ip_address}, last_seen: #{last_seen}, active: #{device.active}"
+
+      # Kill lingering connections
+      server = config_set.server
+      if server.singbox_active? && server.clash_api_secret.present?
+        begin
+          killed = kill_singbox_connections_for_vpn_ip(server, config_set.ip_address)
+          Rails.logger.info "   🔪 Killed #{killed} sing-box connections" if killed > 0
+        rescue => e
+          Rails.logger.error "   Failed to kill connections: #{e.message}"
+        end
+      end
+
+      # Release config
+      config_set.release!
+
+      # Mark device inactive
+      device.update!(active: false)
+
+      # Close connection records
+      device.vpn_connections.where(disconnected_at: nil).update_all(disconnected_at: Time.current)
+
+      Rails.logger.info "   ✅ Released abandoned config #{config_set.ip_address}"
+    end
+  end
 
   # ⭐ Monitor WireGuard connections via SSH
   def monitor_wireguard(server)
@@ -333,8 +387,6 @@ class ClashApiMonitorJob < ApplicationJob
     VpnConnection.where(device_id: device_ids, disconnected_at: nil).update_all(disconnected_at: Time.current)
     Rails.logger.info "🔓 Released configs for #{device_ids.size} devices"
   end
-
-  private
 
   # ✅ FIXED: Match by VPN IP instead of external IP
   def kill_singbox_connections_for_vpn_ip(server, vpn_ip)
