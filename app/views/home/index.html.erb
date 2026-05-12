@@ -4,6 +4,7 @@
     <p>For travelers, expats, and digital nomads who need reliable VPN access on any network.</p>
     <a href="<%= new_user_registration_path %>" class="cta-btn">Get Private Access</a>
   </section>
+
   <section class="features">
     <h2>Why Choose Vulcain VPN?</h2>
     <div class="feature-grid">
@@ -21,6 +22,7 @@
       </div>
     </div>
   </section>
+
   <section class="pricing">
     <h2>Choose Your Plan</h2>
     <!-- Desktop Grid -->
@@ -66,6 +68,25 @@
           <% end %>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Downloads Section -->
+  <section class="downloads">
+    <h2>Get VulcainVPN</h2>
+    <p class="downloads-subtitle">Available on Windows and Android only<br>
+    <small class="downloads-subtitle">MacOS and iOS coming soon</small></p>
+    <div class="download-buttons">
+      <a href="YOUR_WINDOWS_EXE_DOWNLOAD_URL" class="download-badge-link">
+        <img src="/windows-button.png"
+            alt="Download for Windows"
+            class="download-badge google-play-badge">
+      </a>
+      <a href="YOUR_GOOGLE_PLAY_STORE_URL" class="download-badge-link">
+        <img src="/googleplay-button.png"
+            alt="Get it on Google Play"
+            class="download-badge google-play-badge">
+      </a>
     </div>
   </section>
 
@@ -468,6 +489,92 @@
     }
     .plan-grid {
       display: grid;
+    }
+  }
+
+  /* Downloads Section */
+  .downloads {
+    padding: 4rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: 1px solid #432923;
+    text-align: center;
+  }
+
+  .downloads h2 {
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    color: #2c3e50;
+  }
+
+  .downloads-subtitle {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .download-buttons {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .download-badge-link {
+    display: inline-block;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .download-badge-link:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+
+  .download-badge {
+    height: 60px;
+    width: auto;
+  }
+
+  .windows-badge {
+    height: 60px;
+    width: 200px;
+    border-radius: 8px;
+  }
+
+  .google-play-badge {
+    height: 80px;
+  }
+
+  /* Mobile styles for downloads */
+  @media (max-width: 768px) {
+    .downloads {
+      padding: 2rem 0.5rem;
+    }
+
+    .downloads h2 {
+      font-size: 1.75rem;
+    }
+
+    .downloads-subtitle {
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .download-buttons {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .windows-badge {
+      height: 50px;
+      width: 165px;
+    }
+
+    .google-play-badge {
+      height: 70px;
     }
   }
 </style>

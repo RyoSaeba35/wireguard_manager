@@ -97,8 +97,10 @@ class Api::DevicesController < ApplicationController
 
     unless server
       render json: {
-        error: "No servers available",
-        message: "All servers are currently at capacity."
+        error: "Service temporarily unavailable",
+        message: "We're experiencing technical difficulties. Our team is working to resolve this issue. Please try again in a few minutes.",
+        technical_issue: true,
+        retry_recommended: true
       }, status: :service_unavailable
       return
     end
@@ -118,8 +120,9 @@ class Api::DevicesController < ApplicationController
 
     unless config_set
       render json: {
-        error: "Server at capacity",
-        message: "Selected server is currently full.",
+        error: "Service temporarily unavailable",
+        message: "We're experiencing technical difficulties. Our team is working to resolve this issue. Please try again shortly.",
+        technical_issue: true,
         retry: true
       }, status: :service_unavailable
       return
