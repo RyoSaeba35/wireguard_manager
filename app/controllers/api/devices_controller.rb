@@ -6,49 +6,92 @@ class Api::DevicesController < ApplicationController
   before_action :authenticate_device!, only: [:connect, :disconnect, :heartbeat, :credentials]
 
   # POST api/devices/register
-  def register
-    subscription = @current_api_user.subscriptions.last
+# app/controllers/api/devices_controller.rb
+def register
+  subscription = @current_api_user.subscriptions.last
 
-    unless subscription
-      render json: {
-        error: "No subscription found",
-        message: "You need to purchase a subscription first.",
-        action_required: "subscribe",
-        renewal_url: "https://www.vulcainvpn.com/dashboard/"
-      }, status: :forbidden
-      return
-    end
+  unless subscription
+    render json: {
+      error: "No subscription found",
+      message: "You need to purchase a subscription first.",
+      action_required: "subscribe",
+      renewal_url: "https://www.vulcainvpn.com/dashboard/"
+    }, status: :forbidden
+    return
+  end
 
-    # Find or create device
+  # ✅ IMPROVED: Use transaction to ensure atomicity
+  device = nil
+
+  Device.transaction do
     device = Device.find_by(device_id: params[:device_id])
 
     if device
-      # Device exists - link it to current subscription if different
-      if device.subscription_id != subscription.id
-        Rails.logger.info "🔄 Auto-linking device #{device.device_id} to subscription #{subscription.id}"
-        device.update!(subscription: subscription, active: false)
+      # Device exists - transfer to new subscription
+      old_subscription_id = device.subscription_id
+
+      if old_subscription_id != subscription.id
+        Rails.logger.info "🔄 Transferring device #{device.device_id} from subscription #{old_subscription_id} to #{subscription.id}"
+
+        # ⭐ CRITICAL: Release any existing VPN config FIRST
+        if device.vpn_config_set
+          Rails.logger.info "  ↳ Releasing existing config: #{device.vpn_config_set.ip_address}"
+          device.vpn_config_set.release!
+        end
+
+        # ⭐ Close any active connections
+        device.vpn_connections.where(disconnected_at: nil).update_all(
+          disconnected_at: Time.current
+        )
+
+        # ⭐ Transfer ownership
+        device.update!(
+          user: @current_api_user,
+          subscription: subscription,
+          active: false,
+          connected_at: nil,
+          last_seen_at: Time.current
+        )
+      else
+        # Same subscription - just update metadata
+        device.update!(last_seen_at: Time.current)
       end
     else
       # Create new device
-      device = subscription.devices.new(device_id: params[:device_id])
+      device = Device.create!(
+        device_id: params[:device_id],
+        user: @current_api_user,
+        subscription: subscription,
+        platform: params[:platform],
+        name: params[:name],
+        active: false
+      )
+      Rails.logger.info "✅ Created new device: #{device.device_id}"
     end
 
+    # Update device metadata
     device.assign_attributes(
-      user: @current_api_user,
       platform: params[:platform],
       name: params[:name]
     )
-
-    if device.save
-      render json: {
-        api_key: device.api_key,
-        device_id: device.device_id,
-        message: "Device registered successfully"
-      }, status: :created
-    else
-      render json: { error: device.errors.full_messages.join(", ") }, status: :unprocessable_entity
-    end
+    device.save!
   end
+
+  render json: {
+    api_key: device.api_key,
+    device_id: device.device_id,
+    message: "Device registered successfully"
+  }, status: :created
+
+rescue => e
+  Rails.logger.error "Device registration failed: #{e.message}"
+  Rails.logger.error e.backtrace.join("\n")
+
+  render json: {
+    error: "Registration failed",
+    message: e.message
+  }, status: :unprocessable_entity
+end
 
   # POST api/connect/:device_id
   def connect
