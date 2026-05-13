@@ -132,7 +132,7 @@ Rails.application.routes.draw do
   get "download_qr_code/:filename", to: "downloads#qr_code", as: :download_qr_code, constraints: { filename: /[^\/]+/ }
 
   # Downloads with clean URLs
-  get "/downloads/VulcainVPN-1.0.9.apk", to: "downloads#apk", as: :download_apk
+  get "/downloads/VulcainVPN-1.1.0.apk", to: "downloads#apk", as: :download_apk
   get "/downloads/VulcainVPN-Setup-1.0.6.exe", to: "downloads#windows", as: :download_windows
 
   # Generic file download (for flexibility)
