@@ -6,99 +6,95 @@ class Api::DevicesController < ApplicationController
   before_action :authenticate_device!, only: [:connect, :disconnect, :heartbeat, :credentials]
 
   # POST api/devices/register
-# app/controllers/api/devices_controller.rb
-def register
-  subscription = @current_api_user.subscriptions.last
+  # ✅ FIXED: Always allow device registration, regardless of subscription status
+  def register
+    # ✅ REMOVED: subscription check - let user register device always
+    # The subscription check will happen during /connect instead
 
-  unless subscription
-    render json: {
-      error: "No subscription found",
-      message: "You need to purchase a subscription first.",
-      action_required: "subscribe",
-      renewal_url: "https://www.vulcainvpn.com/dashboard/"
-    }, status: :forbidden
-    return
-  end
+    device = nil
 
-  # ✅ IMPROVED: Use transaction to ensure atomicity
-  device = nil
+    Device.transaction do
+      device = Device.find_by(device_id: params[:device_id])
 
-  Device.transaction do
-    device = Device.find_by(device_id: params[:device_id])
+      if device
+        # Device exists - update ownership
+        old_subscription_id = device.subscription_id
 
-    if device
-      # Device exists - transfer to new subscription
-      old_subscription_id = device.subscription_id
+        # Get user's most recent subscription (active or not)
+        new_subscription = @current_api_user.subscriptions.order(created_at: :desc).first
 
-      if old_subscription_id != subscription.id
-        Rails.logger.info "🔄 Transferring device #{device.device_id} from subscription #{old_subscription_id} to #{subscription.id}"
+        if old_subscription_id != new_subscription&.id
+          Rails.logger.info "🔄 Transferring device #{device.device_id} to user #{@current_api_user.id}"
 
-        # ⭐ CRITICAL: Release any existing VPN config FIRST
-        if device.vpn_config_set
-          Rails.logger.info "  ↳ Releasing existing config: #{device.vpn_config_set.ip_address}"
-          device.vpn_config_set.release!
+          # Release any existing VPN config
+          if device.vpn_config_set
+            Rails.logger.info "  ↳ Releasing existing config: #{device.vpn_config_set.ip_address}"
+            device.vpn_config_set.release!
+          end
+
+          # Close any active connections
+          device.vpn_connections.where(disconnected_at: nil).update_all(
+            disconnected_at: Time.current
+          )
+
+          # Transfer ownership
+          device.update!(
+            user: @current_api_user,
+            subscription: new_subscription,  # Can be nil if no subscription
+            active: false,
+            connected_at: nil,
+            last_seen_at: Time.current
+          )
+        else
+          # Same subscription - just update metadata
+          device.update!(last_seen_at: Time.current)
         end
-
-        # ⭐ Close any active connections
-        device.vpn_connections.where(disconnected_at: nil).update_all(
-          disconnected_at: Time.current
-        )
-
-        # ⭐ Transfer ownership
-        device.update!(
-          user: @current_api_user,
-          subscription: subscription,
-          active: false,
-          connected_at: nil,
-          last_seen_at: Time.current
-        )
       else
-        # Same subscription - just update metadata
-        device.update!(last_seen_at: Time.current)
+        # Create new device
+        # ✅ Get user's most recent subscription (even if expired/inactive)
+        subscription = @current_api_user.subscriptions.order(created_at: :desc).first
+
+        device = Device.create!(
+          device_id: params[:device_id],
+          user: @current_api_user,
+          subscription: subscription,  # ✅ Can be nil - that's OK!
+          platform: params[:platform],
+          name: params[:name],
+          active: false
+        )
+        Rails.logger.info "✅ Created new device: #{device.device_id} (subscription: #{subscription&.id || 'none'})"
       end
-    else
-      # Create new device
-      device = Device.create!(
-        device_id: params[:device_id],
-        user: @current_api_user,
-        subscription: subscription,
+
+      # Update device metadata
+      device.assign_attributes(
         platform: params[:platform],
-        name: params[:name],
-        active: false
+        name: params[:name]
       )
-      Rails.logger.info "✅ Created new device: #{device.device_id}"
+      device.save!
     end
 
-    # Update device metadata
-    device.assign_attributes(
-      platform: params[:platform],
-      name: params[:name]
-    )
-    device.save!
+    render json: {
+      api_key: device.api_key,
+      device_id: device.device_id,
+      message: "Device registered successfully"
+    }, status: :created
+
+  rescue => e
+    Rails.logger.error "Device registration failed: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+
+    render json: {
+      error: "Registration failed",
+      message: e.message
+    }, status: :unprocessable_entity
   end
-
-  render json: {
-    api_key: device.api_key,
-    device_id: device.device_id,
-    message: "Device registered successfully"
-  }, status: :created
-
-rescue => e
-  Rails.logger.error "Device registration failed: #{e.message}"
-  Rails.logger.error e.backtrace.join("\n")
-
-  render json: {
-    error: "Registration failed",
-    message: e.message
-  }, status: :unprocessable_entity
-end
 
   # POST api/connect/:device_id
   def connect
     subscription = current_subscription
     device = current_device
 
-    # ⭐ STEP 1: Release any existing config (in_use OR used)
+    # ✅ STEP 1: Release any existing config (in_use OR used)
     existing_config = device.vpn_config_set
 
     if existing_config
@@ -114,7 +110,7 @@ end
     # Reset device state before new connection
     device.update!(active: false, connected_at: nil)
 
-    # ⭐ STEP 2: Check device limit (excluding current device)
+    # ✅ STEP 2: Check device limit (excluding current device)
     active_count = subscription.devices
                               .where(active: true)
                               .where.not(id: device.id)
@@ -131,10 +127,10 @@ end
       return
     end
 
-    # ⭐ STEP 3: Find best server
+    # ✅ STEP 3: Find best server
     selector = ServerSelectorService.new
     server = selector.find_best_server(
-      user_ip: client_ip_address, # ✅ FIXED: Use real client IP
+      user_ip: client_ip_address,
       preferred_location: params[:preferred_location]
     )
 
@@ -148,7 +144,7 @@ end
       return
     end
 
-    # ⭐ STEP 4: Claim fresh config from pool
+    # ✅ STEP 4: Claim fresh config from pool
     config_set = nil
 
     VpnConfigSet.transaction do
@@ -171,7 +167,7 @@ end
       return
     end
 
-    # ⭐ STEP 5: Create connection record
+    # ✅ STEP 5: Create connection record
     VpnConnection.create!(
       user: device.user,
       device: device,
@@ -180,8 +176,7 @@ end
       connected_at: Time.current
     )
 
-    # ⭐ STEP 6: Update device status
-    # ✅ FIXED: Use real client IP
+    # ✅ STEP 6: Update device status
     device.update!(
       active: true,
       connected_at: Time.current,
@@ -191,7 +186,7 @@ end
 
     Rails.logger.info "✅ Device #{device.id} connected from IP: #{client_ip_address}"
 
-    # ⭐ STEP 7: Build and return credentials
+    # ✅ STEP 7: Build and return credentials
     credentials = build_credentials_from_config(config_set)
 
     render json: {
@@ -269,7 +264,6 @@ end
       return
     end
 
-    # ✅ FIXED: Use real client IP from proxy headers
     device.update!(
       last_seen_at: Time.current,
       last_connection_ip: client_ip_address
@@ -285,14 +279,11 @@ end
 
   private
 
-  # ✅ NEW: Extract real client IP from proxy headers
   def client_ip_address
     # Try forwarded headers first (for proxies/load balancers)
     forwarded_for = request.headers['HTTP_X_FORWARDED_FOR']
 
     if forwarded_for.present?
-      # X-Forwarded-For can have multiple IPs (client, proxy1, proxy2)
-      # The first one is the original client
       ip = forwarded_for.split(',').first.strip
       Rails.logger.debug "📍 IP from X-Forwarded-For: #{ip}"
       return ip
@@ -360,9 +351,21 @@ end
       return
     end
 
-    # Check subscription status
+    # ✅ CRITICAL: Check subscription status during connect/heartbeat
     current_subscription = @current_device.subscription
 
+    # ✅ No subscription at all
+    unless current_subscription
+      render json: {
+        error: "No subscription found",
+        message: "You need to purchase a subscription to use VulcainVPN.",
+        action_required: "subscribe",
+        renewal_url: "https://www.vulcainvpn.com/dashboard/"
+      }, status: :forbidden
+      return
+    end
+
+    # ✅ Subscription exists but not active
     unless current_subscription.active?
       # Try to auto-link to active subscription
       active_subscription = @current_device.user.subscriptions.active.first
@@ -373,7 +376,7 @@ end
         @current_device.reload
       else
         render json: {
-          error: "No active subscription",
+          error: "Subscription expired",
           message: "Your subscription has expired. Please renew to continue.",
           subscription_status: current_subscription.status,
           expires_at: current_subscription.expires_at,
@@ -393,7 +396,6 @@ end
     @current_device.subscription
   end
 
-  # ⭐ NEW: Build credentials from config set
   def build_credentials_from_config(config_set)
     server = config_set.server
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_17_134155) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_14_085241) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -40,7 +40,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_17_134155) do
   end
 
 # Could not dump table "devices" because of following StandardError
-#   Unknown type 'inet' for column 'last_connection_ip'
+#   Unknown type '' for column 'last_connection_ip'
 
 
   create_table "jwt_denylists", force: :cascade do |t|

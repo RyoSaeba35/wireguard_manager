@@ -18,7 +18,7 @@ class DownloadsController < ApplicationController
 
   # Specific endpoints for clean URLs
   def apk
-    generate_download_url("downloads/VulcainVPN-1.1.0.apk")
+    generate_download_url("downloads/VulcainVPN-1.1.1.apk")
   end
 
   def windows
