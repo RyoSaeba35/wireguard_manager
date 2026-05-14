@@ -22,7 +22,7 @@ class DownloadsController < ApplicationController
   end
 
   def windows
-    generate_download_url("downloads/VulcainVPN-Setup-1.0.6.exe")
+    generate_download_url("downloads/VulcainVPN-Setup-1.0.7.exe")
   end
 
   def qr_code

@@ -133,7 +133,7 @@ Rails.application.routes.draw do
 
   # Downloads with clean URLs
   get "/downloads/VulcainVPN-1.1.1.apk", to: "downloads#apk", as: :download_apk
-  get "/downloads/VulcainVPN-Setup-1.0.6.exe", to: "downloads#windows", as: :download_windows
+  get "/downloads/VulcainVPN-Setup-1.0.7.exe", to: "downloads#windows", as: :download_windows
 
   # Generic file download (for flexibility)
   get "/downloads/:filename", to: "downloads#file", as: :download_file, constraints: { filename: /[^\/]+\.(apk|exe|dmg|zip|deb|rpm)/ }
