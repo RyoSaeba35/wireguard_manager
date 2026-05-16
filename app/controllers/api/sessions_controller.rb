@@ -2,6 +2,7 @@
 class Api::SessionsController < ApplicationController
   protect_from_forgery with: :null_session
   skip_before_action :authenticate_user!
+  skip_before_action :verify_authenticity_token
 
   # POST api/login
   def create
