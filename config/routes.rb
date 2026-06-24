@@ -32,7 +32,7 @@ Rails.application.routes.draw do
       end
     end
 
-    # ⭐ Servers Management (Pooling Architecture)
+    # Servers Management (Pooling Architecture)
     resources :servers do
       member do
         patch :toggle_active
@@ -57,10 +57,10 @@ Rails.application.routes.draw do
     # WireGuard Clients (Legacy - may remove after migration)
     resources :wireguard_clients, only: [ :index, :show, :destroy ]
 
-    # ⭐ System Setting (Singular - only ONE settings record)
+    # System Setting (Singular - only ONE settings record)
     resource :setting, only: [ :edit, :update ], controller: "setting"
 
-    # ⭐ Optional: Connections monitoring (add if you create the controller)
+    # Optional: Connections monitoring (add if you create the controller)
     # resources :connections, only: [:index, :show] do
     #   member do
     #     delete :disconnect
@@ -154,12 +154,12 @@ Rails.application.routes.draw do
       # Device Management
       post "devices/register", to: "devices#register"
 
-      # ⭐ VPN Session Management (Pooling)
+      # VPN Session Management (Pooling)
       post "connect/:device_id",    to: "devices#connect",    constraints: { device_id: /[^\/]+/ }
       post "disconnect/:device_id", to: "devices#disconnect", constraints: { device_id: /[^\/]+/ }
       post "heartbeat/:device_id",  to: "devices#heartbeat",  constraints: { device_id: /[^\/]+/ }
 
-      # ⭐ Credentials (Returns fresh config from pool)
+      # Credentials (Returns fresh config from pool)
       get "credentials/:device_id", to: "devices#credentials", constraints: { device_id: /[^\/]+/ }
 
       # Subscription Management
@@ -168,6 +168,9 @@ Rails.application.routes.draw do
 
       # User Status
       get "status", to: "users#status"
+
+      # Diagnostic reports (sent from Flutter app settings)
+      post "diagnostic_report", to: "diagnostics#create"
     end
   end
 end

@@ -1,0 +1,16 @@
+VulcainVPN Diagnostic Report
+=============================
+Sent at:     <%= @sent_at %>
+User:        <%= @user_email %> (ID: <%= @user_id %>)
+Device:      <%= @device_info %>
+Android:     <%= @os_version %>
+App version: <%= @app_version %>
+
+<% if @user_message.present? %>
+User message:
+<%= @user_message %>
+
+<% end %>
+--- Diagnostic Log ---
+
+<%= @log_content %>
