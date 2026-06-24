@@ -4,13 +4,11 @@ Sent at:     <%= @sent_at %>
 User:        <%= @user_email %> (ID: <%= @user_id %>)
 Device:      <%= @device_info %>
 Android:     <%= @os_version %>
-App version: <%= @app_version %>
-
+App version: v<%= @app_version %>
 <% if @user_message.present? %>
-User message:
+
+Message from user:
 <%= @user_message %>
-
 <% end %>
---- Diagnostic Log ---
 
-<%= @log_content %>
+The diagnostic log is attached as a .txt file.

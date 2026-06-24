@@ -5,62 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f5f5f5;
       color: #1a1a1a;
       padding: 24px;
     }
-
     .container {
-      max-width: 780px;
+      max-width: 600px;
       margin: 0 auto;
       background: #ffffff;
       border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-
     .header {
       background: #ff6e08;
       padding: 24px 32px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
     }
-
-    .header h1 {
-      color: #ffffff;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .header p {
-      color: rgba(255,255,255,0.8);
-      font-size: 13px;
-      margin-top: 2px;
-    }
-
-    .body {
-      padding: 28px 32px;
-    }
-
+    .header h1 { color: #ffffff; font-size: 20px; font-weight: 700; }
+    .header p  { color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 4px; }
+    .body { padding: 28px 32px; }
     .info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-bottom: 24px;
     }
-
     .info-card {
       background: #f8f8f8;
       border-radius: 8px;
       padding: 14px 16px;
       border-left: 3px solid #ff6e08;
     }
-
     .info-card .label {
       font-size: 11px;
       font-weight: 600;
@@ -69,18 +46,12 @@
       letter-spacing: 0.5px;
       margin-bottom: 4px;
     }
-
     .info-card .value {
       font-size: 14px;
       font-weight: 500;
       color: #1a1a1a;
       word-break: break-all;
     }
-
-    .info-card.full {
-      grid-column: 1 / -1;
-    }
-
     .user-message {
       background: #fff8f0;
       border: 1px solid #ffd4a8;
@@ -88,7 +59,6 @@
       padding: 16px;
       margin-bottom: 24px;
     }
-
     .user-message .label {
       font-size: 11px;
       font-weight: 600;
@@ -97,44 +67,19 @@
       letter-spacing: 0.5px;
       margin-bottom: 8px;
     }
-
-    .user-message p {
-      font-size: 14px;
-      color: #333;
-      line-height: 1.6;
-    }
-
-    .log-section h2 {
-      font-size: 13px;
-      font-weight: 600;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 12px;
-    }
-
-    .log-box {
-      background: #0f0a0e;
+    .user-message p { font-size: 14px; color: #333; line-height: 1.6; }
+    .attachment-note {
+      background: #f0f7ff;
+      border: 1px solid #b3d4f5;
       border-radius: 8px;
-      padding: 20px;
-      overflow-x: auto;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-
-    .log-box pre {
-      font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
-      font-size: 11.5px;
-      line-height: 1.65;
-      color: #e0e0e0;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    /* Colour-code log lines */
-    .log-box pre .line-ok     { color: #4caf50; }
-    .log-box pre .line-warn   { color: #ff9800; }
-    .log-box pre .line-error  { color: #f44336; }
-    .log-box pre .line-info   { color: #90caf9; }
-
+    .attachment-note .icon { font-size: 28px; }
+    .attachment-note p { font-size: 13px; color: #2c5f8a; line-height: 1.5; }
+    .attachment-note strong { display: block; font-size: 14px; margin-bottom: 2px; }
     .footer {
       padding: 18px 32px;
       background: #fafafa;
@@ -143,24 +88,19 @@
       color: #999;
       text-align: center;
     }
-
     .footer a { color: #ff6e08; text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="container">
 
-    <!-- Header -->
     <div class="header">
-      <div>
-        <h1>🔧 Diagnostic Report</h1>
-        <p>VulcainVPN — received <%= @sent_at %></p>
-      </div>
+      <h1>🔧 Diagnostic Report</h1>
+      <p>Received <%= @sent_at %></p>
     </div>
 
     <div class="body">
 
-      <!-- Device / User info -->
       <div class="info-grid">
         <div class="info-card">
           <div class="label">User</div>
@@ -175,7 +115,7 @@
           <div class="value"><%= @device_info %></div>
         </div>
         <div class="info-card">
-          <div class="label">Android version</div>
+          <div class="label">Android</div>
           <div class="value"><%= @os_version %></div>
         </div>
         <div class="info-card">
@@ -188,7 +128,6 @@
         </div>
       </div>
 
-      <!-- User message (only shown if provided) -->
       <% if @user_message.present? %>
       <div class="user-message">
         <div class="label">Message from user</div>
@@ -196,12 +135,13 @@
       </div>
       <% end %>
 
-      <!-- Log -->
-      <div class="log-section">
-        <h2>Diagnostic Log</h2>
-        <div class="log-box">
-          <pre><%= @log_content %></pre>
-        </div>
+      <div class="attachment-note">
+        <div class="icon">📎</div>
+        <p>
+          <strong>Diagnostic log attached</strong>
+          The full log is attached as a <code>.txt</code> file.
+          Open it in any text editor to search for errors.
+        </p>
       </div>
 
     </div>
