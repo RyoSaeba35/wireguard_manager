@@ -1,6 +1,6 @@
 # app/mailers/diagnostic_mailer.rb
 class DiagnosticMailer < ApplicationMailer
-  default from: 'noreply@vulcainvpn.com'
+  default from: 'VulcainVPN Support <support@vulcainvpn.com>'
 
   def report(to:, user_email:, user_id:, device_info:, os_version:,
              app_version:, user_message:, log_content:, sent_at:)
