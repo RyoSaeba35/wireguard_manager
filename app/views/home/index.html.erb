@@ -77,7 +77,7 @@
     <p class="downloads-subtitle">Available on Windows and Android only<br>
     <small class="downloads-subtitle">MacOS and iOS coming soon</small></p>
     <div class="download-buttons">
-      <a href="YOUR_WINDOWS_EXE_DOWNLOAD_URL" class="download-badge-link">
+      <a href="<%= download_windows_path %>" class="download-badge-link">
         <img src="/windows-button.png"
             alt="Download for Windows"
             class="download-badge google-play-badge">
@@ -107,6 +107,109 @@
         </div>
 
         <p class="about-closing">We believe in keeping things simple, transparent, and reliable. No gimmicks, no overselling — just a VPN that works when you need it.</p>
+
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-list">
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Do you keep logs of my activity?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>We never log your browsing activity, websites you visit, DNS queries, or traffic content. Your online activity is completely private.</p>
+          <p>To enforce our 3-device limit and prevent fraud, we temporarily store minimal connection metadata (your IP address, connection timestamps, and approximate location). This data is automatically deleted after 24-48 hours and is never used for any other purpose.</p>
+          <p><a href="<%= logging_path %>">Read our full logging policy →</a></p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Which protocols do you support?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Vulcain VPN supports three protocols, and our app automatically selects the best one for your network:</p>
+          <ul>
+            <li><strong>WireGuard</strong> — fastest and most efficient, ideal for most connections</li>
+            <li><strong>Hysteria2</strong> — designed for high-latency or lossy networks, great for unstable connections</li>
+            <li><strong>Shadowsocks</strong> — obfuscated traffic, useful on networks with VPN filtering</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          How many devices can I connect simultaneously?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Each subscription allows up to <strong>3 simultaneous device connections</strong>. You can install the app on as many devices as you want, but only 3 can be connected at the same time.</p>
+          <p>If you try to connect a 4th device, the oldest connection will be automatically disconnected.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Will it work with my banking website or app?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p><strong>Banking websites</strong> generally work fine through Vulcain VPN.</p>
+          <p><strong>Banking mobile apps</strong> are less predictable — many banks block or restrict VPN connections as a security measure. Some apps may flag your account or require additional verification when accessed via VPN.</p>
+          <p>We recommend testing with your specific bank before relying on it. If your banking app doesn't work, you can temporarily disconnect from the VPN to access it.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Which countries do you have servers in?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>We currently operate servers in <strong>France</strong>. Our service is specifically designed for expats, travelers, and digital nomads who need a reliable French IP address — to access their home banking, government portals, or French streaming services from abroad.</p>
+          <p>We intentionally keep our server count small to ensure quality and performance for our users rather than spreading thin across dozens of countries.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Will it slow down my internet connection?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Some speed reduction is normal with any VPN due to encryption overhead and routing. However, we guarantee a <strong>minimum of 20 Mbps</strong> for all users.</p>
+          <p>By keeping our user base intentionally small, we avoid the overcrowding that plagues larger VPN providers. You won't be sharing bandwidth with tens of thousands of users on the same server.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Is it legal to use a VPN?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>VPN use is legal in most countries, including all EU member states, the UK, and the US.</p>
+          <p>However, some countries restrict or prohibit VPN use (e.g., China, Iran, UAE). If you are in or traveling to one of these countries, it is your responsibility to understand and comply with local laws. We cannot guarantee service functionality in jurisdictions with strict internet censorship.</p>
+          <p>Regardless of location, you agree to use Vulcain VPN only for lawful purposes.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Can I get a refund?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>All fees are non-refundable as stated in our Terms of Service. We recommend trying the service thoroughly before committing to a longer subscription.</p>
+          <p>If you experience technical issues, please contact us at <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a> and we'll do our best to resolve them.</p>
+        </div>
+      </div>
 
     </div>
   </section>
@@ -577,6 +680,109 @@
       height: 70px;
     }
   }
+
+  .faq {
+    padding: 4rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: 1px solid #432923;
+  }
+
+  .faq h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #2c3e50;
+  }
+
+  .faq-list {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .faq-item:first-child {
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .faq-question {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 1.2rem 0;
+    text-align: left;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #2c3e50;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .faq-question:hover {
+    color: #ff6e08;
+  }
+
+  .faq-icon {
+    font-size: 1.4rem;
+    color: #ff6e08;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+
+  .faq-answer {
+    display: none;
+    padding: 0 0 1.2rem 0;
+    color: #555;
+    line-height: 1.7;
+  }
+
+  .faq-answer p {
+    margin-bottom: 0.8rem;
+  }
+
+  .faq-answer p:last-child {
+    margin-bottom: 0;
+  }
+
+  .faq-answer ul {
+    margin: 0.5rem 0 0.8rem 1.2rem;
+  }
+
+  .faq-answer ul li {
+    margin-bottom: 0.4rem;
+  }
+
+  .faq-answer a {
+    color: #ff6e08;
+    text-decoration: none;
+  }
+
+  .faq-answer a:hover {
+    text-decoration: underline;
+  }
+
+  .faq-item.open .faq-icon {
+    transform: rotate(45deg);
+  }
+
+  @media (max-width: 768px) {
+    .faq {
+      padding: 2rem 0.5rem;
+    }
+
+    .faq-question {
+      font-size: 1rem;
+      padding: 1rem 0;
+    }
+  }
 </style>
 
 <script>
@@ -597,4 +803,22 @@
       }
     }
   });
+
+  function toggleFaq(button) {
+    const item = button.parentElement;
+    const answer = item.querySelector('.faq-answer');
+    const isOpen = item.classList.contains('open');
+
+    // Close all open items
+    document.querySelectorAll('.faq-item.open').forEach(function(openItem) {
+      openItem.classList.remove('open');
+      openItem.querySelector('.faq-answer').style.display = 'none';
+    });
+
+    // Open clicked item if it was closed
+    if (!isOpen) {
+      item.classList.add('open');
+      answer.style.display = 'block';
+    }
+  }
 </script>
