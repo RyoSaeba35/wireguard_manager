@@ -66,12 +66,17 @@ class ClashApiMonitorJob < ApplicationJob
 
   private
 
+  # Only force-release configs where device is truly abandoned:
+  # - last_seen_at is NULL AND device has been active for more than FORCE_RELEASE_TIMEOUT
+  # - OR last_seen_at is older than FORCE_RELEASE_TIMEOUT
+  # Never force-release if last_seen_at is recent (heartbeats working)
   def force_release_abandoned_configs
     abandoned_configs = VpnConfigSet
       .where(status: 'in_use')
       .joins(:device)
       .where(
-        'devices.last_seen_at IS NULL OR devices.last_seen_at < ?',
+        'devices.last_seen_at IS NULL AND devices.updated_at < ? OR devices.last_seen_at < ?',
+        FORCE_RELEASE_TIMEOUT.ago,
         FORCE_RELEASE_TIMEOUT.ago
       )
       .includes(:device, :server)
@@ -179,10 +184,39 @@ class ClashApiMonitorJob < ApplicationJob
     connections_by_ip.each do |source_ip, conns|
       next unless source_ip
 
+      # ✅ FIX: Skip the server's own IP — this is WireGuard traffic routing
+      # through sing-box. The actual device is already tracked via monitor_wireguard.
+      if source_ip == server.ip_address
+        Rails.logger.info "ℹ️ Skipping server's own IP #{source_ip} (WireGuard routing through sing-box)"
+        next
+      end
+
+      # ✅ FIX: Also skip private/internal IPs that are VPN subnet addresses
+      # These are WireGuard peers whose traffic routes through sing-box
+      if source_ip.start_with?('10.', '172.16.', '192.168.')
+        # Try to match as VPN internal IP first
+        config_set = VpnConfigSet.find_by(
+          server: server,
+          ip_address: source_ip,
+          status: 'in_use'
+        )
+
+        if config_set
+          device = config_set.device
+          if device&.subscription&.active?
+            Rails.logger.info "✅ Matched WireGuard peer by VPN IP: #{source_ip} → Device #{device.id}"
+            active_device_ids << device.id
+          end
+        else
+          Rails.logger.info "ℹ️ Internal IP #{source_ip} not matched to any device — skipping (may be routing traffic)"
+        end
+        next
+      end
+
       device = nil
       config_set = nil
 
-      # Strategy 1: Match by VPN internal IP
+      # Strategy 1: Match by VPN internal IP (shouldn't reach here for internal IPs but kept for safety)
       config_set = VpnConfigSet.find_by(
         server: server,
         ip_address: source_ip,
@@ -218,10 +252,22 @@ class ClashApiMonitorJob < ApplicationJob
       end
 
       if device.nil?
-        Rails.logger.warn "🚨 UNKNOWN IP: #{source_ip} (#{conns.size} connections)"
-        conns.each do |conn|
-          kill_connection_via_ssh(server, conn["id"])
-          Rails.logger.info "   🔪 Killed suspicious connection #{conn['id']}"
+        # ✅ FIX: Log but don't immediately kill — could be a legitimate connection
+        # we failed to match. Only kill if it's truly unrecognized external IP
+        # with no active devices on this server at all.
+        active_devices_on_server = Device.joins(:vpn_config_set)
+          .where(active: true)
+          .where(vpn_config_sets: { server_id: server.id, status: 'in_use' })
+          .count
+
+        if active_devices_on_server == 0
+          Rails.logger.warn "🚨 UNKNOWN IP: #{source_ip} (#{conns.size} connections) — no active devices on server, killing"
+          conns.each do |conn|
+            kill_connection_via_ssh(server, conn["id"])
+            Rails.logger.info "   🔪 Killed suspicious connection #{conn['id']}"
+          end
+        else
+          Rails.logger.warn "⚠️ UNKNOWN IP: #{source_ip} (#{conns.size} connections) — #{active_devices_on_server} active device(s) on server, skipping kill (may be routing)"
         end
         next
       end
