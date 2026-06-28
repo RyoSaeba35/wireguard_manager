@@ -14,7 +14,7 @@ class AdminMailer < ApplicationMailer
     end.join(' AND ')
 
     mail(
-      to: 'admin@vulcainvpn.com',
+      to: SystemSetting.instance.support_email,
       subject: "🚨 URGENT: Password Theft Detected - #{username}"
     )
   end
@@ -22,7 +22,7 @@ class AdminMailer < ApplicationMailer
   def server_recovered(server)
     @server = server
     mail(
-      to: 'admin@vulcainvpn.com',
+      to: SystemSetting.instance.support_email,
       subject: "✅ Server Recovered: #{server.name}"
     )
   end
