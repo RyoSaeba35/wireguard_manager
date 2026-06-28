@@ -3,13 +3,7 @@ class Subscription < ApplicationRecord
   belongs_to :user, optional: true  # Allow nil for future use
   belongs_to :plan
 
-  # NEW: No server association (pooling!)
-  # REMOVED: belongs_to :server
-
-  # NEW: Keep devices
   has_many :devices, dependent: :destroy
-
-  # NEW: Connections through devices
   has_many :vpn_connections, through: :devices
 
   validates :name, :price, :plan, :expires_at, presence: true
@@ -32,18 +26,22 @@ class Subscription < ApplicationRecord
   scope :pending, -> { where(status: "pending") }
   scope :payment_pending, -> { where(status: "payment_pending") }
 
-  # REMOVED: preallocated scope (no more preallocated subscriptions)
-
   # URL-friendly parameter
   def to_param
     name
   end
 
   def status
-    return 'expired' if expires_at.present? && expires_at < Time.current
+    db_status = self[:status]
 
-    # Return DB column value only if not expired
-    self[:status] || 'active'
+    # Only override with 'expired' if it was an active subscription.
+    # Terminal/pending statuses (payment_pending, failed, canceled) are never
+    # overridden by expiry — they stay as-is regardless of expires_at.
+    if db_status == "active" && expires_at.present? && expires_at < Time.current
+      return 'expired'
+    end
+
+    db_status || 'active'
   end
 
   # Status predicate methods
