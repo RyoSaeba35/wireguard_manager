@@ -2,8 +2,8 @@
 class Server < ApplicationRecord
   encrypts :ssh_user, :ssh_password, :ssh_private_key, deterministic: true
   encrypts :singbox_ss_master_password, :singbox_salamander_password
+  encrypts :clash_api_secret
 
-  # NEW: Pooling associations
   has_many :vpn_config_sets, dependent: :destroy
   has_many :vpn_connections
 
@@ -12,7 +12,6 @@ class Server < ApplicationRecord
   validates :max_concurrent_connections, numericality: { only_integer: true, greater_than: 0 }
   validates :config_pool_size, numericality: { only_integer: true, greater_than: 0 }
 
-  # Scopes
   scope :active, -> { where(active: true) }
   scope :inactive, -> { where(active: false) }
   scope :healthy, -> { where(healthy: true) }
@@ -21,13 +20,11 @@ class Server < ApplicationRecord
     healthy == true
   end
 
-  # Get flag emoji from country code
   def flag
     return nil unless country_code.present?
     country_code.upcase.chars.map { |c| (c.ord + 127397).chr(Encoding::UTF_8) }.join
   end
 
-  # Current load stats
   def current_connections
     vpn_config_sets.where(status: 'in_use').count
   end

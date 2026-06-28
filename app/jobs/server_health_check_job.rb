@@ -19,7 +19,7 @@ class ServerHealthCheckJob < ApplicationJob
     begin
       uri = URI.parse("http://#{server.ip_address}#{HEALTH_ENDPOINT}")
       request = Net::HTTP::Get.new(uri)
-      request.basic_auth('vulcainadmin', 'Vulcain1989!')
+      request.basic_auth(ENV['SERVER_HEALTH_USER'], ENV['SERVER_HEALTH_PASSWORD'])
 
       response = Net::HTTP.start(uri.hostname, uri.port, open_timeout: 3, read_timeout: 3) do |http|
         http.request(request)
@@ -30,7 +30,6 @@ class ServerHealthCheckJob < ApplicationJob
         status = data['status']
 
         if status == "OK" || status == "WARNING"
-          # Server is healthy
           if !server.healthy?
             Rails.logger.info "✅ Server #{server.name} is now healthy"
             AdminMailer.server_recovered(server).deliver_later
@@ -42,16 +41,13 @@ class ServerHealthCheckJob < ApplicationJob
             health_failures: 0
           )
         else
-          # Server returned error status
           mark_unhealthy(server, "Status: #{status}")
         end
       else
-        # HTTP error
         mark_unhealthy(server, "HTTP #{response.code}")
       end
 
     rescue StandardError => e
-      # Connection failed
       mark_unhealthy(server, e.message)
     end
   end
@@ -65,7 +61,6 @@ class ServerHealthCheckJob < ApplicationJob
     )
 
     if failures >= MAX_FAILURES && server.healthy?
-      # Mark as unhealthy after 3 consecutive failures
       server.update!(healthy: false)
 
       Rails.logger.error "🚨 Server #{server.name} marked unhealthy after #{failures} failures: #{reason}"
