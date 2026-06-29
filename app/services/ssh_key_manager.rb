@@ -18,7 +18,7 @@ module SshKeyManager
   # Callers are responsible for deleting the file in their own ensure block.
   # Prefer with_private_key for any new code.
   def write_private_key(server)
-    self.class.write_key(server)
+    SshKeyManager.write_key(server)
   end
 
   def self.write_key(server)
