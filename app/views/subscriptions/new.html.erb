@@ -1,29 +1,27 @@
 <!-- app/views/subscriptions/new.html.erb -->
 <div class="super-container">
   <section class="pricing">
-    <h2>Choose Your Plan</h2>
+    <h2><%= I18n.locale == :fr ? 'Choisissez votre forfait' : 'Choose Your Plan' %></h2>
 
     <!-- Desktop Grid -->
     <div class="plan-grid">
       <% @plans.each do |plan| %>
         <%
-          # ⭐ SIMPLIFIED: @pool_available already checks subscription count
           plan_available = plan.active && @pool_available
         %>
         <div class="plan <%= !plan_available ? 'unavailable' : '' %>">
-          <% if plan.name.include?("Month") %>
-            <div class="popular-badge">Popular</div>
+          <% if plan.interval == "month" %>
+            <div class="popular-badge"><%= I18n.locale == :fr ? 'Populaire' : 'Popular' %></div>
           <% end %>
-          <h3><%= plan.name %></h3>
-          <p class="plan-subtitle">Flexible, cancel anytime</p>
+          <h3><%= plan.localized_name %></h3>
+          <p class="plan-subtitle"><%= I18n.locale == :fr ? 'Flexible, annulez à tout moment' : 'Flexible, cancel anytime' %></p>
           <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
           <div class="plan-features">
-            <% plan.description.split(', ').each do |feature| %>
+            <% plan.localized_description.split(', ').each do |feature| %>
               <% if feature.include?("Devices") %>
                 <p>
                   <strong><span class="checkmark">➤</span> <%= feature %></strong>
-                  <!-- ⭐ UPDATED: Reflects automatic pooling behavior -->
-                  <span class="tooltip-icon" title="Connect up to 3 devices simultaneously. Each device receives its own secure configuration automatically when you connect.">ℹ️</span>
+                  <span class="tooltip-icon" title="<%= I18n.locale == :fr ? "Connectez jusqu'à 3 appareils simultanément. Chaque appareil reçoit automatiquement sa propre configuration sécurisée." : 'Connect up to 3 devices simultaneously. Each device receives its own secure configuration automatically when you connect.' %>">ℹ️</span>
                 </p>
               <% else %>
                 <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
@@ -36,27 +34,24 @@
                 <%= form.hidden_field :price, value: plan.price %>
                 <%= form.hidden_field :plan_id, value: plan.id %>
               </div>
-              <%= form.submit "Subscribe Now", class: "plan-btn", data: { disable_with: "Processing..." } %>
+              <%= form.submit (I18n.locale == :fr ? "S'abonner maintenant" : 'Subscribe Now'), class: "plan-btn", data: { disable_with: (I18n.locale == :fr ? 'Traitement...' : 'Processing...') } %>
             <% end %>
-            <!-- Desktop Success Message -->
             <div id="subscribe-success-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
-              Success! Your subscription is being processed. You'll receive an email shortly.
+              <%= I18n.locale == :fr ? "Succès ! Votre abonnement est en cours de traitement. Vous recevrez un email sous peu." : "Success! Your subscription is being processed. You'll receive an email shortly." %>
             </div>
-
-            <!-- Mobile Success Message -->
             <div id="subscribe-success-mobile-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
-              Success! Your subscription is being processed. You'll receive an email shortly.
+              <%= I18n.locale == :fr ? "Succès ! Votre abonnement est en cours de traitement. Vous recevrez un email sous peu." : "Success! Your subscription is being processed. You'll receive an email shortly." %>
             </div>
           <% else %>
             <div class="plan-unavailable">
               <% if !plan.active %>
-                <p>This plan is currently not available.</p>
+                <p><%= I18n.locale == :fr ? 'Ce forfait est actuellement indisponible.' : 'This plan is currently not available.' %></p>
               <% elsif !@pool_available %>
-                <p>Sold Out</p>
-                <p>We're at capacity right now. Check back in a few minutes!</p>
+                <p><%= I18n.locale == :fr ? 'Complet' : 'Sold Out' %></p>
+                <p><%= I18n.locale == :fr ? 'Nous sommes à pleine capacité en ce moment. Revenez dans quelques minutes !' : "We're at capacity right now. Check back in a few minutes!" %></p>
               <% else %>
-                <p>Plan Sold Out</p>
-                <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>
+                <p><%= I18n.locale == :fr ? 'Forfait complet' : 'Plan Sold Out' %></p>
+                <p><%= I18n.locale == :fr ? "Nous limitons les abonnements actifs pour garantir la meilleure expérience à tous. Des places se libéreront bientôt !" : "We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!" %></p>
               <% end %>
             </div>
           <% end %>
@@ -71,23 +66,19 @@
           <% @plans.each do |plan| %>
             <div class="splide__slide">
               <%
-                # ⭐ SIMPLIFIED: @pool_available already checks subscription count
                 plan_available = plan.active && @pool_available
               %>
               <div class="plan <%= !plan_available ? 'unavailable' : '' %>">
-                <% if plan.name.include?("Month") %>
-                  <div class="popular-badge">Popular</div>
+                <% if plan.interval == "month" %>
+                  <div class="popular-badge"><%= I18n.locale == :fr ? 'Populaire' : 'Popular' %></div>
                 <% end %>
-                <h3><%= plan.name %></h3>
-                <p class="plan-subtitle">Flexible, cancel anytime</p>
+                <h3><%= plan.localized_name %></h3>
+                <p class="plan-subtitle"><%= I18n.locale == :fr ? 'Flexible, annulez à tout moment' : 'Flexible, cancel anytime' %></p>
                 <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
                 <div class="plan-features">
-                  <% plan.description.split(', ').each do |feature| %>
+                  <% plan.localized_description.split(', ').each do |feature| %>
                     <% if feature.include?("Devices") %>
-                      <p>
-                        <strong><span class="checkmark">➤</span> <%= feature %></strong>
-                        <!-- Tooltip removed on mobile for cleaner look -->
-                      </p>
+                      <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
                     <% else %>
                       <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
                     <% end %>
@@ -99,21 +90,21 @@
                       <%= form.hidden_field :price, value: plan.price %>
                       <%= form.hidden_field :plan_id, value: plan.id %>
                     </div>
-                    <%= form.submit "Subscribe Now", class: "plan-btn", data: { disable_with: "Processing..." } %>
+                    <%= form.submit (I18n.locale == :fr ? "S'abonner maintenant" : 'Subscribe Now'), class: "plan-btn", data: { disable_with: (I18n.locale == :fr ? 'Traitement...' : 'Processing...') } %>
                   <% end %>
                   <div id="subscribe-success-mobile-<%= plan.id %>" style="display: none; color: green; font-weight: bold; margin-top: 10px;">
-                    Success! Your subscription is being processed. You'll receive an email shortly.
+                    <%= I18n.locale == :fr ? "Succès ! Votre abonnement est en cours de traitement. Vous recevrez un email sous peu." : "Success! Your subscription is being processed. You'll receive an email shortly." %>
                   </div>
                 <% else %>
                   <div class="plan-unavailable">
                     <% if !plan.active %>
-                      <p>This plan is currently not available.</p>
+                      <p><%= I18n.locale == :fr ? 'Ce forfait est actuellement indisponible.' : 'This plan is currently not available.' %></p>
                     <% elsif !@pool_available %>
-                      <p>Sold Out</p>
-                      <p>We're at capacity right now. Check back in a few minutes!</p>
+                      <p><%= I18n.locale == :fr ? 'Complet' : 'Sold Out' %></p>
+                      <p><%= I18n.locale == :fr ? 'Nous sommes à pleine capacité en ce moment. Revenez dans quelques minutes !' : "We're at capacity right now. Check back in a few minutes!" %></p>
                     <% else %>
-                      <p>Plan Sold Out</p>
-                      <p>We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!</p>
+                      <p><%= I18n.locale == :fr ? 'Forfait complet' : 'Plan Sold Out' %></p>
+                      <p><%= I18n.locale == :fr ? "Nous limitons les abonnements actifs pour garantir la meilleure expérience à tous. Des places se libéreront bientôt !" : "We limit active subscriptions to guarantee the best experience for everyone. Availability will open up again soon—stay tuned!" %></p>
                     <% end %>
                   </div>
                 <% end %>
@@ -125,6 +116,7 @@
     </div>
   </section>
 </div>
+
 
 <style>
   /* Super Container */

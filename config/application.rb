@@ -8,6 +8,11 @@ module WireguardManager
     config.autoload_lib(ignore: %w[assets tasks])
     config.autoload_paths += %W(#{config.root}/app/services)
 
+    # i18n configuration
+    config.i18n.available_locales = [:fr, :en]
+    config.i18n.default_locale = :fr
+    config.i18n.fallbacks = { en: :fr }
+
     # Use environment variables in production, fall back to credentials in development
     config.active_record.encryption.primary_key =
       ENV['ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY'] || Rails.application.credentials.secret_key_base

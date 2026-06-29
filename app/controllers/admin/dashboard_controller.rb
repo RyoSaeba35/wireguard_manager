@@ -131,7 +131,11 @@ module Admin
       monthly_counts = Subscription
         .where(status: ['active', 'expired'])
         .where('created_at >= ?', twelve_months_ago)
-        .group("DATE_TRUNC('month', created_at)")
+        .group(
+          ActiveRecord::Base.connection.adapter_name == 'PostgreSQL' ?
+            "DATE_TRUNC('month', created_at)" :
+            "strftime('%Y-%m', created_at)"
+        )
         .count
 
       # Build array with all 12 months (fill gaps with 0)

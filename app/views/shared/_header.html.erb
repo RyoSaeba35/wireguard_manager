@@ -5,26 +5,33 @@
   <button class="hamburger" aria-label="Toggle menu">☰</button>
   <nav class="nav-links">
     <% if user_signed_in? %>
-      <!-- Show admin links when on admin pages -->
       <% if controller.class.name.start_with?('Admin::') %>
         <%= link_to "📊 Dashboard", admin_dashboard_path, class: current_page?(admin_dashboard_path) ? 'active' : '' %>
         <%= link_to "👥 Users", admin_users_path, class: controller_name == 'users' ? 'active' : '' %>
         <%= link_to "🖥️ Servers", admin_servers_path, class: controller_name == 'servers' ? 'active' : '' %>
         <%= link_to "💎 Plans", admin_plans_path, class: controller_name == 'plans' ? 'active' : '' %>
         <div class="nav-divider"></div>
-        <%= link_to "← Back to App", root_path, class: "back-link" %>
+        <%= link_to "← #{t('nav.home')}", root_path, class: "back-link" %>
       <% else %>
-        <!-- Regular user links -->
-        <%= link_to "Dashboard", root_path %>
+        <%= link_to t('nav.dashboard'), root_path %>
         <% if current_user.admin? %>
-          <%= link_to "Admin", admin_dashboard_path %>
+          <%= link_to t('nav.admin'), admin_dashboard_path %>
         <% end %>
-        <%= link_to "Edit Profile", profile_path %>
+        <%= link_to t('nav.profile'), profile_path %>
       <% end %>
-      <%= button_to "Log Out", destroy_user_session_path, method: :delete, class: "logout-btn" %>
+      <%= button_to t('nav.sign_out'), destroy_user_session_path, method: :delete, class: "logout-btn" %>
     <% else %>
-      <a href="<%= new_user_session_path %>" class="login-btn">Log In</a>
+      <%= link_to t('nav.sign_in'), new_user_session_path, class: "login-btn" %>
     <% end %>
+
+    <!-- Language Toggle -->
+    <div class="lang-toggle">
+      <% if I18n.locale == :fr %>
+        <%= link_to "EN", url_for(params.permit!.merge(locale: 'en')), class: "lang-btn" %>
+      <% else %>
+        <%= link_to "FR", url_for(params.permit!.merge(locale: 'fr')), class: "lang-btn" %>
+      <% end %>
+    </div>
   </nav>
 </header>
 
@@ -98,6 +105,31 @@
     color: #e74c3c !important;
   }
 
+  /* Language Toggle */
+  .lang-toggle {
+    display: flex;
+    align-items: center;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 1rem;
+    margin-left: 0.5rem;
+  }
+
+  .lang-btn {
+    color: white !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    padding: 0.3rem 0.6rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 4px !important;
+    background: none !important;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .lang-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+  }
+
   .hamburger {
     display: none;
     cursor: pointer;
@@ -151,6 +183,16 @@
     .hamburger {
       display: block;
     }
+
+    .lang-toggle {
+      border-left: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      padding-left: 0;
+      padding-top: 0.5rem;
+      margin-left: 0;
+      width: 100%;
+      justify-content: flex-start;
+    }
   }
 </style>
 
@@ -166,37 +208,28 @@
 
     if (!hamburger || !navLinks) return;
 
-    // Remove old click handler
     if (hamburgerClickHandler) {
       hamburger.removeEventListener('click', hamburgerClickHandler);
     }
 
-    // Create new click handler
     hamburgerClickHandler = function(e) {
       e.preventDefault();
       e.stopPropagation();
-      console.log('Hamburger clicked!'); // Debug log
       navLinks.classList.toggle('active');
-      console.log('Menu active:', navLinks.classList.contains('active')); // Debug log
     };
 
-    // Attach to hamburger
     hamburger.addEventListener('click', hamburgerClickHandler);
 
-    // Close on link click
     navLinks.addEventListener('click', function(e) {
       if (e.target.closest('a, button')) {
-        console.log('Link clicked, closing menu'); // Debug log
         navLinks.classList.remove('active');
       }
     });
 
-    // Close when clicking outside
     document.addEventListener('click', function(e) {
       if (!hamburger.contains(e.target) &&
           !navLinks.contains(e.target) &&
           navLinks.classList.contains('active')) {
-        console.log('Outside click, closing menu'); // Debug log
         navLinks.classList.remove('active');
       }
     });

@@ -1,31 +1,241 @@
-# Files in the config/locales directory are used for internationalization and
-# are automatically loaded by Rails. If you want to use locales other than
-# English, add the necessary files in this directory.
-#
-# To use the locales, use `I18n.t`:
-#
-#     I18n.t "hello"
-#
-# In views, this is aliased to just `t`:
-#
-#     <%= t("hello") %>
-#
-# To use a different locale, set it with `I18n.locale`:
-#
-#     I18n.locale = :es
-#
-# This would use the information in config/locales/es.yml.
-#
-# To learn more about the API, please read the Rails Internationalization guide
-# at https://guides.rubyonrails.org/i18n.html.
-#
-# Be aware that YAML interprets the following case-insensitive strings as
-# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
-# must be quoted to be interpreted as strings. For example:
-#
-#     en:
-#       "yes": yup
-#       enabled: "ON"
-
+# config/locales/en.yml
 en:
-  hello: "Hello world"
+  # ==========================================
+  # NAVIGATION
+  # ==========================================
+  nav:
+    home: "Home"
+    dashboard: "Dashboard"
+    profile: "Profile"
+    sign_in: "Sign In"
+    sign_up: "Sign Up"
+    sign_out: "Sign Out"
+    admin: "Admin"
+
+  # ==========================================
+  # HOME PAGE
+  # ==========================================
+  home:
+    hero:
+      title: "Privacy & Security"
+      subtitle: "Wherever You Go"
+      description: "For travelers, expats, and digital nomads who need reliable VPN access on any network."
+      cta: "Get Private Access"
+    features:
+      title: "Why Choose Vulcain VPN?"
+      reliable:
+        title: "Reliable Worldwide Access"
+        description: "Multiple protocols ensure connectivity even on networks with advanced filtering and packet inspection."
+      no_oversell:
+        title: "We Don't Oversell"
+        description: "By keeping our community small, we ensure stable performance and a guaranteed minimum speed of 20 Mbps for everyone."
+      privacy:
+        title: "Privacy Comes First"
+        description: "We believe privacy should be simple and transparent. Strong encryption, no hidden practices, and clear choices — nothing more, nothing less."
+    pricing:
+      title: "Choose Your Plan"
+      subtitle: "Flexible, cancel anytime"
+      sign_up: "Sign Up Now"
+      popular: "Popular"
+    downloads:
+      title: "Get VulcainVPN"
+      subtitle: "Available on Windows and Android only"
+      coming_soon: "MacOS and iOS coming soon"
+    about:
+      title: "About Vulcain VPN"
+      intro: "We're a small team dedicated to providing reliable VPN services for a specific community: <strong>expats, travelers, and digital nomads</strong> who need secure access to essential services from their home country."
+      body: "Unlike mainstream VPN providers, we don't chase the mass market. Instead, we focus on what matters most to our users — <strong>stable connections, consistent performance, and straightforward privacy</strong>."
+      highlight_title: "What We're About"
+      small_by_design: "<strong>Small by design:</strong> We limit our user base to ensure everyone gets reliable service and guaranteed bandwidth."
+      built_for_expats: "<strong>Built for expats:</strong> Access your banking websites, email, government portals, and work systems securely from anywhere. <em>(Note: Some banking apps may detect VPN usage, but banking websites typically work fine.)</em>"
+      focus: "<strong>Our Focus:</strong> Privacy and secure access to legitimate services."
+      closing: "We believe in keeping things simple, transparent, and reliable. No gimmicks, no overselling — just a VPN that works when you need it."
+    faq:
+      title: "Frequently Asked Questions"
+      logs:
+        question: "Do you keep logs of my activity?"
+        answer_1: "We never log your browsing activity, websites you visit, DNS queries, or traffic content. Your online activity is completely private."
+        answer_2: "To enforce our 3-device limit and prevent fraud, we temporarily store minimal connection metadata (your IP address, connection timestamps, and approximate location). This data is automatically deleted after 24-48 hours."
+        read_more: "Read our full logging policy →"
+      protocols:
+        question: "Which protocols do you support?"
+        answer: "Vulcain VPN supports three protocols, and our app automatically selects the best one for your network:"
+        wireguard: "<strong>WireGuard</strong> — fastest and most efficient, ideal for most connections"
+        hysteria2: "<strong>Hysteria2</strong> — designed for high-latency or lossy networks"
+        shadowsocks: "<strong>Shadowsocks</strong> — obfuscated traffic, useful on networks with VPN filtering"
+      devices:
+        question: "How many devices can I connect simultaneously?"
+        answer_1: "Each subscription allows up to <strong>3 simultaneous device connections</strong>. You can install the app on as many devices as you want, but only 3 can be connected at the same time."
+        answer_2: "If you try to connect a 4th device, the oldest connection will be automatically disconnected."
+      banking:
+        question: "Will it work with my banking website or app?"
+        answer_1: "<strong>Banking websites</strong> generally work fine through Vulcain VPN."
+        answer_2: "<strong>Banking mobile apps</strong> are less predictable — many banks block or restrict VPN connections as a security measure."
+        answer_3: "We recommend testing with your specific bank before relying on it. If your banking app doesn't work, you can temporarily disconnect from the VPN to access it."
+      servers:
+        question: "Which countries do you have servers in?"
+        answer_1: "We currently operate servers in <strong>France</strong>. Our service is specifically designed for expats, travelers, and digital nomads who need a reliable French IP address."
+        answer_2: "We intentionally keep our server count small to ensure quality and performance rather than spreading thin across dozens of countries."
+      speed:
+        question: "Will it slow down my internet connection?"
+        answer_1: "Some speed reduction is normal with any VPN due to encryption overhead. However, we guarantee a <strong>minimum of 20 Mbps</strong> for all users."
+        answer_2: "By keeping our user base intentionally small, we avoid the overcrowding that plagues larger VPN providers."
+      legal:
+        question: "Is it legal to use a VPN?"
+        answer_1: "VPN use is legal in most countries, including all EU member states, the UK, and the US."
+        answer_2: "However, some countries restrict or prohibit VPN use (e.g., China, Iran, UAE). It is your responsibility to understand and comply with local laws."
+        answer_3: "Regardless of location, you agree to use Vulcain VPN only for lawful purposes."
+      refund:
+        question: "Can I get a refund?"
+        answer_1: "All fees are non-refundable as stated in our Terms of Service."
+        answer_2: "If you experience technical issues, please contact us at"
+        answer_3: "and we'll do our best to resolve them."
+
+  # ==========================================
+  # PLANS
+  # ==========================================
+  plans:
+    weekly: "Weekly"
+    monthly: "Monthly"
+    yearly: "Yearly"
+    per_week: "week"
+    per_month: "month"
+    per_year: "year"
+    flexible: "Flexible, cancel anytime"
+    sign_up: "Sign Up Now"
+    popular: "Popular"
+
+  # ==========================================
+  # AUTH PAGES
+  # ==========================================
+  auth:
+    sign_in:
+      title: "Sign In"
+      email: "Email"
+      password: "Password"
+      remember_me: "Remember me"
+      submit: "Sign In"
+      forgot_password: "Forgot your password?"
+      no_account: "Don't have an account?"
+      sign_up_link: "Sign Up"
+    sign_up:
+      title: "Create an Account"
+      email: "Email"
+      password: "Password"
+      password_confirmation: "Confirm Password"
+      submit: "Sign Up"
+      already_account: "Already have an account?"
+      sign_in_link: "Sign In"
+    forgot_password:
+      title: "Forgot your password?"
+      email: "Email"
+      submit: "Send Instructions"
+      back: "Back to Sign In"
+    reset_password:
+      title: "Reset Password"
+      password: "New Password"
+      password_confirmation: "Confirm New Password"
+      submit: "Change Password"
+
+  # ==========================================
+  # DASHBOARD
+  # ==========================================
+  dashboard:
+    title: "Dashboard"
+    welcome: "Welcome"
+    your_subscription: "Your Subscription"
+    active: "Active"
+    expired: "Expired"
+    no_subscription: "No active subscription"
+    subscribe: "Subscribe"
+    devices: "Devices"
+    connected: "Connected"
+    disconnected: "Disconnected"
+    expires_on: "Expires on"
+    setup_guide: "Setup Guide"
+    vpn_status: "VPN Status"
+
+  # ==========================================
+  # SUBSCRIPTIONS
+  # ==========================================
+  subscriptions:
+    new:
+      title: "Choose a Plan"
+      at_capacity: "We've reached capacity to ensure the best experience. New subscriptions will be available soon."
+    show:
+      title: "Your Subscription"
+      status: "Status"
+      plan: "Plan"
+      expires: "Expires"
+      devices: "Devices"
+      active_connections: "Active Connections"
+      pending_payment: "Payment Pending"
+      complete_payment: "Complete Payment"
+      cancel: "Cancel"
+    cancel:
+      confirm: "Are you sure you want to cancel your subscription?"
+
+  # ==========================================
+  # PROFILE
+  # ==========================================
+  profile:
+    title: "My Profile"
+    email: "Email"
+    password: "Password"
+    current_password: "Current Password"
+    new_password: "New Password"
+    confirm_password: "Confirm Password"
+    update: "Update"
+    leave_blank: "Leave blank if you don't want to change it"
+
+  # ==========================================
+  # PAGES
+  # ==========================================
+  pages:
+    privacy:
+      title: "Data Privacy Policy"
+    terms:
+      title: "Terms of Service"
+    logging:
+      title: "Privacy & Logging Policy"
+    expired_subscriptions:
+      title: "Expired Subscriptions"
+      no_subscriptions: "No expired subscriptions."
+
+  # ==========================================
+  # FLASH MESSAGES
+  # ==========================================
+  flash:
+    subscription_not_found: "Subscription not found."
+    not_authorized: "You are not authorized to access this page."
+    already_subscribed: "You already have an active subscription to %{plan}."
+    pending_subscription: "You already have a pending subscription."
+    at_capacity: "We've reached capacity. New subscriptions will be available soon."
+    payment_success: "Your payment was successful! You can now connect your devices."
+    session_expired: "Your session has expired. Please create a new subscription."
+    subscription_cancelled: "Your subscription has been cancelled."
+    cannot_cancel: "This subscription cannot be cancelled."
+    profile_updated: "Profile updated successfully!"
+    email_updated: "Email updated successfully!"
+
+  # ==========================================
+  # SETUP GUIDE
+  # ==========================================
+  setup:
+    title: "Setup Guide"
+    step1: "Step 1: Download the App"
+    step2: "Step 2: Create an Account"
+    step3: "Step 3: Subscribe"
+    step4: "Step 4: Connect"
+    download_android: "Download for Android"
+    download_windows: "Download for Windows"
+
+  # ==========================================
+  # FOOTER
+  # ==========================================
+  footer:
+    privacy: "Privacy"
+    terms: "Terms of Service"
+    logging: "Logging Policy"
+    copyright: "© 2025 Vulcain VPN. All rights reserved."
+    language: "Language"

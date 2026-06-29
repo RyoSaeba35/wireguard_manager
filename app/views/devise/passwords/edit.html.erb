@@ -80,7 +80,7 @@
 
 <div class="auth-super-container">
   <div class="auth-container">
-    <h2>Change your password</h2>
+    <h2><%= I18n.locale == :fr ? 'Changer votre mot de passe' : 'Change your password' %></h2>
 
     <%= simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f| %>
       <%= f.error_notification %>
@@ -88,20 +88,20 @@
       <%= f.full_error :reset_password_token %>
 
       <div class="form-group">
-        <%= f.label :password, "New password" %>
-        <%= f.password_field :password, required: true, autofocus: true, autocomplete: "new-password", placeholder: "Enter your new password", class: "form-control" %>
+        <%= f.label :password, (I18n.locale == :fr ? 'Nouveau mot de passe' : 'New password') %>
+        <%= f.password_field :password, required: true, autofocus: true, autocomplete: "new-password", placeholder: (I18n.locale == :fr ? 'Entrez votre nouveau mot de passe' : 'Enter your new password'), class: "form-control" %>
         <% if @minimum_password_length %>
-          <small><%= @minimum_password_length %> characters minimum</small>
+          <small><%= @minimum_password_length %> <%= I18n.locale == :fr ? 'caractères minimum' : 'characters minimum' %></small>
         <% end %>
       </div>
 
       <div class="form-group">
-        <%= f.label :password_confirmation, "Confirm your new password" %>
-        <%= f.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Confirm your new password", class: "form-control" %>
+        <%= f.label :password_confirmation, (I18n.locale == :fr ? 'Confirmez votre nouveau mot de passe' : 'Confirm your new password') %>
+        <%= f.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: (I18n.locale == :fr ? 'Confirmez votre nouveau mot de passe' : 'Confirm your new password'), class: "form-control" %>
       </div>
 
       <div class="actions">
-        <%= f.submit "Change my password", class: "auth-btn" %>
+        <%= f.submit (I18n.locale == :fr ? 'Changer mon mot de passe' : 'Change my password'), class: "auth-btn" %>
       </div>
     <% end %>
 
@@ -110,3 +110,4 @@
     </div>
   </div>
 </div>
+

@@ -98,7 +98,7 @@
 
 <div class="auth-super-container">
   <div class="auth-container">
-    <h2>Edit <%= resource_name.to_s.humanize %></h2>
+    <h2><%= I18n.locale == :fr ? 'Modifier votre compte' : "Edit #{resource_name.to_s.humanize}" %></h2>
 
     <%= simple_form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
       <%= f.error_notification %>
@@ -110,14 +110,14 @@
 
       <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
         <p class="error-message">
-          Currently waiting confirmation for: <%= resource.unconfirmed_email %>
+          <%= I18n.locale == :fr ? 'En attente de confirmation pour :' : 'Currently waiting confirmation for:' %> <%= resource.unconfirmed_email %>
         </p>
       <% end %>
 
       <div class="form-group">
         <%= f.label :password %>
-        <%= f.password_field :password, placeholder: "Leave blank if you don't want to change it", class: "form-control" %>
-        <small>Leave blank if you don't want to change it</small>
+        <%= f.password_field :password, placeholder: (I18n.locale == :fr ? 'Laissez vide si vous ne souhaitez pas le modifier' : "Leave blank if you don't want to change it"), class: "form-control" %>
+        <small><%= I18n.locale == :fr ? 'Laissez vide si vous ne souhaitez pas le modifier' : "Leave blank if you don't want to change it" %></small>
       </div>
 
       <div class="form-group">
@@ -127,21 +127,22 @@
 
       <div class="form-group">
         <%= f.label :current_password %>
-        <%= f.password_field :current_password, placeholder: "We need your current password to confirm changes", required: true, class: "form-control" %>
-        <small>We need your current password to confirm your changes</small>
+        <%= f.password_field :current_password, placeholder: (I18n.locale == :fr ? 'Nous avons besoin de votre mot de passe actuel pour confirmer les modifications' : 'We need your current password to confirm changes'), required: true, class: "form-control" %>
+        <small><%= I18n.locale == :fr ? 'Nous avons besoin de votre mot de passe actuel pour confirmer vos modifications' : 'We need your current password to confirm your changes' %></small>
       </div>
 
       <div class="actions">
-        <%= f.submit "Update", class: "auth-btn" %>
+        <%= f.submit (I18n.locale == :fr ? 'Mettre à jour' : 'Update'), class: "auth-btn" %>
       </div>
     <% end %>
 
-    <h3>Cancel my account</h3>
+    <h3><%= I18n.locale == :fr ? 'Supprimer mon compte' : 'Cancel my account' %></h3>
     <div>
-      Unhappy?
-      <%= button_to "Cancel my account", registration_path(resource_name), method: :delete, class: "cancel-account-btn", data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" } %>
+      <%= I18n.locale == :fr ? 'Insatisfait ?' : 'Unhappy?' %>
+      <%= button_to (I18n.locale == :fr ? 'Supprimer mon compte' : 'Cancel my account'), registration_path(resource_name), method: :delete, class: "cancel-account-btn", data: { confirm: (I18n.locale == :fr ? 'Êtes-vous sûr ?' : 'Are you sure?'), turbo_confirm: (I18n.locale == :fr ? 'Êtes-vous sûr ?' : 'Are you sure?') } %>
     </div>
 
-    <%= link_to "Back", :back, class: "back-link" %>
+    <%= link_to (I18n.locale == :fr ? 'Retour' : 'Back'), :back, class: "back-link" %>
   </div>
 </div>
+

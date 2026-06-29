@@ -1,0 +1,241 @@
+# config/locales/fr.yml
+fr:
+  # ==========================================
+  # NAVIGATION
+  # ==========================================
+  nav:
+    home: "Accueil"
+    dashboard: "Tableau de bord"
+    profile: "Profil"
+    sign_in: "Connexion"
+    sign_up: "S'inscrire"
+    sign_out: "Déconnexion"
+    admin: "Administration"
+
+  # ==========================================
+  # HOME PAGE
+  # ==========================================
+  home:
+    hero:
+      title: "Confidentialité & Sécurité"
+      subtitle: "Où que vous soyez"
+      description: "Pour les voyageurs, expatriés et nomades digitaux qui ont besoin d'un accès VPN fiable sur n'importe quel réseau."
+      cta: "Accéder en privé"
+    features:
+      title: "Pourquoi choisir Vulcain VPN ?"
+      reliable:
+        title: "Accès mondial fiable"
+        description: "Plusieurs protocoles garantissent la connectivité même sur les réseaux avec filtrage avancé et inspection des paquets."
+      no_oversell:
+        title: "Nous ne sursvendons pas"
+        description: "En gardant notre communauté petite, nous assurons des performances stables et une vitesse minimale garantie de 20 Mbps pour tous."
+      privacy:
+        title: "La confidentialité avant tout"
+        description: "Nous croyons que la confidentialité doit être simple et transparente. Chiffrement robuste, aucune pratique cachée, et des choix clairs — rien de plus, rien de moins."
+    pricing:
+      title: "Choisissez votre forfait"
+      subtitle: "Flexible, annulez à tout moment"
+      sign_up: "S'inscrire maintenant"
+      popular: "Populaire"
+    downloads:
+      title: "Télécharger VulcainVPN"
+      subtitle: "Disponible sur Windows et Android uniquement"
+      coming_soon: "MacOS et iOS bientôt disponibles"
+    about:
+      title: "À propos de Vulcain VPN"
+      intro: "Nous sommes une petite équipe dédiée à fournir des services VPN fiables pour une communauté spécifique : les <strong>expatriés, voyageurs et nomades digitaux</strong> qui ont besoin d'un accès sécurisé aux services essentiels de leur pays d'origine."
+      body: "Contrairement aux grands fournisseurs VPN, nous ne cherchons pas le marché de masse. Nous nous concentrons sur ce qui compte le plus pour nos utilisateurs — <strong>des connexions stables, des performances constantes et une confidentialité directe</strong>."
+      highlight_title: "Ce que nous défendons"
+      small_by_design: "<strong>Petit par conception :</strong> Nous limitons notre base d'utilisateurs pour garantir un service fiable et une bande passante garantie à chacun."
+      built_for_expats: "<strong>Conçu pour les expatriés :</strong> Accédez à vos sites bancaires, emails, portails gouvernementaux et systèmes professionnels en toute sécurité depuis n'importe où. <em>(Note : Certaines applications bancaires peuvent détecter l'utilisation d'un VPN, mais les sites web bancaires fonctionnent généralement bien.)</em>"
+      focus: "<strong>Notre priorité :</strong> La confidentialité et l'accès sécurisé aux services légitimes."
+      closing: "Nous croyons en la simplicité, la transparence et la fiabilité. Pas d'artifices, pas de survente — juste un VPN qui fonctionne quand vous en avez besoin."
+    faq:
+      title: "Questions fréquentes"
+      logs:
+        question: "Conservez-vous des journaux de mon activité ?"
+        answer_1: "Nous ne conservons jamais vos activités de navigation, les sites que vous visitez, vos requêtes DNS ou le contenu de votre trafic. Votre activité en ligne est totalement privée."
+        answer_2: "Pour appliquer notre limite de 3 appareils et prévenir la fraude, nous stockons temporairement des métadonnées de connexion minimales (votre adresse IP, les horodatages de connexion et la localisation approximative). Ces données sont automatiquement supprimées après 24-48 heures."
+        read_more: "Lire notre politique de journalisation complète →"
+      protocols:
+        question: "Quels protocoles prenez-vous en charge ?"
+        answer: "Vulcain VPN prend en charge trois protocoles, et notre application sélectionne automatiquement le meilleur pour votre réseau :"
+        wireguard: "<strong>WireGuard</strong> — le plus rapide et le plus efficace, idéal pour la plupart des connexions"
+        hysteria2: "<strong>Hysteria2</strong> — conçu pour les réseaux à latence élevée ou instables"
+        shadowsocks: "<strong>Shadowsocks</strong> — trafic obfusqué, utile sur les réseaux avec filtrage VPN"
+      devices:
+        question: "Combien d'appareils puis-je connecter simultanément ?"
+        answer_1: "Chaque abonnement permet jusqu'à <strong>3 connexions simultanées</strong>. Vous pouvez installer l'application sur autant d'appareils que vous voulez, mais seulement 3 peuvent être connectés en même temps."
+        answer_2: "Si vous essayez de connecter un 4ème appareil, la connexion la plus ancienne sera automatiquement déconnectée."
+      banking:
+        question: "Fonctionnera-t-il avec mon site ou application bancaire ?"
+        answer_1: "<strong>Les sites bancaires</strong> fonctionnent généralement bien avec Vulcain VPN."
+        answer_2: "<strong>Les applications bancaires mobiles</strong> sont moins prévisibles — de nombreuses banques bloquent ou restreignent les connexions VPN par mesure de sécurité."
+        answer_3: "Nous recommandons de tester avec votre banque avant de vous y fier. Si votre application bancaire ne fonctionne pas, vous pouvez temporairement vous déconnecter du VPN pour y accéder."
+      servers:
+        question: "Dans quels pays avez-vous des serveurs ?"
+        answer_1: "Nous opérons actuellement des serveurs en <strong>France</strong>. Notre service est spécifiquement conçu pour les expatriés, voyageurs et nomades digitaux qui ont besoin d'une adresse IP française fiable."
+        answer_2: "Nous gardons intentionnellement notre nombre de serveurs réduit pour garantir qualité et performance plutôt que de nous disperser sur des dizaines de pays."
+      speed:
+        question: "Cela va-t-il ralentir ma connexion internet ?"
+        answer_1: "Une légère réduction de vitesse est normale avec tout VPN en raison du chiffrement. Cependant, nous garantissons un <strong>minimum de 20 Mbps</strong> pour tous les utilisateurs."
+        answer_2: "En gardant notre base d'utilisateurs intentionnellement petite, nous évitons la surcharge qui affecte les grands fournisseurs VPN."
+      legal:
+        question: "Est-il légal d'utiliser un VPN ?"
+        answer_1: "L'utilisation d'un VPN est légale dans la plupart des pays, y compris tous les États membres de l'UE, le Royaume-Uni et les États-Unis."
+        answer_2: "Cependant, certains pays restreignent ou interdisent l'utilisation des VPN (ex. Chine, Iran, Émirats arabes unis). Il est de votre responsabilité de comprendre et respecter les lois locales."
+        answer_3: "Quelle que soit votre localisation, vous acceptez d'utiliser Vulcain VPN uniquement à des fins légales."
+      refund:
+        question: "Puis-je obtenir un remboursement ?"
+        answer_1: "Tous les frais sont non remboursables comme indiqué dans nos Conditions d'utilisation."
+        answer_2: "Si vous rencontrez des problèmes techniques, contactez-nous à"
+        answer_3: "et nous ferons notre possible pour les résoudre."
+
+  # ==========================================
+  # PLANS
+  # ==========================================
+  plans:
+    weekly: "Hebdomadaire"
+    monthly: "Mensuel"
+    yearly: "Annuel"
+    per_week: "semaine"
+    per_month: "mois"
+    per_year: "an"
+    flexible: "Flexible, annulez à tout moment"
+    sign_up: "S'inscrire maintenant"
+    popular: "Populaire"
+
+  # ==========================================
+  # AUTH PAGES
+  # ==========================================
+  auth:
+    sign_in:
+      title: "Connexion"
+      email: "Email"
+      password: "Mot de passe"
+      remember_me: "Se souvenir de moi"
+      submit: "Se connecter"
+      forgot_password: "Mot de passe oublié ?"
+      no_account: "Pas encore de compte ?"
+      sign_up_link: "S'inscrire"
+    sign_up:
+      title: "Créer un compte"
+      email: "Email"
+      password: "Mot de passe"
+      password_confirmation: "Confirmer le mot de passe"
+      submit: "S'inscrire"
+      already_account: "Déjà un compte ?"
+      sign_in_link: "Se connecter"
+    forgot_password:
+      title: "Mot de passe oublié ?"
+      email: "Email"
+      submit: "Envoyer les instructions"
+      back: "Retour à la connexion"
+    reset_password:
+      title: "Réinitialiser le mot de passe"
+      password: "Nouveau mot de passe"
+      password_confirmation: "Confirmer le nouveau mot de passe"
+      submit: "Changer le mot de passe"
+
+  # ==========================================
+  # DASHBOARD
+  # ==========================================
+  dashboard:
+    title: "Tableau de bord"
+    welcome: "Bienvenue"
+    your_subscription: "Votre abonnement"
+    active: "Actif"
+    expired: "Expiré"
+    no_subscription: "Aucun abonnement actif"
+    subscribe: "S'abonner"
+    devices: "Appareils"
+    connected: "Connecté"
+    disconnected: "Déconnecté"
+    expires_on: "Expire le"
+    setup_guide: "Guide de configuration"
+    vpn_status: "Statut VPN"
+
+  # ==========================================
+  # SUBSCRIPTIONS
+  # ==========================================
+  subscriptions:
+    new:
+      title: "Choisir un forfait"
+      at_capacity: "Nous avons atteint notre capacité maximale pour garantir la meilleure expérience. De nouveaux abonnements seront disponibles prochainement."
+    show:
+      title: "Votre abonnement"
+      status: "Statut"
+      plan: "Forfait"
+      expires: "Expire le"
+      devices: "Appareils"
+      active_connections: "Connexions actives"
+      pending_payment: "Paiement en attente"
+      complete_payment: "Finaliser le paiement"
+      cancel: "Annuler"
+    cancel:
+      confirm: "Êtes-vous sûr de vouloir annuler votre abonnement ?"
+
+  # ==========================================
+  # PROFILE
+  # ==========================================
+  profile:
+    title: "Mon profil"
+    email: "Email"
+    password: "Mot de passe"
+    current_password: "Mot de passe actuel"
+    new_password: "Nouveau mot de passe"
+    confirm_password: "Confirmer le mot de passe"
+    update: "Mettre à jour"
+    leave_blank: "Laissez vide si vous ne souhaitez pas le modifier"
+
+  # ==========================================
+  # PAGES
+  # ==========================================
+  pages:
+    privacy:
+      title: "Politique de confidentialité"
+    terms:
+      title: "Conditions d'utilisation"
+    logging:
+      title: "Politique de journalisation"
+    expired_subscriptions:
+      title: "Abonnements expirés"
+      no_subscriptions: "Aucun abonnement expiré."
+
+  # ==========================================
+  # FLASH MESSAGES
+  # ==========================================
+  flash:
+    subscription_not_found: "Abonnement introuvable."
+    not_authorized: "Vous n'êtes pas autorisé à accéder à cette page."
+    already_subscribed: "Vous avez déjà un abonnement actif pour %{plan}."
+    pending_subscription: "Vous avez déjà un abonnement en attente."
+    at_capacity: "Nous avons atteint notre capacité. De nouveaux abonnements seront disponibles prochainement."
+    payment_success: "Votre paiement a été effectué avec succès ! Vous pouvez maintenant connecter vos appareils."
+    session_expired: "Votre session a expiré. Veuillez créer un nouvel abonnement."
+    subscription_cancelled: "Votre abonnement a été annulé."
+    cannot_cancel: "Cet abonnement ne peut pas être annulé."
+    profile_updated: "Profil mis à jour avec succès !"
+    email_updated: "Email mis à jour avec succès !"
+
+  # ==========================================
+  # SETUP GUIDE
+  # ==========================================
+  setup:
+    title: "Guide de configuration"
+    step1: "Étape 1 : Télécharger l'application"
+    step2: "Étape 2 : Créer un compte"
+    step3: "Étape 3 : S'abonner"
+    step4: "Étape 4 : Se connecter"
+    download_android: "Télécharger pour Android"
+    download_windows: "Télécharger pour Windows"
+
+  # ==========================================
+  # FOOTER
+  # ==========================================
+  footer:
+    privacy: "Confidentialité"
+    terms: "Conditions d'utilisation"
+    logging: "Politique de journalisation"
+    copyright: "© 2025 Vulcain VPN. Tous droits réservés."
+    language: "Langue"

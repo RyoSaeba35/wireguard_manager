@@ -2,7 +2,7 @@
   .signup-super-container {
     font-family: 'Arial', sans-serif;
     background-color: #f4f4f4;
-    margin: 0 ;
+    margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
@@ -11,7 +11,7 @@
   .signup-container {
     background-color: white;
     padding: 2rem;
-    margin : 1rem;
+    margin: 1rem;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
@@ -43,7 +43,6 @@
   }
   .signup-btn {
     width: 100%;
-    /* background-color: #2ecc71; */
     background-color: #ff6e08;
     color: white;
     padding: 0.75rem;
@@ -65,7 +64,7 @@
     color: #432923;
     text-decoration: none;
   }
-.login-link a:hover {
+  .login-link a:hover {
     color: #ffc33c;
     text-decoration: none;
   }
@@ -73,35 +72,35 @@
 
 <div class="signup-super-container">
   <div class="signup-container">
-    <h2>Sign Up</h2>
+    <h2><%= t('auth.sign_up.title') %></h2>
     <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
       <%= render "devise/shared/error_messages", resource: resource %>
 
       <div class="form-group">
-        <%= f.label :email %>
-        <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true, placeholder: "Enter your email" %>
+        <%= f.label :email, t('auth.sign_up.email') %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true, placeholder: t('auth.sign_up.email') %>
       </div>
 
       <div class="form-group">
-        <%= f.label :password %>
-        <%= f.password_field :password, autocomplete: "new-password", required: true, placeholder: "Enter your password" %>
+        <%= f.label :password, t('auth.sign_up.password') %>
+        <%= f.password_field :password, autocomplete: "new-password", required: true, placeholder: t('auth.sign_up.password') %>
         <% if @minimum_password_length %>
-          <small>Minimum <%= @minimum_password_length %> characters</small>
+          <small><%= t('auth.sign_up.password') %> (<%= @minimum_password_length %> min.)</small>
         <% end %>
       </div>
 
       <div class="form-group">
-        <%= f.label :password_confirmation %>
-        <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true, placeholder: "Confirm your password" %>
+        <%= f.label :password_confirmation, t('auth.sign_up.password_confirmation') %>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true, placeholder: t('auth.sign_up.password_confirmation') %>
       </div>
 
       <div class="actions">
-        <%= f.submit "Sign Up", class: "signup-btn" %>
+        <%= f.submit t('auth.sign_up.submit'), class: "signup-btn" %>
       </div>
     <% end %>
 
     <div class="login-link">
-      Already have an account? <%= render "devise/shared/links" %>
+      <%= t('auth.sign_up.already_account') %> <%= render "devise/shared/links" %>
     </div>
   </div>
 </div>

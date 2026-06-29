@@ -1,116 +1,116 @@
 <!-- app/views/dashboard/setup.html.erb -->
 <div class="dashboard-container">
   <header class="dashboard-header">
-    <h1>VPN Setup Guide</h1>
+    <h1><%= I18n.locale == :fr ? 'Guide de configuration VPN' : 'VPN Setup Guide' %></h1>
   </header>
 
   <section class="setup-guide-section">
-    <h2>How to Set Up Your VPN</h2>
+    <h2><%= I18n.locale == :fr ? 'Comment configurer votre VPN' : 'How to Set Up Your VPN' %></h2>
 
     <% if user_signed_in? %>
       <div class="alert alert-warning" style="margin-bottom: 1.5rem; padding: 1rem; background-color: #fff3cd; color: #856404; border-left: 4px solid #ffeeba;">
-        <strong>Important Device Information:</strong>
+        <strong><%= I18n.locale == :fr ? 'Informations importantes :' : 'Important Device Information:' %></strong>
         <ul style="margin-bottom: 0; padding-left: 1.2rem;">
-          <li>Your subscription allows VPN connections on <strong>up to <%= @active_subscription&.max_devices || 3 %> devices</strong> simultaneously.</li>
-          <li>The VPN will automatically select the best server for you.</li>
+          <li><%= I18n.locale == :fr ? "Votre abonnement permet des connexions VPN sur <strong>jusqu'à #{@active_subscription&.max_devices || 3} appareils</strong> simultanément." : "Your subscription allows VPN connections on <strong>up to #{@active_subscription&.max_devices || 3} devices</strong> simultaneously." %></li>
+          <li><%= I18n.locale == :fr ? 'Le VPN sélectionnera automatiquement le meilleur serveur pour vous.' : 'The VPN will automatically select the best server for you.' %></li>
         </ul>
       </div>
     <% else %>
       <div class="alert alert-info" style="margin-bottom: 1.5rem; padding: 1rem;">
-        <strong>Getting Started:</strong>
+        <strong><%= I18n.locale == :fr ? 'Pour commencer :' : 'Getting Started:' %></strong>
         <p style="margin-bottom: 0;">
-          <%= link_to "Sign up", new_user_registration_path %> or
-          <%= link_to "log in", new_user_session_path %> to access your VPN account and buy a subscription.
+          <%= link_to (I18n.locale == :fr ? "S'inscrire" : 'Sign up'), new_user_registration_path %> <%= I18n.locale == :fr ? 'ou' : 'or' %>
+          <%= link_to (I18n.locale == :fr ? 'se connecter' : 'log in'), new_user_session_path %> <%= I18n.locale == :fr ? 'pour accéder à votre compte VPN et acheter un abonnement.' : 'to access your VPN account and buy a subscription.' %>
         </p>
       </div>
     <% end %>
 
-    <p>Follow these steps to connect to VulcainVPN:</p>
+    <p><%= I18n.locale == :fr ? 'Suivez ces étapes pour vous connecter à VulcainVPN :' : 'Follow these steps to connect to VulcainVPN:' %></p>
 
-    <!-- Setup steps for VulcainVPN app -->
     <div class="setup-steps">
       <div class="step">
-        <h3>1. Download VulcainVPN</h3>
-        <p>Install the VulcainVPN app for your device:</p>
+        <h3>1. <%= I18n.locale == :fr ? 'Télécharger VulcainVPN' : 'Download VulcainVPN' %></h3>
+        <p><%= I18n.locale == :fr ? "Installez l'application VulcainVPN pour votre appareil :" : 'Install the VulcainVPN app for your device:' %></p>
         <ul>
           <li>
             <strong>Android:</strong>
-            <%= link_to "Download APK", download_apk_path %> |
-            <a href="#" class="coming-soon">Google Play (Coming Soon)</a>
+            <%= link_to (I18n.locale == :fr ? 'Télécharger APK' : 'Download APK'), download_apk_path %> |
+            <a href="#" class="coming-soon">Google Play (<%= I18n.locale == :fr ? 'Bientôt disponible' : 'Coming Soon' %>)</a>
           </li>
           <li>
             <strong>Windows:</strong>
-            <%= link_to "Download Installer", download_windows_path %>
+            <%= link_to (I18n.locale == :fr ? "Télécharger l'installateur" : 'Download Installer'), download_windows_path %>
           </li>
-          <li><strong>iOS:</strong> <span class="coming-soon">App Store (Coming Soon)</span></li>
-          <li><strong>macOS:</strong> <span class="coming-soon">Coming Soon</span></li>
-          <li><strong>Linux:</strong> <span class="coming-soon">Coming Soon</span></li>
+          <li><strong>iOS:</strong> <span class="coming-soon">App Store (<%= I18n.locale == :fr ? 'Bientôt disponible' : 'Coming Soon' %>)</span></li>
+          <li><strong>macOS:</strong> <span class="coming-soon"><%= I18n.locale == :fr ? 'Bientôt disponible' : 'Coming Soon' %></span></li>
+          <li><strong>Linux:</strong> <span class="coming-soon"><%= I18n.locale == :fr ? 'Bientôt disponible' : 'Coming Soon' %></span></li>
         </ul>
         <p class="alert alert-info" style="padding: 0.5rem; margin: 1rem 0 0 0; font-size: 0.9rem;">
-          <strong>Android APK:</strong> Enable "Install from Unknown Sources" in settings to install.
+          <strong>Android APK:</strong> <%= I18n.locale == :fr ? 'Activez "Installer depuis des sources inconnues" dans les paramètres.' : 'Enable "Install from Unknown Sources" in settings to install.' %>
         </p>
       </div>
+
       <div class="step">
-        <h3>2. Login to Your Account</h3>
+        <h3>2. <%= I18n.locale == :fr ? 'Se connecter à votre compte' : 'Login to Your Account' %></h3>
         <% if user_signed_in? %>
-          <p>Open the VulcainVPN app and login with your credentials:</p>
+          <p><%= I18n.locale == :fr ? "Ouvrez l'application VulcainVPN et connectez-vous avec vos identifiants :" : 'Open the VulcainVPN app and login with your credentials:' %></p>
           <ul>
             <li><strong>Email:</strong> <%= current_user.email %></li>
-            <li><strong>Password:</strong> Your VulcainVPN account password</li>
+            <li><strong><%= I18n.locale == :fr ? 'Mot de passe :' : 'Password:' %></strong> <%= I18n.locale == :fr ? 'Votre mot de passe VulcainVPN' : 'Your VulcainVPN account password' %></li>
           </ul>
           <% unless @has_subscription %>
             <p class="alert alert-warning" style="padding: 0.5rem; margin: 0.5rem 0;">
-              🔒 You need an active subscription to connect.
-              <%= link_to "Subscribe now", new_user_subscription_path(current_user) %>
+              🔒 <%= I18n.locale == :fr ? "Vous avez besoin d'un abonnement actif pour vous connecter." : 'You need an active subscription to connect.' %>
+              <%= link_to (I18n.locale == :fr ? "S'abonner maintenant" : 'Subscribe now'), new_user_subscription_path(current_user) %>
             </p>
           <% end %>
         <% else %>
-          <p>Open the VulcainVPN app and login with your account credentials.</p>
+          <p><%= I18n.locale == :fr ? "Ouvrez l'application VulcainVPN et connectez-vous avec vos identifiants." : 'Open the VulcainVPN app and login with your account credentials.' %></p>
           <p class="alert alert-info" style="padding: 0.5rem; margin: 0.5rem 0;">
-            Don't have an account yet? <%= link_to "Sign up here", new_user_registration_path %>
+            <%= I18n.locale == :fr ? 'Pas encore de compte ?' : "Don't have an account yet?" %> <%= link_to (I18n.locale == :fr ? "S'inscrire ici" : 'Sign up here'), new_user_registration_path %>
           </p>
         <% end %>
       </div>
 
       <div class="step">
-        <h3>3. Register Your Device</h3>
-        <p>The app will automatically register your device when you first login.</p>
+        <h3>3. <%= I18n.locale == :fr ? 'Enregistrer votre appareil' : 'Register Your Device' %></h3>
+        <p><%= I18n.locale == :fr ? "L'application enregistrera automatiquement votre appareil lors de votre première connexion." : 'The app will automatically register your device when you first login.' %></p>
         <ul>
-          <li>The device will be linked to your subscription</li>
+          <li><%= I18n.locale == :fr ? "L'appareil sera lié à votre abonnement" : 'The device will be linked to your subscription' %></li>
           <% if user_signed_in? %>
-            <li>You can manage devices from your <%= link_to "dashboard", dashboard_path %></li>
+            <li><%= I18n.locale == :fr ? "Vous pouvez gérer vos appareils depuis votre" : 'You can manage devices from your' %> <%= link_to (I18n.locale == :fr ? 'tableau de bord' : 'dashboard'), dashboard_path %></li>
           <% else %>
-            <li>You can manage devices from your dashboard</li>
+            <li><%= I18n.locale == :fr ? 'Vous pouvez gérer vos appareils depuis votre tableau de bord' : 'You can manage devices from your dashboard' %></li>
           <% end %>
         </ul>
       </div>
 
       <div class="step">
-        <h3>4. Connect to VPN</h3>
-        <p>Tap the <strong>Connect</strong> button in the app.</p>
+        <h3>4. <%= I18n.locale == :fr ? 'Se connecter au VPN' : 'Connect to VPN' %></h3>
+        <p><%= I18n.locale == :fr ? 'Appuyez sur le bouton' : 'Tap the' %> <strong><%= I18n.locale == :fr ? 'Connecter' : 'Connect' %></strong> <%= I18n.locale == :fr ? "dans l'application." : 'button in the app.' %></p>
         <ul>
-          <li>The app will automatically select the best server for you</li>
-          <li>Connection typically takes 2-8 seconds</li>
+          <li><%= I18n.locale == :fr ? 'Le VPN sélectionnera automatiquement le meilleur serveur' : 'The app will automatically select the best server for you' %></li>
+          <li><%= I18n.locale == :fr ? 'La connexion prend généralement 2 à 8 secondes' : 'Connection typically takes 2-8 seconds' %></li>
         </ul>
-        <p>Verify your connection at <a href="https://whatismyip.com" target="_blank">whatismyip.com</a>.</p>
+        <p><%= I18n.locale == :fr ? 'Vérifiez votre connexion sur' : 'Verify your connection at' %> <a href="https://whatismyip.com" target="_blank">whatismyip.com</a>.</p>
       </div>
 
       <div class="step">
-        <h3>5. Device Management</h3>
+        <h3>5. <%= I18n.locale == :fr ? 'Gestion des appareils' : 'Device Management' %></h3>
         <% if user_signed_in? %>
-          <p>Your subscription includes up to <%= @active_subscription&.max_devices || 3 %> simultaneous connections:</p>
+          <p><%= I18n.locale == :fr ? "Votre abonnement inclut jusqu'à #{@active_subscription&.max_devices || 3} connexions simultanées :" : "Your subscription includes up to #{@active_subscription&.max_devices || 3} simultaneous connections:" %></p>
           <ul>
-            <li>View active devices in your <%= link_to "dashboard", dashboard_path %></li>
-            <li>Maximum <%= @active_subscription&.max_devices || 3 %> devices can be connected at once</li>
-            <li>Disconnect from one device to free up a slot for another</li>
-            </ul>
+            <li><%= I18n.locale == :fr ? 'Voir les appareils actifs dans votre' : 'View active devices in your' %> <%= link_to (I18n.locale == :fr ? 'tableau de bord' : 'dashboard'), dashboard_path %></li>
+            <li><%= I18n.locale == :fr ? "Maximum #{@active_subscription&.max_devices || 3} appareils peuvent être connectés simultanément" : "Maximum #{@active_subscription&.max_devices || 3} devices can be connected at once" %></li>
+            <li><%= I18n.locale == :fr ? "Déconnectez-vous d'un appareil pour libérer un emplacement" : 'Disconnect from one device to free up a slot for another' %></li>
+          </ul>
         <% else %>
-          <p>Manage your connected devices:</p>
+          <p><%= I18n.locale == :fr ? 'Gérez vos appareils connectés :' : 'Manage your connected devices:' %></p>
           <ul>
-            <li>View active devices in your dashboard</li>
-            <li>Subscriptions support multiple simultaneous connections</li>
-            <li>Disconnect from one device to free up a slot for another</li>
-            </ul>
+            <li><%= I18n.locale == :fr ? 'Voir les appareils actifs dans votre tableau de bord' : 'View active devices in your dashboard' %></li>
+            <li><%= I18n.locale == :fr ? 'Les abonnements prennent en charge plusieurs connexions simultanées' : 'Subscriptions support multiple simultaneous connections' %></li>
+            <li><%= I18n.locale == :fr ? "Déconnectez-vous d'un appareil pour libérer un emplacement" : 'Disconnect from one device to free up a slot for another' %></li>
+          </ul>
         <% end %>
       </div>
     </div>
@@ -118,132 +118,155 @@
 
   <!-- Troubleshooting section -->
   <section class="troubleshooting-section">
-    <h2>Troubleshooting</h2>
+    <h2><%= I18n.locale == :fr ? 'Dépannage' : 'Troubleshooting' %></h2>
 
     <div class="faq-item">
       <button class="faq-question">
-        Can't Login to the App <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? "Impossible de se connecter à l'application" : "Can't Login to the App" %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Symptoms:</strong> "Invalid email or password" error</p>
+        <p><strong><%= I18n.locale == :fr ? 'Symptômes :' : 'Symptoms:' %></strong> "<%= I18n.locale == :fr ? 'Email ou mot de passe invalide' : 'Invalid email or password' %>"</p>
         <ul>
-          <li>Double-check your email and password</li>
-          <li>Make sure your email is confirmed (check spam folder)</li>
-          <li>Try <%= link_to "resetting your password", new_user_password_path %></li>
-          <li>Contact support if issues persist</li>
+          <% if I18n.locale == :fr %>
+            <li>Vérifiez votre email et mot de passe</li>
+            <li>Assurez-vous que votre email est confirmé (vérifiez les spams)</li>
+            <li>Essayez de <%= link_to "réinitialiser votre mot de passe", new_user_password_path %></li>
+            <li>Contactez le support si le problème persiste</li>
+          <% else %>
+            <li>Double-check your email and password</li>
+            <li>Make sure your email is confirmed (check spam folder)</li>
+            <li>Try <%= link_to "resetting your password", new_user_password_path %></li>
+            <li>Contact support if issues persist</li>
+          <% end %>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        "No Active Subscription" Error <span class="faq-icon">+</span>
+        "<%= I18n.locale == :fr ? 'Aucun abonnement actif' : 'No Active Subscription' %>" <%= I18n.locale == :fr ? 'Erreur' : 'Error' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Symptoms:</strong> App says subscription expired or not found</p>
+        <p><strong><%= I18n.locale == :fr ? 'Symptômes :' : 'Symptoms:' %></strong> <%= I18n.locale == :fr ? "L'application indique que l'abonnement a expiré ou est introuvable" : 'App says subscription expired or not found' %></p>
         <ul>
           <li>
             <% if user_signed_in? %>
-              <%= link_to "Renew subscription", new_user_subscription_path(current_user) %> if expired
+              <%= link_to (I18n.locale == :fr ? "Renouveler l'abonnement" : 'Renew subscription'), new_user_subscription_path(current_user) %> <%= I18n.locale == :fr ? 'si expiré' : 'if expired' %>
             <% else %>
-              <%= link_to "Renew subscription", new_user_registration_path %> if expired
+              <%= link_to (I18n.locale == :fr ? "Renouveler l'abonnement" : 'Renew subscription'), new_user_registration_path %> <%= I18n.locale == :fr ? 'si expiré' : 'if expired' %>
             <% end %>
           </li>
-          <li>Verify payment was successful in your email</li>
-          <li>Try logging out and back in</li>
-          <li>
-            <% if user_signed_in? %>
-              <li><%= link_to "Renew subscription", new_user_subscription_path(current_user) %> if expired</li>
-            <% else %>
-              <li>Renew subscription if expired (requires login)</li>
-            <% end %>
-          </li>
+          <li><%= I18n.locale == :fr ? 'Vérifiez que le paiement a réussi par email' : 'Verify payment was successful in your email' %></li>
+          <li><%= I18n.locale == :fr ? 'Essayez de vous déconnecter et reconnectez-vous' : 'Try logging out and back in' %></li>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        "Maximum Devices Reached" Error <span class="faq-icon">+</span>
+        "<%= I18n.locale == :fr ? 'Nombre maximum d\'appareils atteint' : 'Maximum Devices Reached' %>" <%= I18n.locale == :fr ? 'Erreur' : 'Error' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Symptoms:</strong> Can't connect because all device slots are in use</p>
+        <p><strong><%= I18n.locale == :fr ? 'Symptômes :' : 'Symptoms:' %></strong> <%= I18n.locale == :fr ? 'Impossible de se connecter car tous les emplacements sont utilisés' : "Can't connect because all device slots are in use" %></p>
         <ul>
           <% if user_signed_in? %>
-            <li>You can have <%= @active_subscription&.max_devices || 3 %> devices connected simultaneously</li>
-            <li>Check your <%= link_to "dashboard", dashboard_path %> to see active devices</li>
+            <li><%= I18n.locale == :fr ? "Vous pouvez avoir #{@active_subscription&.max_devices || 3} appareils connectés simultanément" : "You can have #{@active_subscription&.max_devices || 3} devices connected simultaneously" %></li>
+            <li><%= I18n.locale == :fr ? 'Consultez votre' : 'Check your' %> <%= link_to (I18n.locale == :fr ? 'tableau de bord' : 'dashboard'), dashboard_path %> <%= I18n.locale == :fr ? 'pour voir les appareils actifs' : 'to see active devices' %></li>
           <% else %>
-            <li>Check your subscription's device limit</li>
-            <li>Check your dashboard to see active devices</li>
+            <li><%= I18n.locale == :fr ? "Vérifiez la limite d'appareils de votre abonnement" : "Check your subscription's device limit" %></li>
+            <li><%= I18n.locale == :fr ? 'Consultez votre tableau de bord pour voir les appareils actifs' : 'Check your dashboard to see active devices' %></li>
           <% end %>
-          <li>Disconnect from another device first</li>
-          <li>Devices auto-disconnect after 5 minutes of inactivity</li>
+          <li><%= I18n.locale == :fr ? "Déconnectez d'abord un autre appareil" : 'Disconnect from another device first' %></li>
+          <li><%= I18n.locale == :fr ? "Les appareils se déconnectent automatiquement après 5 minutes d'inactivité" : 'Devices auto-disconnect after 5 minutes of inactivity' %></li>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        Connection Fails or Drops <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? 'La connexion échoue ou se coupe' : 'Connection Fails or Drops' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Symptoms:</strong> VPN disconnects frequently or won't connect</p>
+        <p><strong><%= I18n.locale == :fr ? 'Symptômes :' : 'Symptoms:' %></strong> <%= I18n.locale == :fr ? 'Le VPN se déconnecte fréquemment ou refuse de se connecter' : "VPN disconnects frequently or won't connect" %></p>
         <ul>
-          <li>Check your internet connection</li>
-          <li>Log out and log in back into the app</li>
-          <li>Restart the app</li>
-          <li>Restart your device</li>
-          <li>Check for app updates</li>
-          <li>Check firewall/antivirus settings</li>
+          <% if I18n.locale == :fr %>
+            <li>Vérifiez votre connexion internet</li>
+            <li>Déconnectez-vous et reconnectez-vous dans l'application</li>
+            <li>Redémarrez l'application</li>
+            <li>Redémarrez votre appareil</li>
+            <li>Vérifiez les mises à jour de l'application</li>
+            <li>Vérifiez les paramètres pare-feu/antivirus</li>
+          <% else %>
+            <li>Check your internet connection</li>
+            <li>Log out and log in back into the app</li>
+            <li>Restart the app</li>
+            <li>Restart your device</li>
+            <li>Check for app updates</li>
+            <li>Check firewall/antivirus settings</li>
+          <% end %>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        Slow Speeds <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? 'Vitesse lente' : 'Slow Speeds' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Symptoms:</strong> VPN is connected but internet is slow</p>
+        <p><strong><%= I18n.locale == :fr ? 'Symptômes :' : 'Symptoms:' %></strong> <%= I18n.locale == :fr ? 'Le VPN est connecté mais internet est lent' : 'VPN is connected but internet is slow' %></p>
         <ul>
-          <li>Test your base internet speed (disconnect VPN first)</li>
-          <li>Close background apps consuming bandwidth</li>
+          <% if I18n.locale == :fr %>
+            <li>Testez votre vitesse internet de base (déconnectez d'abord le VPN)</li>
+            <li>Fermez les applications en arrière-plan consommant de la bande passante</li>
+          <% else %>
+            <li>Test your base internet speed (disconnect VPN first)</li>
+            <li>Close background apps consuming bandwidth</li>
+          <% end %>
           <% if user_signed_in? %>
-            <li>Check server status in <%= link_to "dashboard", dashboard_path %></li>
+            <li><%= I18n.locale == :fr ? 'Vérifiez le statut du serveur dans votre' : 'Check server status in' %> <%= link_to (I18n.locale == :fr ? 'tableau de bord' : 'dashboard'), dashboard_path %></li>
           <% else %>
-            <li>Check server status in your dashboard</li>
+            <li><%= I18n.locale == :fr ? 'Vérifiez le statut du serveur dans votre tableau de bord' : 'Check server status in your dashboard' %></li>
           <% end %>
-          <li>Restart your router</li>
+          <li><%= I18n.locale == :fr ? 'Redémarrez votre routeur' : 'Restart your router' %></li>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        Server Selection <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? 'Sélection du serveur' : 'Server Selection' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>How servers are selected:</strong></p>
+        <p><strong><%= I18n.locale == :fr ? 'Comment les serveurs sont sélectionnés :' : 'How servers are selected:' %></strong></p>
         <ul>
-          <li>The app automatically picks the best server based on:</li>
-          <li>Your geographic location (closest server)</li>
-          <li>Server load (least crowded)</li>
-          <li>Server health (only healthy servers)</li>
-          <li>You cannot manually choose servers (automatic only)</li>
+          <% if I18n.locale == :fr %>
+            <li>L'application sélectionne automatiquement le meilleur serveur selon :</li>
+            <li>Votre localisation géographique (serveur le plus proche)</li>
+            <li>La charge du serveur (le moins chargé)</li>
+            <li>La santé du serveur (uniquement les serveurs sains)</li>
+            <li>Vous ne pouvez pas choisir manuellement les serveurs (automatique uniquement)</li>
+          <% else %>
+            <li>The app automatically picks the best server based on:</li>
+            <li>Your geographic location (closest server)</li>
+            <li>Server load (least crowded)</li>
+            <li>Server health (only healthy servers)</li>
+            <li>You cannot manually choose servers (automatic only)</li>
+          <% end %>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        General Tips <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? 'Conseils généraux' : 'General Tips' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Keep your app updated and check for announcements. If issues persist, contact support at <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a>.</p>
+        <p><%= I18n.locale == :fr ? "Gardez votre application à jour et consultez les annonces. Si les problèmes persistent, contactez le support à" : 'Keep your app updated and check for announcements. If issues persist, contact support at' %> <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a>.</p>
       </div>
     </div>
   </section>
 </div>
+
 
 <script>
   // Initialize FAQs on turbo:load

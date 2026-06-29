@@ -2,31 +2,31 @@
 <!-- Status Banner -->
 <% if @vpn_server_ips.include?(@user_ip) %>
   <div class="status-banner status-banner-vpn">
-    <p class="status-text">🔒 You are protected by VulcainVPN</p>
-    <p class="status-detail">IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
+    <p class="status-text">🔒 <%= I18n.locale == :fr ? 'Vous êtes protégé par VulcainVPN' : 'You are protected by VulcainVPN' %></p>
+    <p class="status-detail">IP: <%= @user_ip %> • <%= @country || (I18n.locale == :fr ? 'Localisation inconnue' : 'Unknown Location') %></p>
   </div>
 <% elsif @active_subscription %>
   <div class="status-banner status-banner-warning">
-    <p class="status-text">⚠️ VPN Not Connected</p>
-    <p class="status-detail">Your IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
+    <p class="status-text">⚠️ <%= I18n.locale == :fr ? 'VPN Non Connecté' : 'VPN Not Connected' %></p>
+    <p class="status-detail"><%= I18n.locale == :fr ? 'Votre IP' : 'Your IP' %>: <%= @user_ip %> • <%= @country || (I18n.locale == :fr ? 'Localisation inconnue' : 'Unknown Location') %></p>
   </div>
 <% else %>
   <div class="status-banner">
-    <p class="status-text">No Active Subscription</p>
-    <p class="status-detail">Your IP: <%= @user_ip %> • <%= @country || "Unknown Location" %></p>
+    <p class="status-text"><%= I18n.locale == :fr ? 'Aucun abonnement actif' : 'No Active Subscription' %></p>
+    <p class="status-detail"><%= I18n.locale == :fr ? 'Votre IP' : 'Your IP' %>: <%= @user_ip %> • <%= @country || (I18n.locale == :fr ? 'Localisation inconnue' : 'Unknown Location') %></p>
   </div>
 <% end %>
 
 <div class="dashboard-container">
   <!-- Dashboard Header -->
   <header class="dashboard-header">
-    <h1>Welcome, <%= current_user.email.capitalize %></h1>
-    <p>Manage your VPN subscription and stay protected</p>
+    <h1><%= I18n.locale == :fr ? 'Bienvenue,' : 'Welcome,' %> <%= current_user.email.capitalize %></h1>
+    <p><%= I18n.locale == :fr ? 'Gérez votre abonnement VPN et restez protégé' : 'Manage your VPN subscription and stay protected' %></p>
   </header>
 
   <!-- Subscription Section -->
   <section class="subscription-section">
-    <h2>📋 Your Subscription</h2>
+    <h2>📋 <%= I18n.locale == :fr ? 'Votre abonnement' : 'Your Subscription' %></h2>
 
     <% if @has_subscription && @active_subscription && @active_subscription.expires_at > Time.now %>
       <!-- Active Subscription -->
@@ -37,38 +37,38 @@
           </svg>
         </div>
         <div class="alert-content">
-          <h3>Active Subscription</h3>
-          <p><strong>Plan:</strong> <%= @active_subscription.plan.name %></p>
-          <p><strong>Devices:</strong> Connect up to <%= @active_subscription.max_devices || 3 %> devices</p>
-          <p><strong>Expires:</strong> <span id="local-time-text"><%= @active_subscription.expires_at.strftime("%B %d, %Y at %H:%M") %></span></p>
+          <h3><%= I18n.locale == :fr ? 'Abonnement actif' : 'Active Subscription' %></h3>
+          <p><strong><%= I18n.locale == :fr ? 'Forfait :' : 'Plan:' %></strong> <%= @active_subscription.plan.name %></p>
+          <p><strong><%= I18n.locale == :fr ? 'Appareils :' : 'Devices:' %></strong> <%= I18n.locale == :fr ? "Connectez jusqu'à" : 'Connect up to' %> <%= @active_subscription.max_devices || 3 %> <%= I18n.locale == :fr ? 'appareils' : 'devices' %></p>
+          <p><strong><%= I18n.locale == :fr ? 'Expire le :' : 'Expires:' %></strong> <span id="local-time-text"><%= @active_subscription.expires_at.strftime("%B %d, %Y at %H:%M") %></span></p>
           <p class="countdown">
-            <span id="countdown">Calculating...</span>
+            <span id="countdown"><%= I18n.locale == :fr ? 'Calcul en cours...' : 'Calculating...' %></span>
           </p>
         </div>
       </div>
 
-      <%= link_to "View Subscription Details", user_subscription_path(current_user, @active_subscription), class: "btn btn-block" %>
+      <%= link_to (I18n.locale == :fr ? 'Voir les détails' : 'View Subscription Details'), user_subscription_path(current_user, @active_subscription), class: "btn btn-block" %>
 
     <% else %>
       <!-- No Active Subscription -->
       <div class="alert alert-warning">
-        <p><strong>No active subscription</strong></p>
-        <p>Subscribe now to protect your privacy and secure your connection on up to 3 devices.</p>
+        <p><strong><%= I18n.locale == :fr ? 'Aucun abonnement actif' : 'No active subscription' %></strong></p>
+        <p><%= I18n.locale == :fr ? "Abonnez-vous pour protéger votre vie privée sur jusqu'à 3 appareils." : 'Subscribe now to protect your privacy and secure your connection on up to 3 devices.' %></p>
       </div>
-      <%= link_to "Choose a Plan", new_user_subscription_path(current_user), class: "btn btn-block" %>
+      <%= link_to (I18n.locale == :fr ? 'Choisir un forfait' : 'Choose a Plan'), new_user_subscription_path(current_user), class: "btn btn-block" %>
     <% end %>
 
     <!-- Expired Subscriptions -->
     <% if @expired_subscriptions.any? %>
       <div style="text-align: center; margin-top: 1rem;">
-        <%= link_to "View Subscription History (#{@expired_subscriptions.count})", expired_subscriptions_path, class: "btn btn-secondary", style: "background-color: #6c757d; max-width: 350px;" %>
+        <%= link_to "#{I18n.locale == :fr ? 'Historique des abonnements' : 'Subscription History'} (#{@expired_subscriptions.count})", expired_subscriptions_path, class: "btn btn-secondary", style: "background-color: #6c757d; max-width: 350px;" %>
       </div>
     <% end %>
   </section>
 
   <!-- App Download Section -->
   <section class="app-download-section">
-    <h2>Download VulcainVPN</h2>
+    <h2><%= I18n.locale == :fr ? 'Télécharger VulcainVPN' : 'Download VulcainVPN' %></h2>
 
     <!-- Featured download for detected platform (mobile + desktop) -->
     <div id="featured-download" style="display: none;"></div>
@@ -79,14 +79,14 @@
         <!-- Will be populated by JavaScript -->
       </p>
       <button id="expand-platforms-btn" onclick="togglePlatforms()" style="display: block; margin: 0 auto; background: rgba(255, 195, 60, 0.2); border: 1px solid rgba(255, 195, 60, 0.4); color: #ffc33c; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
-        Show All Platforms
+        <%= I18n.locale == :fr ? 'Voir toutes les plateformes' : 'Show All Platforms' %>
       </button>
     </div>
 
     <!-- Platform grid (desktop: always visible, mobile: hidden until expand) -->
     <div id="platform-grid-wrapper">
       <p class="platform-grid-title" style="text-align: center; margin: 1.5rem 0 1rem 0; opacity: 0.85; font-size: 1rem;">
-        All available platforms:
+        <%= I18n.locale == :fr ? 'Toutes les plateformes disponibles :' : 'All available platforms:' %>
       </p>
 
       <div class="app-download-grid" id="platform-grid">
@@ -94,15 +94,15 @@
         <div class="app-card mobile-card" data-platform="android" data-available="false">
           <div class="app-icon">🤖</div>
           <h3>Android</h3>
-          <p>Phones & Tablets</p>
-          <span class="status-badge coming-soon">Coming Soon</span>
+          <p><%= I18n.locale == :fr ? 'Téléphones & Tablettes' : 'Phones & Tablets' %></p>
+          <span class="status-badge coming-soon"><%= I18n.locale == :fr ? 'Bientôt disponible' : 'Coming Soon' %></span>
         </div>
 
         <div class="app-card mobile-card" data-platform="ios" data-available="false">
           <div class="app-icon">🍎</div>
           <h3>iOS</h3>
           <p>iPhone & iPad</p>
-          <span class="status-badge coming-soon">Coming Soon</span>
+          <span class="status-badge coming-soon"><%= I18n.locale == :fr ? 'Bientôt disponible' : 'Coming Soon' %></span>
         </div>
 
         <!-- Desktop cards (Windows, macOS) -->
@@ -110,16 +110,16 @@
           <div class="app-icon">🪟</div>
           <h3>Windows</h3>
           <p>Windows 10/11</p>
-          <span class="status-badge available">Available Now</span>
+          <span class="status-badge available"><%= I18n.locale == :fr ? 'Disponible' : 'Available Now' %></span>
           <a href="/downloads/VulcainVPN-Setup-1.0.7.exe"
-            class="download-btn windows-download" download>Download</a>
+            class="download-btn windows-download" download><%= I18n.locale == :fr ? 'Télécharger' : 'Download' %></a>
         </div>
 
         <div class="app-card desktop-card" data-platform="macos" data-available="false">
           <div class="app-icon">🍏</div>
           <h3>macOS</h3>
           <p>macOS 11+</p>
-          <span class="status-badge coming-soon">Coming Soon</span>
+          <span class="status-badge coming-soon"><%= I18n.locale == :fr ? 'Bientôt disponible' : 'Coming Soon' %></span>
         </div>
 
         <!-- Linux card -->
@@ -127,141 +127,179 @@
           <div class="app-icon">🐧</div>
           <h3>Linux</h3>
           <p>Ubuntu, Debian, ...</p>
-          <span class="status-badge coming-soon">Coming Soon</span>
+          <span class="status-badge coming-soon"><%= I18n.locale == :fr ? 'Bientôt disponible' : 'Coming Soon' %></span>
         </div>
       </div>
     </div>
 
     <div class="alert alert-info" style="margin-top: 2rem; background: rgba(255, 195, 60, 0.1); border: 1px solid rgba(255, 195, 60, 0.3); border-radius: 8px; padding: 1rem;">
-      <strong>💡 Need Help?</strong> Check out the
-      <%= link_to "setup guide", setup_guide_path, style: "color: #ff6e08;" %> or contact support at
+      <strong>💡 <%= I18n.locale == :fr ? "Besoin d'aide ?" : 'Need Help?' %></strong> <%= I18n.locale == :fr ? 'Consultez le' : 'Check out the' %>
+      <%= link_to (I18n.locale == :fr ? 'guide de configuration' : 'setup guide'), setup_guide_path, style: "color: #ff6e08;" %> <%= I18n.locale == :fr ? 'ou contactez le support à' : 'or contact support at' %>
       <a href="mailto:support@vulcainvpn.com" style="color: #ff6e08;">support@vulcainvpn.com</a>
     </div>
   </section>
 
   <!-- Quick Start Guide -->
   <section class="quick-start-section">
-    <h2>🚀 Quick Start Guide</h2>
+    <h2>🚀 <%= I18n.locale == :fr ? 'Guide de démarrage rapide' : 'Quick Start Guide' %></h2>
 
     <div class="quick-start-steps">
       <div class="quick-step">
         <div class="step-number">1</div>
         <div class="step-content">
-          <h3>Download the App</h3>
-          <p>Install VulcainVPN for iOS, Android, Windows, macOS, or Linux</p>
+          <h3><%= I18n.locale == :fr ? "Télécharger l'application" : 'Download the App' %></h3>
+          <p><%= I18n.locale == :fr ? 'Installez VulcainVPN sur iOS, Android, Windows, macOS ou Linux' : 'Install VulcainVPN for iOS, Android, Windows, macOS, or Linux' %></p>
         </div>
       </div>
 
       <div class="quick-step">
         <div class="step-number">2</div>
         <div class="step-content">
-          <h3>Sign In</h3>
-          <p>Open the app and log in with your VulcainVPN account (<%= current_user.email %>)</p>
+          <h3><%= I18n.locale == :fr ? 'Se connecter' : 'Sign In' %></h3>
+          <p><%= I18n.locale == :fr ? "Ouvrez l'application et connectez-vous avec votre compte VulcainVPN" : 'Open the app and log in with your VulcainVPN account' %> (<%= current_user.email %>)</p>
         </div>
       </div>
 
       <div class="quick-step">
         <div class="step-number">3</div>
         <div class="step-content">
-          <h3>Connect</h3>
-          <p>Tap the "Connect" button and you're protected! The app automatically selects the best server for you.</p>
+          <h3><%= I18n.locale == :fr ? 'Se connecter au VPN' : 'Connect' %></h3>
+          <p><%= I18n.locale == :fr ? "Appuyez sur \"Connecter\" et vous êtes protégé ! L'application sélectionne automatiquement le meilleur serveur." : 'Tap the "Connect" button and you\'re protected! The app automatically selects the best server for you.' %></p>
         </div>
       </div>
 
       <div class="quick-step">
         <div class="step-number">4</div>
         <div class="step-content">
-          <h3>Verify Protection</h3>
-          <p>Check your IP address at <a href="https://whatismyip.com" target="_blank" style="color: #ff6e08;">whatismyip.com</a> to confirm your connection</p>
+          <h3><%= I18n.locale == :fr ? 'Vérifier la protection' : 'Verify Protection' %></h3>
+          <p><%= I18n.locale == :fr ? 'Vérifiez votre adresse IP sur' : 'Check your IP address at' %> <a href="https://whatismyip.com" target="_blank" style="color: #ff6e08;">whatismyip.com</a> <%= I18n.locale == :fr ? 'pour confirmer votre connexion' : 'to confirm your connection' %></p>
         </div>
       </div>
     </div>
 
     <div class="alert alert-tips" style="margin-top: 1.5rem;">
-      <strong>💡 Pro Tip:</strong> You can connect up to <%= @active_subscription&.max_devices || 3 %> devices simultaneously with a single subscription.
+      <strong>💡 Pro Tip:</strong> <%= I18n.locale == :fr ? "Vous pouvez connecter jusqu'à" : 'You can connect up to' %> <%= @active_subscription&.max_devices || 3 %> <%= I18n.locale == :fr ? 'appareils simultanément avec un seul abonnement.' : 'devices simultaneously with a single subscription.' %>
     </div>
   </section>
 
   <!-- Troubleshooting Section -->
   <section class="troubleshooting-section">
-    <h2>🔧 Troubleshooting</h2>
+    <h2>🔧 <%= I18n.locale == :fr ? 'Dépannage' : 'Troubleshooting' %></h2>
 
     <div class="faq-item">
       <button class="faq-question">
-        Can't connect to VPN <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? 'Impossible de se connecter au VPN' : "Can't connect to VPN" %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Try these steps:</strong></p>
+        <p><strong><%= I18n.locale == :fr ? 'Essayez ces étapes :' : 'Try these steps:' %></strong></p>
         <ul>
-          <li>Check your internet connection</li>
-          <li>Make sure your subscription is active</li>
-          <li>Restart the VulcainVPN app</li>
-          <li>Restart your device</li>
-          <li>Check if other apps are blocking VPN connections (antivirus, firewall)</li>
-          <li>Try toggling airplane mode on/off</li>
+          <% if I18n.locale == :fr %>
+            <li>Vérifiez votre connexion internet</li>
+            <li>Assurez-vous que votre abonnement est actif</li>
+            <li>Redémarrez l'application VulcainVPN</li>
+            <li>Redémarrez votre appareil</li>
+            <li>Vérifiez si d'autres applications bloquent les connexions VPN (antivirus, pare-feu)</li>
+            <li>Essayez d'activer/désactiver le mode avion</li>
+          <% else %>
+            <li>Check your internet connection</li>
+            <li>Make sure your subscription is active</li>
+            <li>Restart the VulcainVPN app</li>
+            <li>Restart your device</li>
+            <li>Check if other apps are blocking VPN connections (antivirus, firewall)</li>
+            <li>Try toggling airplane mode on/off</li>
+          <% end %>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        Connection keeps dropping <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? 'La connexion se coupe fréquemment' : 'Connection keeps dropping' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Possible solutions:</strong></p>
+        <p><strong><%= I18n.locale == :fr ? 'Solutions possibles :' : 'Possible solutions:' %></strong></p>
         <ul>
-          <li>Make sure you have a stable internet connection</li>
-          <li>Disable battery optimization for VulcainVPN (Android Settings → Apps → VulcainVPN → Battery)</li>
-          <li>Check if your network blocks VPN traffic (some public WiFi networks do this)</li>
-          <li>Try switching to mobile data to test</li>
-          <li>Update the app to the latest version</li>
+          <% if I18n.locale == :fr %>
+            <li>Assurez-vous d'avoir une connexion internet stable</li>
+            <li>Désactivez l'optimisation de la batterie pour VulcainVPN (Paramètres Android → Applications → VulcainVPN → Batterie)</li>
+            <li>Vérifiez si votre réseau bloque le trafic VPN</li>
+            <li>Essayez de passer en données mobiles</li>
+            <li>Mettez l'application à jour</li>
+          <% else %>
+            <li>Make sure you have a stable internet connection</li>
+            <li>Disable battery optimization for VulcainVPN (Android Settings → Apps → VulcainVPN → Battery)</li>
+            <li>Check if your network blocks VPN traffic (some public WiFi networks do this)</li>
+            <li>Try switching to mobile data to test</li>
+            <li>Update the app to the latest version</li>
+          <% end %>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        Slow connection speeds <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? 'Connexion lente' : 'Slow connection speeds' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Speed optimization:</strong></p>
+        <p><strong><%= I18n.locale == :fr ? 'Optimisation de la vitesse :' : 'Speed optimization:' %></strong></p>
         <ul>
-          <li>Test your base internet speed without VPN first</li>
-          <li>Close background apps that use internet</li>
-          <li>Restart your router</li>
-          <li>Try connecting to a server closer to your location</li>
-          <li>Check if your ISP is throttling VPN traffic</li>
+          <% if I18n.locale == :fr %>
+            <li>Testez d'abord votre vitesse internet sans VPN</li>
+            <li>Fermez les applications en arrière-plan</li>
+            <li>Redémarrez votre routeur</li>
+            <li>Vérifiez si votre FAI limite le trafic VPN</li>
+          <% else %>
+            <li>Test your base internet speed without VPN first</li>
+            <li>Close background apps that use internet</li>
+            <li>Restart your router</li>
+            <li>Try connecting to a server closer to your location</li>
+            <li>Check if your ISP is throttling VPN traffic</li>
+          <% end %>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        Multiple devices not working <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? 'Plusieurs appareils ne fonctionnent pas' : 'Multiple devices not working' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p><strong>Device limit:</strong></p>
+        <p><strong><%= I18n.locale == :fr ? "Limite d'appareils :" : 'Device limit:' %></strong></p>
         <ul>
-          <li>Your plan allows up to <%= @active_subscription&.max_devices || 3 %> simultaneous connections</li>
-          <li>Each device gets its own unique configuration automatically</li>
-          <li>If you can't connect, check if you've reached your device limit</li>
-          <li>Disconnect unused devices to free up slots</li>
+          <% if I18n.locale == :fr %>
+            <li>Votre forfait permet jusqu'à <%= @active_subscription&.max_devices || 3 %> connexions simultanées</li>
+            <li>Chaque appareil reçoit automatiquement sa propre configuration</li>
+            <li>Si vous ne pouvez pas vous connecter, vérifiez si vous avez atteint la limite</li>
+            <li>Déconnectez les appareils inutilisés pour libérer des emplacements</li>
+          <% else %>
+            <li>Your plan allows up to <%= @active_subscription&.max_devices || 3 %> simultaneous connections</li>
+            <li>Each device gets its own unique configuration automatically</li>
+            <li>If you can't connect, check if you've reached your device limit</li>
+            <li>Disconnect unused devices to free up slots</li>
+          <% end %>
         </ul>
       </div>
     </div>
 
     <div class="faq-item">
       <button class="faq-question">
-        Still need help? <span class="faq-icon">+</span>
+        <%= I18n.locale == :fr ? "Besoin d'aide supplémentaire ?" : 'Still need help?' %> <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Contact our support team at <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a></p>
-        <p>Include details about:</p>
+        <p><%= I18n.locale == :fr ? 'Contactez notre équipe de support à' : 'Contact our support team at' %> <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a></p>
+        <p><%= I18n.locale == :fr ? 'Incluez des informations sur :' : 'Include details about:' %></p>
         <ul>
-          <li>Your device type (iPhone 13, Samsung Galaxy S21, etc.)</li>
-          <li>App version</li>
-          <li>When the issue started</li>
-          <li>Error messages you're seeing</li>
+          <% if I18n.locale == :fr %>
+            <li>Votre type d'appareil (iPhone 13, Samsung Galaxy S21, etc.)</li>
+            <li>Version de l'application</li>
+            <li>Quand le problème a commencé</li>
+            <li>Les messages d'erreur que vous voyez</li>
+          <% else %>
+            <li>Your device type (iPhone 13, Samsung Galaxy S21, etc.)</li>
+            <li>App version</li>
+            <li>When the issue started</li>
+            <li>Error messages you're seeing</li>
+          <% end %>
         </ul>
       </div>
     </div>
@@ -311,7 +349,7 @@
     const diff = expiresAt - now;
 
     if (diff <= 0) {
-      document.getElementById("countdown").textContent = "⚠️ Subscription expired";
+      document.getElementById("countdown").textContent = "<%= I18n.locale == :fr ? '⚠️ Abonnement expiré' : '⚠️ Subscription expired' %>";
       return;
     }
 
@@ -320,11 +358,11 @@
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
     let parts = [];
-    if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
-    if (hours > 0 || days > 0) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
-    parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+    if (days > 0) parts.push(`${days} <%= I18n.locale == :fr ? 'jour' : 'day' %>${days !== 1 ? 's' : ''}`);
+    if (hours > 0 || days > 0) parts.push(`${hours} <%= I18n.locale == :fr ? 'heure' : 'hour' %>${hours !== 1 ? 's' : ''}`);
+    parts.push(`${minutes} <%= I18n.locale == :fr ? 'minute' : 'minute' %>${minutes !== 1 ? 's' : ''}`);
 
-    document.getElementById("countdown").textContent = `⏱️ ${parts.join(', ')} remaining`;
+    document.getElementById("countdown").textContent = `⏱️ ${parts.join(', ')} <%= I18n.locale == :fr ? 'restants' : 'remaining' %>`;
   }
 
   function initializeCountdown() {
@@ -340,7 +378,7 @@
           hour: '2-digit',
           minute: '2-digit'
         };
-        localTimeElement.textContent = expiresAt.toLocaleString(undefined, options);
+        localTimeElement.textContent = expiresAt.toLocaleString('<%= I18n.locale == :fr ? "fr-FR" : "en-GB" %>', options);
       }
 
       updateCountdown(expiresAt);
@@ -360,7 +398,7 @@
 
     const platforms = {
       ios: { icon: '🍎', name: 'iOS', spec: 'iPhone & iPad' },
-      android: { icon: '🤖', name: 'Android', spec: 'Phones & Tablets' },
+      android: { icon: '🤖', name: 'Android', spec: '<%= I18n.locale == :fr ? "Téléphones & Tablettes" : "Phones & Tablets" %>' },
       windows: { icon: '🪟', name: 'Windows', spec: 'Windows 10/11' },
       macos: { icon: '🍏', name: 'macOS', spec: 'macOS 11+' },
       linux: { icon: '🐧', name: 'Linux', spec: 'Ubuntu, Debian, ...' }
@@ -412,7 +450,7 @@
       const otherPlatformsEl = document.getElementById('other-platforms-text');
       if (otherPlatformsEl) {
         otherPlatformsEl.innerHTML = `
-        <p>Also available:</p>
+        <p><%= I18n.locale == :fr ? "Aussi disponible :" : "Also available:" %></p>
         <p>${otherPlatforms}</p>
         `;
       }
@@ -431,7 +469,7 @@
           <h3>${icon} ${platformName}</h3>
           <p>${platformSpec}</p>
           <a href="${downloadUrl}" class="download-btn-large" ${detectedPlatform === 'android' ? 'target="_blank"' : 'download'}>
-            Download Now
+            <%= I18n.locale == :fr ? "Télécharger maintenant" : "Download Now" %>
           </a>
         `;
       } else {
@@ -439,9 +477,9 @@
         featuredEl.innerHTML = `
           <h3>${icon} ${platformName}</h3>
           <p>${platformSpec}</p>
-          <p style="font-size: 0.9rem; margin-top: 0.5rem;">Coming soon!</p>
+          <p style="font-size: 0.9rem; margin-top: 0.5rem;"><%= I18n.locale == :fr ? "Bientôt disponible !" : "Coming soon!" %></p>
           <a href="mailto:support@vulcainvpn.com?subject=Notify%20me%20when%20${platformName}%20is%20ready&body=Please%20notify%20me%20when%20VulcainVPN%20for%20${platformName}%20is%20available." class="download-btn-large">
-            Notify Me When Ready
+            <%= I18n.locale == :fr ? "Me notifier quand disponible" : "Notify Me When Ready" %>
           </a>
         `;
       }
@@ -455,10 +493,10 @@
 
     if (gridWrapper.classList.contains('expanded')) {
       gridWrapper.classList.remove('expanded');
-      btn.textContent = 'Show All Platforms';
+      btn.textContent = '<%= I18n.locale == :fr ? "Voir toutes les plateformes" : "Show All Platforms" %>';
     } else {
       gridWrapper.classList.add('expanded');
-      btn.textContent = 'Hide Platforms';
+      btn.textContent = '<%= I18n.locale == :fr ? "Masquer" : "Hide Platforms" %>';
     }
   }
 </script>

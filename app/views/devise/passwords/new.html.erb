@@ -77,18 +77,18 @@
 
 <div class="auth-super-container">
   <div class="auth-container">
-    <h2>Forgot your password?</h2>
+    <h2><%= I18n.locale == :fr ? 'Mot de passe oublié ?' : 'Forgot your password?' %></h2>
 
     <%= simple_form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f| %>
       <%= f.error_notification %>
 
       <div class="form-group">
         <%= f.label :email %>
-        <%= f.email_field :email, required: true, autofocus: true, autocomplete: "email", placeholder: "Enter your email", class: "form-control" %>
+        <%= f.email_field :email, required: true, autofocus: true, autocomplete: "email", placeholder: (I18n.locale == :fr ? 'Entrez votre email' : 'Enter your email'), class: "form-control" %>
       </div>
 
       <div class="actions">
-        <%= f.submit "Send me reset password instructions", class: "auth-btn" %>
+        <%= f.submit (I18n.locale == :fr ? 'Envoyer les instructions' : 'Send me reset password instructions'), class: "auth-btn" %>
       </div>
     <% end %>
 

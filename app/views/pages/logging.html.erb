@@ -1,93 +1,186 @@
 <div class="policy-container">
-  <h1>Privacy & Logging Policy</h1>
-  <p>Last updated: March 29, 2026</p>
+  <% if I18n.locale == :fr %>
+    <h1>Politique de confidentialité & journalisation</h1>
+    <p>Dernière mise à jour : 29 mars 2026</p>
 
-  <section>
-    <h2>1. What We DO NOT Log</h2>
-    <p><strong>We do not monitor or store your browsing activity.</strong> This means we never collect:</p>
-    <ul>
-      <li><strong>Websites you visit</strong> – We don't track which sites you browse</li>
-      <li><strong>Traffic content</strong> – We don't inspect or store what you download or upload</li>
-      <li><strong>DNS queries</strong> – We don't log which domains you look up</li>
-      <li><strong>Search history</strong> – We don't track your searches or online behavior</li>
-      <li><strong>Deep packet inspection</strong> – We don't analyze the content of your data</li>
-    </ul>
-    <p><strong>Your browsing activity is completely private.</strong></p>
-  </section>
+    <section>
+      <h2>1. Ce que nous ne journalisons pas</h2>
+      <p><strong>Nous ne surveillons pas et ne stockons pas votre activité de navigation.</strong> Cela signifie que nous ne collectons jamais :</p>
+      <ul>
+        <li><strong>Les sites que vous visitez</strong> – Nous ne suivons pas quels sites vous consultez</li>
+        <li><strong>Le contenu du trafic</strong> – Nous n'inspectons pas et ne stockons pas ce que vous téléchargez ou envoyez</li>
+        <li><strong>Les requêtes DNS</strong> – Nous ne journalisons pas les domaines que vous consultez</li>
+        <li><strong>L'historique de recherche</strong> – Nous ne suivons pas vos recherches ou comportements en ligne</li>
+        <li><strong>L'inspection approfondie des paquets</strong> – Nous n'analysons pas le contenu de vos données</li>
+      </ul>
+      <p><strong>Votre activité de navigation est totalement privée.</strong></p>
+    </section>
 
-  <section>
-    <h2>2. What We DO Log (And Why)</h2>
-    <p>To prevent fraud, enforce our fair-use policy (3-device limit), and maintain service security, we temporarily collect minimal connection metadata:</p>
+    <section>
+      <h2>2. Ce que nous journalisons (et pourquoi)</h2>
+      <p>Pour prévenir la fraude, appliquer notre politique d'utilisation équitable (limite de 3 appareils) et maintenir la sécurité du service, nous collectons temporairement des métadonnées de connexion minimales :</p>
 
-    <h3>Connection Logs (Retained 24-48 hours)</h3>
-    <ul>
-      <li><strong>Your IP address</strong> – To identify your device and detect unauthorized account sharing</li>
-      <li><strong>Connection timestamps</strong> – To enforce simultaneous device limits</li>
-      <li><strong>Approximate location (city/country)</strong> – To detect password theft (e.g., account used in France and China simultaneously)</li>
-      <li><strong>Anonymous username</strong> – A random identifier like "NAUIZ_1" (not linked to your real identity)</li>
-    </ul>
+      <h3>Journaux de connexion (conservés 24-48 heures)</h3>
+      <ul>
+        <li><strong>Votre adresse IP</strong> – Pour identifier votre appareil et détecter le partage de compte non autorisé</li>
+        <li><strong>Horodatages de connexion</strong> – Pour appliquer les limites d'appareils simultanés</li>
+        <li><strong>Localisation approximative (ville/pays)</strong> – Pour détecter le vol de mot de passe (ex. compte utilisé en France et en Chine simultanément)</li>
+        <li><strong>Nom d'utilisateur anonyme</strong> – Un identifiant aléatoire comme "NAUIZ_1" (non lié à votre identité réelle)</li>
+      </ul>
 
-    <h3>Legal Basis (GDPR Article 6)</h3>
-    <p>We process this data under:</p>
-    <ul>
-      <li><strong>Contract performance</strong> (Art. 6(1)(b)) – To enforce our 3-device-per-subscription limit</li>
-      <li><strong>Legitimate interest</strong> (Art. 6(1)(f)) – To prevent fraud and unauthorized account sharing</li>
-    </ul>
+      <h3>Base légale (Article 6 RGPD)</h3>
+      <p>Nous traitons ces données sous :</p>
+      <ul>
+        <li><strong>Exécution du contrat</strong> (Art. 6(1)(b)) – Pour appliquer notre limite de 3 appareils par abonnement</li>
+        <li><strong>Intérêt légitime</strong> (Art. 6(1)(f)) – Pour prévenir la fraude et le partage de compte non autorisé</li>
+      </ul>
 
-    <h3>Automatic Deletion</h3>
-    <p>Connection logs are automatically deleted after <strong>24-48 hours</strong> via log rotation. We do not retain long-term connection history.</p>
-  </section>
+      <h3>Suppression automatique</h3>
+      <p>Les journaux de connexion sont automatiquement supprimés après <strong>24-48 heures</strong> par rotation des logs. Nous ne conservons pas d'historique de connexion à long terme.</p>
+    </section>
 
-  <section>
-    <h2>3. How We Protect Your Privacy</h2>
-    <ul>
-      <li><strong>Short retention</strong> – Logs deleted within 48 hours, not weeks or months</li>
-      <li><strong>Minimal data</strong> – We only collect what's necessary for fraud prevention</li>
-      <li><strong>No traffic analysis</strong> – We don't know what you browse, download, or search</li>
-      <li><strong>Encrypted connections</strong> – All VPN traffic is encrypted end-to-end</li>
-      <li><strong>No third-party sharing</strong> – We never sell or share your data</li>
-    </ul>
-  </section>
+    <section>
+      <h2>3. Comment nous protégeons votre vie privée</h2>
+      <ul>
+        <li><strong>Conservation courte</strong> – Journaux supprimés dans les 48 heures, pas des semaines ou des mois</li>
+        <li><strong>Données minimales</strong> – Nous ne collectons que ce qui est nécessaire à la prévention de la fraude</li>
+        <li><strong>Pas d'analyse du trafic</strong> – Nous ne savons pas ce que vous naviguez, téléchargez ou recherchez</li>
+        <li><strong>Connexions chiffrées</strong> – Tout le trafic VPN est chiffré de bout en bout</li>
+        <li><strong>Pas de partage avec des tiers</strong> – Nous ne vendons jamais ni ne partageons vos données</li>
+      </ul>
+    </section>
 
-  <section>
-    <h2>4. Account & Payment Data</h2>
-    <ul>
-      <li><strong>Email address</strong> – Used for account access and support (required)</li>
-      <li><strong>Payment information</strong> – Processed by Stripe (we don't store credit card details)</li>
-      <li><strong>Subscription status</strong> – To manage your service access</li>
-    </ul>
-    <p>This data is retained while your account is active and for legal/tax purposes as required by law.</p>
-  </section>
+    <section>
+      <h2>4. Données de compte & paiement</h2>
+      <ul>
+        <li><strong>Adresse email</strong> – Utilisée pour l'accès au compte et le support (obligatoire)</li>
+        <li><strong>Informations de paiement</strong> – Traitées par Stripe (nous ne stockons pas les détails de carte bancaire)</li>
+        <li><strong>Statut d'abonnement</strong> – Pour gérer votre accès au service</li>
+      </ul>
+      <p>Ces données sont conservées pendant que votre compte est actif et à des fins légales/fiscales conformément à la loi.</p>
+    </section>
 
-  <section>
-    <h2>5. Your Rights (GDPR)</h2>
-    <p>Under EU data protection law, you have the right to:</p>
-    <ul>
-      <li><strong>Access</strong> – Request a copy of your data</li>
-      <li><strong>Deletion</strong> – Request deletion of your account and associated data</li>
-      <li><strong>Rectification</strong> – Correct inaccurate information</li>
-      <li><strong>Object</strong> – Object to data processing (may limit service functionality)</li>
-    </ul>
-    <p>Contact us at <strong>support@vulcainvpn.com</strong> to exercise these rights.</p>
-  </section>
+    <section>
+      <h2>5. Vos droits (RGPD)</h2>
+      <p>En vertu du droit européen de protection des données, vous avez le droit de :</p>
+      <ul>
+        <li><strong>Accès</strong> – Demander une copie de vos données</li>
+        <li><strong>Suppression</strong> – Demander la suppression de votre compte et des données associées</li>
+        <li><strong>Rectification</strong> – Corriger des informations inexactes</li>
+        <li><strong>Opposition</strong> – Vous opposer au traitement des données (peut limiter les fonctionnalités)</li>
+      </ul>
+      <p>Contactez-nous à <strong>support@vulcainvpn.com</strong> pour exercer ces droits.</p>
+    </section>
 
-  <section>
-    <h2>6. No-Warrant Canary</h2>
-    <p>As of March 29, 2026:</p>
-    <ul>
-      <li>We have <strong>not</strong> received any government data requests</li>
-      <li>We have <strong>not</strong> been compelled to log user activity</li>
-      <li>We have <strong>not</strong> installed any backdoors</li>
-    </ul>
-    <p><em>This section will be updated quarterly. Absence of an update may indicate legal restrictions on disclosure.</em></p>
-  </section>
+    <section>
+      <h2>6. Canari de mandat</h2>
+      <p>Au 29 mars 2026 :</p>
+      <ul>
+        <li>Nous n'avons <strong>pas</strong> reçu de demandes de données gouvernementales</li>
+        <li>Nous n'avons <strong>pas</strong> été contraints de journaliser l'activité des utilisateurs</li>
+        <li>Nous n'avons <strong>pas</strong> installé de portes dérobées</li>
+      </ul>
+      <p><em>Cette section sera mise à jour trimestriellement. L'absence de mise à jour peut indiquer des restrictions légales de divulgation.</em></p>
+    </section>
 
-  <section>
-    <h2>7. Changes to This Policy</h2>
-    <p>We may update this policy to reflect service changes or legal requirements. Material changes will be communicated via email.</p>
-    <p>Continued use of the service after policy updates constitutes acceptance.</p>
-  </section>
+    <section>
+      <h2>7. Modifications de cette politique</h2>
+      <p>Nous pouvons mettre à jour cette politique pour refléter les changements de service ou les exigences légales. Les modifications importantes seront communiquées par email.</p>
+      <p>La poursuite de l'utilisation du service après les mises à jour de la politique constitue une acceptation.</p>
+    </section>
+
+  <% else %>
+    <h1>Privacy & Logging Policy</h1>
+    <p>Last updated: March 29, 2026</p>
+
+    <section>
+      <h2>1. What We DO NOT Log</h2>
+      <p><strong>We do not monitor or store your browsing activity.</strong> This means we never collect:</p>
+      <ul>
+        <li><strong>Websites you visit</strong> – We don't track which sites you browse</li>
+        <li><strong>Traffic content</strong> – We don't inspect or store what you download or upload</li>
+        <li><strong>DNS queries</strong> – We don't log which domains you look up</li>
+        <li><strong>Search history</strong> – We don't track your searches or online behavior</li>
+        <li><strong>Deep packet inspection</strong> – We don't analyze the content of your data</li>
+      </ul>
+      <p><strong>Your browsing activity is completely private.</strong></p>
+    </section>
+
+    <section>
+      <h2>2. What We DO Log (And Why)</h2>
+      <p>To prevent fraud, enforce our fair-use policy (3-device limit), and maintain service security, we temporarily collect minimal connection metadata:</p>
+
+      <h3>Connection Logs (Retained 24-48 hours)</h3>
+      <ul>
+        <li><strong>Your IP address</strong> – To identify your device and detect unauthorized account sharing</li>
+        <li><strong>Connection timestamps</strong> – To enforce simultaneous device limits</li>
+        <li><strong>Approximate location (city/country)</strong> – To detect password theft (e.g., account used in France and China simultaneously)</li>
+        <li><strong>Anonymous username</strong> – A random identifier like "NAUIZ_1" (not linked to your real identity)</li>
+      </ul>
+
+      <h3>Legal Basis (GDPR Article 6)</h3>
+      <p>We process this data under:</p>
+      <ul>
+        <li><strong>Contract performance</strong> (Art. 6(1)(b)) – To enforce our 3-device-per-subscription limit</li>
+        <li><strong>Legitimate interest</strong> (Art. 6(1)(f)) – To prevent fraud and unauthorized account sharing</li>
+      </ul>
+
+      <h3>Automatic Deletion</h3>
+      <p>Connection logs are automatically deleted after <strong>24-48 hours</strong> via log rotation. We do not retain long-term connection history.</p>
+    </section>
+
+    <section>
+      <h2>3. How We Protect Your Privacy</h2>
+      <ul>
+        <li><strong>Short retention</strong> – Logs deleted within 48 hours, not weeks or months</li>
+        <li><strong>Minimal data</strong> – We only collect what's necessary for fraud prevention</li>
+        <li><strong>No traffic analysis</strong> – We don't know what you browse, download, or search</li>
+        <li><strong>Encrypted connections</strong> – All VPN traffic is encrypted end-to-end</li>
+        <li><strong>No third-party sharing</strong> – We never sell or share your data</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Account & Payment Data</h2>
+      <ul>
+        <li><strong>Email address</strong> – Used for account access and support (required)</li>
+        <li><strong>Payment information</strong> – Processed by Stripe (we don't store credit card details)</li>
+        <li><strong>Subscription status</strong> – To manage your service access</li>
+      </ul>
+      <p>This data is retained while your account is active and for legal/tax purposes as required by law.</p>
+    </section>
+
+    <section>
+      <h2>5. Your Rights (GDPR)</h2>
+      <p>Under EU data protection law, you have the right to:</p>
+      <ul>
+        <li><strong>Access</strong> – Request a copy of your data</li>
+        <li><strong>Deletion</strong> – Request deletion of your account and associated data</li>
+        <li><strong>Rectification</strong> – Correct inaccurate information</li>
+        <li><strong>Object</strong> – Object to data processing (may limit service functionality)</li>
+      </ul>
+      <p>Contact us at <strong>support@vulcainvpn.com</strong> to exercise these rights.</p>
+    </section>
+
+    <section>
+      <h2>6. No-Warrant Canary</h2>
+      <p>As of March 29, 2026:</p>
+      <ul>
+        <li>We have <strong>not</strong> received any government data requests</li>
+        <li>We have <strong>not</strong> been compelled to log user activity</li>
+        <li>We have <strong>not</strong> installed any backdoors</li>
+      </ul>
+      <p><em>This section will be updated quarterly. Absence of an update may indicate legal restrictions on disclosure.</em></p>
+    </section>
+
+    <section>
+      <h2>7. Changes to This Policy</h2>
+      <p>We may update this policy to reflect service changes or legal requirements. Material changes will be communicated via email.</p>
+      <p>Continued use of the service after policy updates constitutes acceptance.</p>
+    </section>
+  <% end %>
 </div>
+
 
 <style>
   .policy-container {

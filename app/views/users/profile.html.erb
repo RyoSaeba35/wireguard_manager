@@ -218,7 +218,7 @@
 
 <div style="padding-top: 3rem; padding-bottom: 3rem;">
   <div class="profile-container">
-    <h1>Your Profile</h1>
+    <h1><%= I18n.locale == :fr ? 'Votre profil' : 'Your Profile' %></h1>
 
     <% if flash[:notice] %>
       <div class="success-message">
@@ -233,12 +233,12 @@
     <!-- Email Section -->
     <div class="profile-section">
       <div class="section-header" onclick="toggleSection('email-section')">
-        <h2>Email Address</h2>
+        <h2><%= I18n.locale == :fr ? 'Adresse email' : 'Email Address' %></h2>
         <span class="toggle-icon" id="email-toggle">+</span>
       </div>
       <div class="profile-info">
         <span class="profile-value" id="email-value"><%= current_user.email %></span>
-        <span class="edit-link" onclick="toggleSection('email-section')">Edit</span>
+        <span class="edit-link" onclick="toggleSection('email-section')"><%= I18n.locale == :fr ? 'Modifier' : 'Edit' %></span>
       </div>
       <div class="form-group" id="email-section">
         <%= form_with(model: current_user, url: update_profile_path, method: :patch, id: "email-form") do |form| %>
@@ -246,26 +246,22 @@
             <%= form.label :email %>
             <%= form.email_field :email, class: "form-control", value: current_user.email %>
             <% if form.object.errors[:email].any? %>
-              <div class="error-message">
-                <%= form.object.errors[:email].first %>
-              </div>
+              <div class="error-message"><%= form.object.errors[:email].first %></div>
             <% end %>
           </div>
 
           <div class="field">
-            <%= form.label :current_password, "Current Password (required for changes)" %>
+            <%= form.label :current_password, (I18n.locale == :fr ? 'Mot de passe actuel (requis pour les modifications)' : 'Current Password (required for changes)') %>
             <%= form.password_field :current_password, class: "form-control", autocomplete: "current-password" %>
             <% if form.object.errors[:current_password].any? %>
-              <div class="error-message">
-                <%= form.object.errors[:current_password].first %>
-              </div>
+              <div class="error-message"><%= form.object.errors[:current_password].first %></div>
             <% end %>
-            <small class="form-text text-muted">We need your current password to confirm your changes</small>
+            <small class="form-text text-muted"><%= I18n.locale == :fr ? 'Nous avons besoin de votre mot de passe actuel pour confirmer vos modifications' : 'We need your current password to confirm your changes' %></small>
           </div>
 
           <div class="save-cancel">
-            <button type="button" class="btn-cancel" onclick="cancelEdit('email-section')">Cancel</button>
-            <%= form.submit "Update Email", class: "btn-save", id: "email-submit" %>
+            <button type="button" class="btn-cancel" onclick="cancelEdit('email-section')"><%= I18n.locale == :fr ? 'Annuler' : 'Cancel' %></button>
+            <%= form.submit (I18n.locale == :fr ? "Mettre à jour l'email" : 'Update Email'), class: "btn-save", id: "email-submit" %>
           </div>
         <% end %>
       </div>
@@ -274,62 +270,56 @@
     <!-- Password Section -->
     <div class="profile-section">
       <div class="section-header" onclick="toggleSection('password-section')">
-        <h2>Password</h2>
+        <h2><%= I18n.locale == :fr ? 'Mot de passe' : 'Password' %></h2>
         <span class="toggle-icon" id="password-toggle">+</span>
       </div>
       <div class="profile-info">
         <span>**********</span>
-        <span class="edit-link" onclick="toggleSection('password-section')">Change</span>
+        <span class="edit-link" onclick="toggleSection('password-section')"><%= I18n.locale == :fr ? 'Modifier' : 'Change' %></span>
       </div>
       <div class="form-group" id="password-section">
         <%= form_with(model: current_user, url: update_profile_path, method: :patch, id: "password-form") do |form| %>
           <div class="field">
-            <%= form.label :current_password, "Current Password" %>
+            <%= form.label :current_password, (I18n.locale == :fr ? 'Mot de passe actuel' : 'Current Password') %>
             <%= form.password_field :current_password, class: "form-control", autocomplete: "current-password" %>
             <% if form.object.errors[:current_password].any? %>
-              <div class="error-message">
-                <%= form.object.errors[:current_password].first %>
-              </div>
+              <div class="error-message"><%= form.object.errors[:current_password].first %></div>
             <% end %>
           </div>
 
           <div class="field">
-            <%= form.label :password, "New Password" %>
+            <%= form.label :password, (I18n.locale == :fr ? 'Nouveau mot de passe' : 'New Password') %>
             <%= form.password_field :password, class: "form-control", autocomplete: "new-password", oninput: "checkPasswordStrength(this.value)" %>
             <div class="password-strength">
               <div class="password-strength-bar" id="password-strength-bar"></div>
             </div>
             <div class="password-requirements" id="password-requirements">
-              <p>Password must contain:</p>
+              <p><%= I18n.locale == :fr ? 'Le mot de passe doit contenir :' : 'Password must contain:' %></p>
               <ul>
-                <li id="length">At least 8 characters</li>
-                <li id="uppercase">At least one uppercase letter</li>
-                <li id="lowercase">At least one lowercase letter</li>
-                <li id="number">At least one number</li>
-                <li id="special">At least one special character</li>
+                <li id="length"><%= I18n.locale == :fr ? 'Au moins 8 caractères' : 'At least 8 characters' %></li>
+                <li id="uppercase"><%= I18n.locale == :fr ? 'Au moins une lettre majuscule' : 'At least one uppercase letter' %></li>
+                <li id="lowercase"><%= I18n.locale == :fr ? 'Au moins une lettre minuscule' : 'At least one lowercase letter' %></li>
+                <li id="number"><%= I18n.locale == :fr ? 'Au moins un chiffre' : 'At least one number' %></li>
+                <li id="special"><%= I18n.locale == :fr ? 'Au moins un caractère spécial' : 'At least one special character' %></li>
               </ul>
             </div>
             <% if form.object.errors[:password].any? %>
-              <div class="error-message">
-                <%= form.object.errors[:password].first %>
-              </div>
+              <div class="error-message"><%= form.object.errors[:password].first %></div>
             <% end %>
-            <small class="form-text text-muted">Leave blank if you don't want to change it</small>
+            <small class="form-text text-muted"><%= I18n.locale == :fr ? 'Laissez vide si vous ne souhaitez pas le modifier' : "Leave blank if you don't want to change it" %></small>
           </div>
 
           <div class="field">
-            <%= form.label :password_confirmation, "Confirm New Password" %>
+            <%= form.label :password_confirmation, (I18n.locale == :fr ? 'Confirmer le nouveau mot de passe' : 'Confirm New Password') %>
             <%= form.password_field :password_confirmation, class: "form-control", autocomplete: "new-password" %>
             <% if form.object.errors[:password_confirmation].any? %>
-              <div class="error-message">
-                <%= form.object.errors[:password_confirmation].first %>
-              </div>
+              <div class="error-message"><%= form.object.errors[:password_confirmation].first %></div>
             <% end %>
           </div>
 
           <div class="save-cancel">
-            <button type="button" class="btn-cancel" onclick="cancelEdit('password-section')">Cancel</button>
-            <%= form.submit "Update Password", class: "btn-save", id: "password-submit" %>
+            <button type="button" class="btn-cancel" onclick="cancelEdit('password-section')"><%= I18n.locale == :fr ? 'Annuler' : 'Cancel' %></button>
+            <%= form.submit (I18n.locale == :fr ? 'Mettre à jour le mot de passe' : 'Update Password'), class: "btn-save", id: "password-submit" %>
           </div>
         <% end %>
       </div>

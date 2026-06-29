@@ -1,46 +1,46 @@
 <div class="super-container">
   <section class="hero">
-    <h1>Privacy & Security<br>Wherever You Go</h1>
-    <p>For travelers, expats, and digital nomads who need reliable VPN access on any network.</p>
-    <a href="<%= new_user_registration_path %>" class="cta-btn">Get Private Access</a>
+    <h1><%= t('home.hero.title') %><br><%= t('home.hero.subtitle') %></h1>
+    <p><%= t('home.hero.description') %></p>
+    <a href="<%= new_user_registration_path %>" class="cta-btn"><%= t('home.hero.cta') %></a>
   </section>
 
   <section class="features">
-    <h2>Why Choose Vulcain VPN?</h2>
+    <h2><%= t('home.features.title') %></h2>
     <div class="feature-grid">
       <div class="feature-card">
-        <h3>Reliable Worldwide Access</h3>
-        <p>Multiple protocols ensure connectivity even on networks with advanced filtering and packet inspection.</p>
+        <h3><%= t('home.features.reliable.title') %></h3>
+        <p><%= t('home.features.reliable.description') %></p>
       </div>
       <div class="feature-card">
-        <h3>We Don't Oversell</h3>
-        <p>By keeping our community small, we ensure stable performance and a guaranteed minimum speed of 20 Mbps for everyone.</p>
+        <h3><%= t('home.features.no_oversell.title') %></h3>
+        <p><%= t('home.features.no_oversell.description') %></p>
       </div>
       <div class="feature-card">
-        <h3>Privacy Comes First</h3>
-        <p>We believe privacy should be simple and transparent. Strong encryption, no hidden practices, and clear choices — nothing more, nothing less.</p>
+        <h3><%= t('home.features.privacy.title') %></h3>
+        <p><%= t('home.features.privacy.description') %></p>
       </div>
     </div>
   </section>
 
   <section class="pricing">
-    <h2>Choose Your Plan</h2>
+    <h2><%= t('home.pricing.title') %></h2>
     <!-- Desktop Grid -->
     <div class="plan-grid">
       <% @plans.each do |plan| %>
         <div class="plan">
-          <% if plan.name.include?("Month") %>
-            <div class="popular-badge">Popular</div>
+          <% if plan.interval == "month" %>
+            <div class="popular-badge"><%= t('home.pricing.popular') %></div>
           <% end %>
-          <h3><%= plan.name %></h3>
-          <p class="plan-subtitle">Flexible, cancel anytime</p>
+          <h3><%= plan.localized_name %></h3>
+          <p class="plan-subtitle"><%= t('home.pricing.subtitle') %></p>
           <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
           <div class="plan-features">
-            <% plan.description.split(', ').each do |feature| %>
+            <% plan.localized_description.split(', ').each do |feature| %>
               <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
             <% end %>
           </div>
-          <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>
+          <a href="<%= new_user_registration_path %>" class="plan-btn"><%= t('home.pricing.sign_up') %></a>
         </div>
       <% end %>
     </div>
@@ -51,18 +51,18 @@
           <% @plans.each do |plan| %>
             <div class="splide__slide">
               <div class="plan">
-                <% if plan.name.include?("Month") %>
-                  <div class="popular-badge">Popular</div>
+                <% if plan.interval == "month" %>
+                  <div class="popular-badge"><%= t('home.pricing.popular') %></div>
                 <% end %>
-                <h3><%= plan.name %></h3>
-                <p class="plan-subtitle">Flexible, cancel anytime</p>
+                <h3><%= plan.localized_name %></h3>
+                <p class="plan-subtitle"><%= t('home.pricing.subtitle') %></p>
                 <div class="plan-price">€<%= plan.price %>/<%= plan.interval %></div>
                 <div class="plan-features">
-                  <% plan.description.split(', ').each do |feature| %>
+                  <% plan.localized_description.split(', ').each do |feature| %>
                     <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
                   <% end %>
                 </div>
-                <a href="<%= new_user_registration_path %>" class="plan-btn">Sign Up Now</a>
+                <a href="<%= new_user_registration_path %>" class="plan-btn"><%= t('home.pricing.sign_up') %></a>
               </div>
             </div>
           <% end %>
@@ -73,9 +73,9 @@
 
   <!-- Downloads Section -->
   <section class="downloads">
-    <h2>Get VulcainVPN</h2>
-    <p class="downloads-subtitle">Available on Windows and Android only<br>
-    <small class="downloads-subtitle">MacOS and iOS coming soon</small></p>
+    <h2><%= t('home.downloads.title') %></h2>
+    <p class="downloads-subtitle"><%= t('home.downloads.subtitle') %><br>
+    <small class="downloads-subtitle"><%= t('home.downloads.coming_soon') %></small></p>
     <div class="download-buttons">
       <a href="<%= download_windows_path %>" class="download-badge-link">
         <img src="/windows-button.png"
@@ -92,132 +92,124 @@
 
   <!-- About Us Section -->
   <section class="about-us">
-    <h2>About Vulcain VPN</h2>
+    <h2><%= t('home.about.title') %></h2>
     <div class="about-content">
+      <p class="about-intro"><%= t('home.about.intro').html_safe %></p>
+      <p><%= t('home.about.body').html_safe %></p>
 
-        <p class="about-intro">We're a small team dedicated to providing reliable VPN services for a specific community: <strong>expats, travelers, and digital nomads</strong> who need secure access to essential services from their home country.</p>
+      <div class="about-highlight">
+        <h3><%= t('home.about.highlight_title') %></h3>
+        <p><span class="checkmark">➤</span> <%= t('home.about.small_by_design').html_safe %></p>
+        <p><span class="checkmark">➤</span> <%= t('home.about.built_for_expats').html_safe %></p>
+        <p><span class="checkmark">➤</span> <%= t('home.about.focus').html_safe %></p>
+      </div>
 
-        <p>Unlike mainstream VPN providers, we don't chase the mass market. Instead, we focus on what matters most to our users — <strong>stable connections, consistent performance, and straightforward privacy</strong>.</p>
-
-        <div class="about-highlight">
-          <h3>What We're About</h3>
-          <p><span class="checkmark">➤</span> <strong>Small by design:</strong> We limit our user base to ensure everyone gets reliable service and guaranteed bandwidth.</p>
-          <p><span class="checkmark">➤</span> <strong>Built for expats:</strong> Access your banking websites, email, government portals, and work systems securely from anywhere. <em>(Note: Some banking apps may detect VPN usage, but banking websites typically work fine.)</em></p>
-          <p><span class="checkmark">➤</span> <strong>Our Focus:</strong> Privacy and secure access to legitimate services.</p>
-        </div>
-
-        <p class="about-closing">We believe in keeping things simple, transparent, and reliable. No gimmicks, no overselling — just a VPN that works when you need it.</p>
-
+      <p class="about-closing"><%= t('home.about.closing') %></p>
     </div>
   </section>
 
   <!-- FAQ Section -->
   <section class="faq">
-    <h2>Frequently Asked Questions</h2>
+    <h2><%= t('home.faq.title') %></h2>
     <div class="faq-list">
 
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Do you keep logs of my activity?
+          <%= t('home.faq.logs.question') %>
           <span class="faq-icon">+</span>
         </button>
         <div class="faq-answer">
-          <p>We never log your browsing activity, websites you visit, DNS queries, or traffic content. Your online activity is completely private.</p>
-          <p>To enforce our 3-device limit and prevent fraud, we temporarily store minimal connection metadata (your IP address, connection timestamps, and approximate location). This data is automatically deleted after 24-48 hours and is never used for any other purpose.</p>
-          <p><a href="<%= logging_path %>">Read our full logging policy →</a></p>
+          <p><%= t('home.faq.logs.answer_1') %></p>
+          <p><%= t('home.faq.logs.answer_2') %></p>
+          <p><a href="<%= logging_path %>"><%= t('home.faq.logs.read_more') %></a></p>
         </div>
       </div>
 
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Which protocols do you support?
+          <%= t('home.faq.protocols.question') %>
           <span class="faq-icon">+</span>
         </button>
         <div class="faq-answer">
-          <p>Vulcain VPN supports three protocols, and our app automatically selects the best one for your network:</p>
+          <p><%= t('home.faq.protocols.answer') %></p>
           <ul>
-            <li><strong>WireGuard</strong> — fastest and most efficient, ideal for most connections</li>
-            <li><strong>Hysteria2</strong> — designed for high-latency or lossy networks, great for unstable connections</li>
-            <li><strong>Shadowsocks</strong> — obfuscated traffic, useful on networks with VPN filtering</li>
+            <li><%= t('home.faq.protocols.wireguard').html_safe %></li>
+            <li><%= t('home.faq.protocols.hysteria2').html_safe %></li>
+            <li><%= t('home.faq.protocols.shadowsocks').html_safe %></li>
           </ul>
         </div>
       </div>
 
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          How many devices can I connect simultaneously?
+          <%= t('home.faq.devices.question') %>
           <span class="faq-icon">+</span>
         </button>
         <div class="faq-answer">
-          <p>Each subscription allows up to <strong>3 simultaneous device connections</strong>. You can install the app on as many devices as you want, but only 3 can be connected at the same time.</p>
-          <p>If you try to connect a 4th device, the oldest connection will be automatically disconnected.</p>
+          <p><%= t('home.faq.devices.answer_1').html_safe %></p>
+          <p><%= t('home.faq.devices.answer_2') %></p>
         </div>
       </div>
 
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Will it work with my banking website or app?
+          <%= t('home.faq.banking.question') %>
           <span class="faq-icon">+</span>
         </button>
         <div class="faq-answer">
-          <p><strong>Banking websites</strong> generally work fine through Vulcain VPN.</p>
-          <p><strong>Banking mobile apps</strong> are less predictable — many banks block or restrict VPN connections as a security measure. Some apps may flag your account or require additional verification when accessed via VPN.</p>
-          <p>We recommend testing with your specific bank before relying on it. If your banking app doesn't work, you can temporarily disconnect from the VPN to access it.</p>
+          <p><%= t('home.faq.banking.answer_1').html_safe %></p>
+          <p><%= t('home.faq.banking.answer_2').html_safe %></p>
+          <p><%= t('home.faq.banking.answer_3') %></p>
         </div>
       </div>
 
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Which countries do you have servers in?
+          <%= t('home.faq.servers.question') %>
           <span class="faq-icon">+</span>
         </button>
         <div class="faq-answer">
-          <p>We currently operate servers in <strong>France</strong>. Our service is specifically designed for expats, travelers, and digital nomads who need a reliable French IP address — to access their home banking, government portals, or French streaming services from abroad.</p>
-          <p>We intentionally keep our server count small to ensure quality and performance for our users rather than spreading thin across dozens of countries.</p>
+          <p><%= t('home.faq.servers.answer_1').html_safe %></p>
+          <p><%= t('home.faq.servers.answer_2') %></p>
         </div>
       </div>
 
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Will it slow down my internet connection?
+          <%= t('home.faq.speed.question') %>
           <span class="faq-icon">+</span>
         </button>
         <div class="faq-answer">
-          <p>Some speed reduction is normal with any VPN due to encryption overhead and routing. However, we guarantee a <strong>minimum of 20 Mbps</strong> for all users.</p>
-          <p>By keeping our user base intentionally small, we avoid the overcrowding that plagues larger VPN providers. You won't be sharing bandwidth with tens of thousands of users on the same server.</p>
+          <p><%= t('home.faq.speed.answer_1').html_safe %></p>
+          <p><%= t('home.faq.speed.answer_2') %></p>
         </div>
       </div>
 
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Is it legal to use a VPN?
+          <%= t('home.faq.legal.question') %>
           <span class="faq-icon">+</span>
         </button>
         <div class="faq-answer">
-          <p>VPN use is legal in most countries, including all EU member states, the UK, and the US.</p>
-          <p>However, some countries restrict or prohibit VPN use (e.g., China, Iran, UAE). If you are in or traveling to one of these countries, it is your responsibility to understand and comply with local laws. We cannot guarantee service functionality in jurisdictions with strict internet censorship.</p>
-          <p>Regardless of location, you agree to use Vulcain VPN only for lawful purposes.</p>
+          <p><%= t('home.faq.legal.answer_1') %></p>
+          <p><%= t('home.faq.legal.answer_2') %></p>
+          <p><%= t('home.faq.legal.answer_3') %></p>
         </div>
       </div>
 
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Can I get a refund?
+          <%= t('home.faq.refund.question') %>
           <span class="faq-icon">+</span>
         </button>
         <div class="faq-answer">
-          <p>All fees are non-refundable as stated in our Terms of Service. We recommend trying the service thoroughly before committing to a longer subscription.</p>
-          <p>If you experience technical issues, please contact us at <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a> and we'll do our best to resolve them.</p>
+          <p><%= t('home.faq.refund.answer_1') %></p>
+          <p><%= t('home.faq.refund.answer_2') %> <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a> <%= t('home.faq.refund.answer_3') %></p>
         </div>
       </div>
 
     </div>
   </section>
-
-  <%# <section id="contact-section"> %>
-  <!-- Your content here -->
-    <%# <h2>Contact</h2> %>
-  <%# </section> %>
 </div>
 
 <style>
@@ -320,14 +312,12 @@
     font-size: 2rem;
     color: #2c3e50;
   }
-  /* Plan Grid */
   .plan-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
     width: 100%;
   }
-  /* Plan Card */
   .plan {
     background-color: white;
     padding: 2rem;
@@ -336,7 +326,6 @@
     border-top: 4px solid #ff6e08;
     position: relative;
   }
-  /* Popular Badge */
   .popular-badge {
     background-color: #ff6e08;
     color: white;
@@ -348,7 +337,6 @@
     left: 50%;
     transform: translateX(-50%);
   }
-  /* Plan Title and Subtitle */
   .plan h3 {
     color: #2c3e50;
     margin-top: 0.8rem;
@@ -359,13 +347,11 @@
     margin-bottom: 1rem;
     font-size: 0.9rem;
   }
-  /* Plan Price */
   .plan-price {
     font-size: 2.5rem;
     color: #ff6e08;
     margin-bottom: 1.5rem;
   }
-  /* Plan Features */
   .plan-features {
     text-align: left;
     margin-bottom: 1.5rem;
@@ -373,7 +359,6 @@
   .plan-features p {
     margin: 0.5rem 0;
   }
-  /* Tooltip Icon */
   .tooltip-icon {
     cursor: help;
     margin-left: 5px;
@@ -381,7 +366,6 @@
     color: #666;
     border-bottom: 1px dotted #666;
   }
-  /* Plan Button */
   .plan-btn {
     background-color: #ff6e08;
     color: white;
@@ -406,7 +390,6 @@
     background-color: #95a5a6;
     cursor: not-allowed;
   }
-  /* Unavailable Plan Message */
   .plan-unavailable {
     color: #e74c3c;
     font-weight: bold;
@@ -418,7 +401,6 @@
   .plan-unavailable p {
     margin: 0.5rem 0;
   }
-
   /* About Us Section */
   .about-us {
     padding: 4rem 1rem;
@@ -428,18 +410,15 @@
     box-sizing: border-box;
     border-bottom: 1px solid #432923;
   }
-
   .about-us h2 {
     text-align: center;
     margin-bottom: 2rem;
     font-size: 2rem;
     color: #2c3e50;
   }
-
   .about-content {
     width: 100%;
   }
-
   .about-card {
     background-color: #f9f9f9;
     padding: 2.5rem;
@@ -448,19 +427,16 @@
     max-width: 900px;
     margin: 0 auto;
   }
-
   .about-card p {
     font-size: 1.1rem;
     line-height: 1.8;
     color: #2c3e50;
     margin-bottom: 1.5rem;
   }
-
   .about-intro {
     font-size: 1.2rem !important;
     margin-bottom: 2rem !important;
   }
-
   .about-highlight {
     background-color: white;
     padding: 2rem;
@@ -468,20 +444,17 @@
     border-left: 4px solid #ff6e08;
     margin: 2rem 0;
   }
-
   .about-highlight h3 {
     color: #2c3e50;
     font-size: 1.3rem;
     margin-top: 0;
     margin-bottom: 1.5rem;
   }
-
   .about-highlight p {
     margin: 1rem 0;
     font-size: 1rem;
     line-height: 1.6;
   }
-
   .about-closing {
     font-size: 1.1rem;
     font-style: italic;
@@ -490,7 +463,6 @@
     margin-top: 2rem;
     margin-bottom: 0;
   }
-
   /* Mobile styles */
   @media (max-width: 768px) {
     .hero {
@@ -549,39 +521,30 @@
       padding: 0.7rem 1.2rem;
       font-size: 0.9rem;
     }
-
-    /* About Us Mobile */
     .about-us {
       padding: 2rem 0.5rem;
     }
-
     .about-card {
       padding: 1.5rem;
     }
-
     .about-card p {
       font-size: 1rem;
       line-height: 1.6;
     }
-
     .about-intro {
       font-size: 1.1rem !important;
     }
-
     .about-highlight {
       padding: 1.5rem;
       margin: 1.5rem 0;
     }
-
     .about-highlight h3 {
       font-size: 1.2rem;
       margin-bottom: 1rem;
     }
-
     .about-highlight p {
       font-size: 0.95rem;
     }
-
     .about-closing {
       font-size: 1rem;
       margin-top: 1.5rem;
@@ -595,7 +558,6 @@
       display: grid;
     }
   }
-
   /* Downloads Section */
   .downloads {
     padding: 4rem 1rem;
@@ -606,19 +568,16 @@
     border-bottom: 1px solid #432923;
     text-align: center;
   }
-
   .downloads h2 {
     margin-bottom: 0.5rem;
     font-size: 2rem;
     color: #2c3e50;
   }
-
   .downloads-subtitle {
     color: #7f8c8d;
     font-size: 1.1rem;
     margin-bottom: 2.5rem;
   }
-
   .download-buttons {
     display: flex;
     gap: 2rem;
@@ -626,62 +585,49 @@
     align-items: center;
     flex-wrap: wrap;
   }
-
   .download-badge-link {
     display: inline-block;
     transition: transform 0.2s ease, opacity 0.2s ease;
   }
-
   .download-badge-link:hover {
     transform: scale(1.05);
     opacity: 0.9;
   }
-
   .download-badge {
     height: 60px;
     width: auto;
   }
-
   .windows-badge {
     height: 60px;
     width: 200px;
     border-radius: 8px;
   }
-
   .google-play-badge {
     height: 80px;
   }
-
-  /* Mobile styles for downloads */
   @media (max-width: 768px) {
     .downloads {
       padding: 2rem 0.5rem;
     }
-
     .downloads h2 {
       font-size: 1.75rem;
     }
-
     .downloads-subtitle {
       font-size: 1rem;
       margin-bottom: 2rem;
     }
-
     .download-buttons {
       flex-direction: column;
       gap: 1rem;
     }
-
     .windows-badge {
       height: 50px;
       width: 165px;
     }
-
     .google-play-badge {
       height: 70px;
     }
   }
-
   .faq {
     padding: 4rem 1rem;
     max-width: 1200px;
@@ -690,27 +636,22 @@
     box-sizing: border-box;
     border-bottom: 1px solid #432923;
   }
-
   .faq h2 {
     text-align: center;
     margin-bottom: 2rem;
     font-size: 2rem;
     color: #2c3e50;
   }
-
   .faq-list {
     max-width: 800px;
     margin: 0 auto;
   }
-
   .faq-item {
     border-bottom: 1px solid #e0e0e0;
   }
-
   .faq-item:first-child {
     border-top: 1px solid #e0e0e0;
   }
-
   .faq-question {
     width: 100%;
     background: none;
@@ -726,59 +667,47 @@
     align-items: center;
     gap: 1rem;
   }
-
   .faq-question:hover {
     color: #ff6e08;
   }
-
   .faq-icon {
     font-size: 1.4rem;
     color: #ff6e08;
     flex-shrink: 0;
     transition: transform 0.2s ease;
   }
-
   .faq-answer {
     display: none;
     padding: 0 0 1.2rem 0;
     color: #555;
     line-height: 1.7;
   }
-
   .faq-answer p {
     margin-bottom: 0.8rem;
   }
-
   .faq-answer p:last-child {
     margin-bottom: 0;
   }
-
   .faq-answer ul {
     margin: 0.5rem 0 0.8rem 1.2rem;
   }
-
   .faq-answer ul li {
     margin-bottom: 0.4rem;
   }
-
   .faq-answer a {
     color: #ff6e08;
     text-decoration: none;
   }
-
   .faq-answer a:hover {
     text-decoration: underline;
   }
-
   .faq-item.open .faq-icon {
     transform: rotate(45deg);
   }
-
   @media (max-width: 768px) {
     .faq {
       padding: 2rem 0.5rem;
     }
-
     .faq-question {
       font-size: 1rem;
       padding: 1rem 0;
@@ -810,13 +739,11 @@
     const answer = item.querySelector('.faq-answer');
     const isOpen = item.classList.contains('open');
 
-    // Close all open items
     document.querySelectorAll('.faq-item.open').forEach(function(openItem) {
       openItem.classList.remove('open');
       openItem.querySelector('.faq-answer').style.display = 'none';
     });
 
-    // Open clicked item if it was closed
     if (!isOpen) {
       item.classList.add('open');
       answer.style.display = 'block';

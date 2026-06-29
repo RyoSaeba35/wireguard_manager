@@ -11,7 +11,7 @@
   .login-container {
     background-color: white;
     padding: 2rem;
-    margin : 1rem;
+    margin: 1rem;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
@@ -38,7 +38,6 @@
     font-size: 1rem;
   }
   .form-group input:focus {
-    /* border-color: #3498db; */
     border-color: #ff6e08;
     outline: none;
   }
@@ -47,7 +46,6 @@
     margin-right: 0.5rem;
     vertical-align: middle;
   }
-
   .form-group label[for="user_remember_me"] {
     display: inline;
     vertical-align: middle;
@@ -83,34 +81,34 @@
 
 <div class="login-super-container">
   <div class="login-container">
-    <h2>Log In</h2>
+    <h2><%= t('auth.sign_in.title') %></h2>
     <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
       <div class="form-group">
-        <%= f.label :email %>
-        <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true, placeholder: "Enter your email" %>
+        <%= f.label :email, t('auth.sign_in.email') %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true, placeholder: t('auth.sign_in.email') %>
       </div>
 
       <div class="form-group">
-        <%= f.label :password %>
-        <%= f.password_field :password, autocomplete: "current-password", required: true, placeholder: "Enter your password" %>
+        <%= f.label :password, t('auth.sign_in.password') %>
+        <%= f.password_field :password, autocomplete: "current-password", required: true, placeholder: t('auth.sign_in.password') %>
       </div>
 
       <% if devise_mapping.rememberable? %>
         <div class="form-group">
           <div>
             <%= f.check_box :remember_me %>
-            <%= f.label :remember_me %>
+            <%= f.label :remember_me, t('auth.sign_in.remember_me') %>
           </div>
         </div>
       <% end %>
 
       <div class="actions">
-        <%= f.submit "Log In", class: "login-btn" %>
+        <%= f.submit t('auth.sign_in.submit'), class: "login-btn" %>
       </div>
     <% end %>
 
     <div class="signup-link">
-      Don't have an account? <%= render "devise/shared/links" %>
+      <%= t('auth.sign_in.no_account') %> <%= render "devise/shared/links" %>
     </div>
   </div>
 </div>

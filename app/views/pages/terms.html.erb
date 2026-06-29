@@ -1,231 +1,453 @@
 <div class="policy-container">
-  <h1>Terms of Service</h1>
-  <p>Last updated: March 29, 2026</p>
+  <% if I18n.locale == :fr %>
+    <h1>Conditions d'utilisation</h1>
+    <p>Dernière mise à jour : 29 mars 2026</p>
 
-  <section>
-    <h2>1. Acceptance of Terms</h2>
-    <p>By creating an account or using Vulcain VPN ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not use the Service.</p>
-    <p>These terms constitute a legally binding agreement between you and Vulcain VPN.</p>
-  </section>
+    <section>
+      <h2>1. Acceptation des conditions</h2>
+      <p>En créant un compte ou en utilisant Vulcain VPN ("le Service"), vous acceptez d'être lié par ces Conditions d'utilisation. Si vous n'acceptez pas ces conditions, vous ne pouvez pas utiliser le Service.</p>
+      <p>Ces conditions constituent un accord juridiquement contraignant entre vous et Vulcain VPN.</p>
+    </section>
 
-  <section>
-    <h2>2. Account Registration</h2>
-    <p>To use the Service, you must:</p>
-    <ul>
-      <li>Be at least 18 years of age</li>
-      <li>Provide accurate and complete registration information</li>
-      <li>Maintain the security of your account credentials</li>
-      <li>Notify us immediately of any unauthorized access to your account</li>
-    </ul>
-    <p><strong>You are responsible for all activity that occurs under your account.</strong></p>
-  </section>
+    <section>
+      <h2>2. Inscription au compte</h2>
+      <p>Pour utiliser le Service, vous devez :</p>
+      <ul>
+        <li>Avoir au moins 18 ans</li>
+        <li>Fournir des informations d'inscription exactes et complètes</li>
+        <li>Maintenir la sécurité de vos identifiants de compte</li>
+        <li>Nous informer immédiatement de tout accès non autorisé à votre compte</li>
+      </ul>
+      <p><strong>Vous êtes responsable de toute activité qui se produit sous votre compte.</strong></p>
+    </section>
 
-  <section>
-    <h2>3. Fair Use Policy & Device Limits</h2>
-    <p><strong>Each subscription allows up to 3 simultaneous device connections.</strong></p>
+    <section>
+      <h2>3. Politique d'utilisation équitable & limites d'appareils</h2>
+      <p><strong>Chaque abonnement permet jusqu'à 3 connexions simultanées d'appareils.</strong></p>
 
-    <h3>Connection Monitoring</h3>
-    <p>To enforce this limit and prevent fraud, we monitor connection metadata including:</p>
-    <ul>
-      <li>IP addresses of connected devices</li>
-      <li>Connection timestamps</li>
-      <li>Approximate geographic location (city/country)</li>
-    </ul>
-    <p>This data is automatically deleted after 24-48 hours. See our Privacy Policy for details.</p>
+      <h3>Surveillance des connexions</h3>
+      <p>Pour appliquer cette limite et prévenir la fraude, nous surveillons les métadonnées de connexion, notamment :</p>
+      <ul>
+        <li>Les adresses IP des appareils connectés</li>
+        <li>Les horodatages de connexion</li>
+        <li>La localisation géographique approximative (ville/pays)</li>
+      </ul>
+      <p>Ces données sont automatiquement supprimées après 24-48 heures. Consultez notre Politique de confidentialité pour plus de détails.</p>
 
-    <h3>Account Sharing Prohibited</h3>
-    <p><strong>Sharing your account credentials with others is strictly prohibited.</strong></p>
-    <p>Each subscription is for personal use only. You may connect up to 3 of your own devices simultaneously, but you may not:</p>
-    <ul>
-      <li>Share your username and password with friends, family, or colleagues</li>
-      <li>Allow others to use your account credentials</li>
-      <li>Use your account from multiple countries simultaneously (this triggers security alerts)</li>
-    </ul>
+      <h3>Partage de compte interdit</h3>
+      <p><strong>Le partage de vos identifiants de compte avec d'autres personnes est strictement interdit.</strong></p>
+      <p>Chaque abonnement est à usage personnel uniquement. Vous pouvez connecter jusqu'à 3 de vos propres appareils simultanément, mais vous ne pouvez pas :</p>
+      <ul>
+        <li>Partager votre nom d'utilisateur et mot de passe avec des amis, de la famille ou des collègues</li>
+        <li>Permettre à d'autres d'utiliser vos identifiants de compte</li>
+        <li>Utiliser votre compte depuis plusieurs pays simultanément (cela déclenche des alertes de sécurité)</li>
+      </ul>
 
-    <h3>Security Measures</h3>
-    <p>We employ automated security systems to detect:</p>
-    <ul>
-      <li><strong>Password theft</strong> – If your account is used from multiple countries at the same time, all connections will be terminated and your account temporarily locked for investigation</li>
-      <li><strong>Excessive connections</strong> – Attempting to connect more than 3 devices simultaneously will result in the oldest connections being terminated</li>
-      <li><strong>Suspicious activity</strong> – Unusual patterns may trigger automatic security measures</li>
-    </ul>
+      <h3>Mesures de sécurité</h3>
+      <p>Nous employons des systèmes de sécurité automatisés pour détecter :</p>
+      <ul>
+        <li><strong>Le vol de mot de passe</strong> – Si votre compte est utilisé depuis plusieurs pays en même temps, toutes les connexions seront interrompues et votre compte temporairement verrouillé pour investigation</li>
+        <li><strong>Les connexions excessives</strong> – Tenter de connecter plus de 3 appareils simultanément entraînera la résiliation des connexions les plus anciennes</li>
+        <li><strong>L'activité suspecte</strong> – Des schémas inhabituels peuvent déclencher des mesures de sécurité automatiques</li>
+      </ul>
 
-    <h3>Account Suspension</h3>
-    <p>Violations of the fair use policy may result in:</p>
-    <ul>
-      <li>Temporary account suspension for investigation</li>
-      <li>Permanent account termination for repeated violations</li>
-      <li>No refund for suspended or terminated accounts due to policy violations</li>
-    </ul>
-  </section>
+      <h3>Suspension de compte</h3>
+      <p>Les violations de la politique d'utilisation équitable peuvent entraîner :</p>
+      <ul>
+        <li>Une suspension temporaire du compte pour investigation</li>
+        <li>Une résiliation permanente du compte pour violations répétées</li>
+        <li>Aucun remboursement pour les comptes suspendus ou résiliés en raison de violations</li>
+      </ul>
+    </section>
 
-  <section>
-    <h2>4. Acceptable Use</h2>
-    <p>You agree to use the Service only for lawful purposes. <strong>Prohibited uses include:</strong></p>
-    <ul>
-      <li>Any illegal activities, including but not limited to copyright infringement, hacking, harassment, fraud, or distribution of malware</li>
-      <li>Activities that violate laws in your jurisdiction or the jurisdiction where you're connecting</li>
-      <li>Excessive bandwidth usage that degrades service quality for other users</li>
-      <li>Running public servers, torrenting copyrighted material, or hosting content through the VPN</li>
-      <li>Attempting to bypass, disable, or interfere with security features of the Service</li>
-      <li>Reverse engineering, decompiling, or attempting to extract source code from our applications</li>
-    </ul>
-    <p><strong>You are solely responsible for ensuring your use complies with all applicable laws.</strong> We do not endorse or permit illegal activities.</p>
-  </section>
+    <section>
+      <h2>4. Utilisation acceptable</h2>
+      <p>Vous acceptez d'utiliser le Service uniquement à des fins légales. <strong>Les utilisations interdites comprennent :</strong></p>
+      <ul>
+        <li>Toute activité illégale, y compris mais sans s'y limiter la violation du droit d'auteur, le piratage, le harcèlement, la fraude ou la distribution de logiciels malveillants</li>
+        <li>Les activités qui violent les lois de votre juridiction ou de la juridiction où vous vous connectez</li>
+        <li>L'utilisation excessive de la bande passante qui dégrade la qualité du service pour les autres utilisateurs</li>
+        <li>L'exploitation de serveurs publics, le téléchargement de matériel protégé par le droit d'auteur ou l'hébergement de contenu via le VPN</li>
+        <li>Tenter de contourner, désactiver ou interférer avec les fonctionnalités de sécurité du Service</li>
+        <li>L'ingénierie inverse, la décompilation ou la tentative d'extraire le code source de nos applications</li>
+      </ul>
+      <p><strong>Vous êtes seul responsable de vous assurer que votre utilisation est conforme à toutes les lois applicables.</strong> Nous n'approuvons pas et ne permettons pas les activités illégales.</p>
+    </section>
 
-  <section>
-    <h2>5. Subscription & Payment Terms</h2>
+    <section>
+      <h2>5. Conditions d'abonnement & paiement</h2>
 
-    <h3>Billing</h3>
-    <ul>
-      <li>Subscriptions are billed in advance on a monthly or annual basis</li>
-      <li>All payments are processed securely through Stripe</li>
-      <li>Prices are subject to change with 30 days' notice</li>
-      <li>All fees are non-refundable except as required by law</li>
-    </ul>
+      <h3>Facturation</h3>
+      <ul>
+        <li>Les abonnements sont facturés à l'avance sur une base mensuelle ou annuelle</li>
+        <li>Tous les paiements sont traités en toute sécurité via Stripe</li>
+        <li>Les prix peuvent être modifiés avec un préavis de 30 jours</li>
+        <li>Tous les frais sont non remboursables sauf si la loi l'exige</li>
+      </ul>
 
-    <h3>Failed Payments</h3>
-    <p>If payment fails:</p>
-    <ul>
-      <li>Service access will be suspended immediately</li>
-      <li>Your account data will be retained for 30 days</li>
-      <li>After 30 days, your account may be deleted permanently</li>
-    </ul>
+      <h3>Échec de paiement</h3>
+      <p>En cas d'échec de paiement :</p>
+      <ul>
+        <li>L'accès au service sera immédiatement suspendu</li>
+        <li>Les données de votre compte seront conservées pendant 30 jours</li>
+        <li>Après 30 jours, votre compte peut être définitivement supprimé</li>
+      </ul>
+    </section>
 
-  </section>
+    <section>
+      <h2>6. Limitations du service & avertissements</h2>
 
-  <section>
-    <h2>6. Service Limitations & Disclaimers</h2>
+      <h3>Aucune garantie de disponibilité</h3>
+      <p>Nous ne garantissons pas une disponibilité à 100%, un service ininterrompu ou des vitesses de connexion spécifiques. Le service peut être interrompu pour :</p>
+      <ul>
+        <li>La maintenance planifiée (annoncée à l'avance dans la mesure du possible)</li>
+        <li>Les mises à jour de sécurité d'urgence</li>
+        <li>Les problèmes d'infrastructure hors de notre contrôle</li>
+        <li>Les attaques DDoS ou autres activités malveillantes</li>
+      </ul>
 
-    <h3>No Uptime Guarantee</h3>
-    <p>We do not guarantee 100% uptime, uninterrupted service, or specific connection speeds. Service may be interrupted for:</p>
-    <ul>
-      <li>Scheduled maintenance (announced in advance when possible)</li>
-      <li>Emergency security updates</li>
-      <li>Infrastructure issues beyond our control</li>
-      <li>DDoS attacks or other malicious activity</li>
-    </ul>
+      <h3>Contenu géo-restreint</h3>
+      <p>Nous ne garantissons pas l'accès aux contenus géo-restreints (ex. services de streaming, sites verrouillés par région). De nombreux services bloquent activement le trafic VPN et nous ne pouvons pas garantir le contournement de ces restrictions.</p>
 
-    <h3>Geo-Restricted Content</h3>
-    <p>We do not guarantee access to geo-restricted content (e.g., streaming services, region-locked websites). Many services actively block VPN traffic, and we cannot guarantee bypass of such restrictions.</p>
+      <h3>Applications bancaires & financières</h3>
+      <p><strong>Important :</strong> De nombreuses applications bancaires, services financiers et plateformes de paiement restreignent ou bloquent les connexions VPN pour des raisons de sécurité. Nous ne garantissons pas que le Service fonctionnera avec :</p>
+      <ul>
+        <li>Les sites et applications bancaires en ligne</li>
+        <li>Les processeurs de paiement (PayPal, Stripe, etc.)</li>
+        <li>Les plateformes d'échange de cryptomonnaies</li>
+        <li>Les plateformes de trading</li>
+      </ul>
+      <p>Votre institution financière peut signaler, bloquer ou suspendre votre compte si vous y accédez via VPN. <strong>Utilisation à vos risques et périls.</strong></p>
 
-    <h3>Banking & Financial Apps</h3>
-    <p><strong>Important:</strong> Many banking apps, financial services, and payment platforms restrict or block VPN connections for security reasons. We do not guarantee that the Service will work with:</p>
-    <ul>
-      <li>Online banking websites and mobile apps</li>
-      <li>Payment processors (PayPal, Stripe, etc.)</li>
-      <li>Cryptocurrency exchanges</li>
-      <li>Trading platforms</li>
-    </ul>
-    <p>Your financial institution may flag, block, or suspend your account if you access it via VPN. <strong>Use at your own risk.</strong></p>
+      <h3>Pays censurés</h3>
+      <p>Dans les pays avec une censure internet stricte ou des pare-feux nationaux (ex. Chine, Iran, Émirats arabes unis), les gouvernements peuvent activement détecter, bloquer ou interférer avec le trafic VPN. <strong>Nous ne garantissons pas le fonctionnement du service dans ces juridictions.</strong></p>
+      <p>L'utilisation d'un VPN peut être illégale dans certains pays. Vous êtes responsable de comprendre et de respecter les lois locales.</p>
+    </section>
 
-    <h3>Censored Countries</h3>
-    <p>In countries with strict internet censorship or national firewalls (e.g., China, Iran, UAE), governments may actively detect, block, or interfere with VPN traffic. <strong>We do not guarantee service functionality in such jurisdictions.</strong></p>
-    <p>Using a VPN may be illegal in some countries. You are responsible for understanding and complying with local laws.</p>
-  </section>
+    <section>
+      <h2>7. Expiration & renouvellement de l'abonnement</h2>
+      <p>Lorsque votre abonnement expire :</p>
+      <ul>
+        <li>L'accès au service est immédiatement suspendu</li>
+        <li>Vous ne pouvez pas vous connecter aux serveurs VPN</li>
+        <li>Votre compte et vos appareils restent enregistrés</li>
+      </ul>
+      <p>Lorsque vous renouvelez ou achetez un nouvel abonnement :</p>
+      <ul>
+        <li>Vos appareils existants sont automatiquement liés au nouvel abonnement</li>
+        <li>Vous pouvez vous reconnecter immédiatement sans réenregistrer les appareils</li>
+        <li>L'historique de connexion précédent n'est pas conservé (politique de suppression de 48 heures)</li>
+      </ul>
+    </section>
 
-  <section>
-    <h2>7. Subscription Expiration & Renewal</h2>
-    <p>When your subscription expires:</p>
-    <ul>
-      <li>Service access is immediately suspended</li>
-      <li>You cannot connect to VPN servers</li>
-      <li>Your account and devices remain registered</li>
-    </ul>
-    <p>When you renew or purchase a new subscription:</p>
-    <ul>
-      <li>Your existing devices are automatically linked to the new subscription</li>
-      <li>You can immediately reconnect without re-registering devices</li>
-      <li>Previous connection history is not retained (48-hour deletion policy)</li>
-    </ul>
-  </section>
+    <section>
+      <h2>8. Résiliation</h2>
+      <p>Nous pouvons suspendre ou résilier votre compte immédiatement, avec ou sans préavis, si vous :</p>
+      <ul>
+        <li>Violez ces Conditions d'utilisation</li>
+        <li>Vous engagez dans des activités frauduleuses ou des contestations de paiement</li>
+        <li>Partagez vos identifiants de compte avec d'autres</li>
+        <li>Utilisez le Service à des fins illégales</li>
+        <li>Causez des dommages à notre infrastructure ou à d'autres utilisateurs</li>
+      </ul>
+      <p><strong>Les comptes résiliés ne sont pas éligibles aux remboursements.</strong></p>
 
-  <section>
-    <h2>8. Termination</h2>
+      <h3>Effets de la résiliation</h3>
+      <p>Lors de la résiliation :</p>
+      <ul>
+        <li>Votre accès au Service est immédiatement révoqué</li>
+        <li>Les données de votre compte sont conservées 30 jours, puis définitivement supprimées</li>
+        <li>Les journaux de connexion sont supprimés dans les 48 heures conformément à notre politique de confidentialité</li>
+      </ul>
+    </section>
 
-    <p>We may suspend or terminate your account immediately, with or without notice, if you:</p>
-    <ul>
-      <li>Violate these Terms of Service</li>
-      <li>Engage in fraudulent activity or payment chargebacks</li>
-      <li>Share your account credentials with others</li>
-      <li>Use the Service for illegal activities</li>
-      <li>Cause harm to our infrastructure or other users</li>
-    </ul>
-    <p><strong>Terminated accounts are not eligible for refunds.</strong></p>
+    <section>
+      <h2>9. Exclusion de garanties</h2>
+      <p>LE SERVICE EST FOURNI "TEL QUEL" SANS GARANTIE D'AUCUNE SORTE, EXPRESSE OU IMPLICITE, INCLUANT MAIS SANS S'Y LIMITER :</p>
+      <ul>
+        <li>Les garanties de qualité marchande ou d'adéquation à un usage particulier</li>
+        <li>Les garanties de service ininterrompu, sécurisé ou sans erreur</li>
+        <li>Les promesses de vitesses spécifiques, de niveaux de confidentialité ou d'accès au contenu</li>
+      </ul>
+      <p>Nous ne faisons aucune garantie quant à l'exactitude, la fiabilité ou l'exhaustivité du Service.</p>
+    </section>
 
-    <h3>Effect of Termination</h3>
-    <p>Upon termination:</p>
-    <ul>
-      <li>Your access to the Service is immediately revoked</li>
-      <li>Your account data is retained for 30 days, then permanently deleted</li>
-      <li>Connection logs are deleted within 48 hours per our privacy policy</li>
-    </ul>
-  </section>
+    <section>
+      <h2>10. Limitation de responsabilité</h2>
+      <p>DANS TOUTE LA MESURE PERMISE PAR LA LOI, VULCAIN VPN NE SERA PAS RESPONSABLE DE :</p>
+      <ul>
+        <li>Les dommages indirects, accessoires, spéciaux, consécutifs ou punitifs</li>
+        <li>La perte de profits, de données, d'utilisation, de clientèle ou d'autres pertes incorporelles</li>
+        <li>L'accès non autorisé à vos données ou comptes</li>
+        <li>Les actions prises par des tiers (FAI, gouvernements, sites web)</li>
+        <li>L'interruption, les erreurs ou les temps d'arrêt du service</li>
+      </ul>
+      <p><strong>Notre responsabilité totale est limitée au montant que vous avez payé pour le Service au cours des 12 mois précédant la réclamation.</strong></p>
+    </section>
 
-  <section>
-    <h2>9. Disclaimer of Warranties</h2>
-    <p>THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:</p>
-    <ul>
-      <li>Warranties of merchantability or fitness for a particular purpose</li>
-      <li>Guarantees of uninterrupted, secure, or error-free service</li>
-      <li>Promises of specific speeds, privacy levels, or access to content</li>
-    </ul>
-    <p>We make no warranties about the accuracy, reliability, or completeness of the Service.</p>
-  </section>
+    <section>
+      <h2>11. Indemnisation</h2>
+      <p>Vous acceptez d'indemniser et de dégager Vulcain VPN de toute réclamation, dommage, perte ou dépense (y compris les honoraires d'avocat) résultant de :</p>
+      <ul>
+        <li>Votre utilisation ou mauvaise utilisation du Service</li>
+        <li>Votre violation de ces Conditions ou des lois applicables</li>
+        <li>Votre violation des droits de tiers</li>
+      </ul>
+    </section>
 
-  <section>
-    <h2>10. Limitation of Liability</h2>
-    <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, VULCAIN VPN SHALL NOT BE LIABLE FOR:</p>
-    <ul>
-      <li>Indirect, incidental, special, consequential, or punitive damages</li>
-      <li>Loss of profits, data, use, goodwill, or other intangible losses</li>
-      <li>Unauthorized access to your data or accounts</li>
-      <li>Actions taken by third parties (ISPs, governments, websites)</li>
-      <li>Interruption, errors, or service downtime</li>
-    </ul>
-    <p><strong>Our total liability is limited to the amount you paid for the Service in the 12 months preceding the claim.</strong></p>
-  </section>
+    <section>
+      <h2>12. Modifications des conditions</h2>
+      <p>Nous pouvons mettre à jour ces Conditions à tout moment. Les modifications importantes seront communiquées via :</p>
+      <ul>
+        <li>Notification par email à votre adresse enregistrée</li>
+        <li>Avis visible sur notre site web</li>
+        <li>Notification dans l'application (le cas échéant)</li>
+      </ul>
+      <p>Les modifications prennent effet 30 jours après notification. La poursuite de l'utilisation du Service après les modifications constitue une acceptation.</p>
+      <p>Si vous n'acceptez pas les Conditions mises à jour, vous devez annuler votre abonnement avant que les modifications prennent effet.</p>
+    </section>
 
-  <section>
-    <h2>11. Indemnification</h2>
-    <p>You agree to indemnify and hold Vulcain VPN harmless from any claims, damages, losses, or expenses (including legal fees) arising from:</p>
-    <ul>
-      <li>Your use or misuse of the Service</li>
-      <li>Your violation of these Terms or applicable laws</li>
-      <li>Your violation of third-party rights</li>
-    </ul>
-  </section>
+    <section>
+      <h2>13. Droit applicable & résolution des litiges</h2>
+      <p>Ces Conditions sont régies par le droit français. Tout litige sera résolu devant les tribunaux français.</p>
+      <p>Pour les consommateurs de l'UE : Vous conservez le droit d'engager des procédures dans votre pays de résidence en vertu des lois sur la protection des consommateurs.</p>
+    </section>
 
-  <section>
-    <h2>12. Changes to Terms</h2>
-    <p>We may update these Terms at any time. Material changes will be communicated via:</p>
-    <ul>
-      <li>Email notification to your registered address</li>
-      <li>Prominent notice on our website</li>
-      <li>In-app notification (if applicable)</li>
-    </ul>
-    <p>Changes take effect 30 days after notification. Continued use of the Service after changes constitutes acceptance.</p>
-    <p>If you don't agree to updated Terms, you must cancel your subscription before the changes take effect.</p>
-  </section>
+    <section>
+      <h2>14. Coordonnées</h2>
+      <p><strong>Support général :</strong> support@vulcainvpn.com</p>
+    </section>
 
-  <section>
-    <h2>13. Governing Law & Dispute Resolution</h2>
-    <p>These Terms are governed by French law. Any disputes will be resolved in the courts of France.</p>
-    <p>For EU consumers: You retain the right to bring claims in your country of residence under consumer protection laws.</p>
-  </section>
+    <section>
+      <h2>15. Divisibilité</h2>
+      <p>Si une disposition de ces Conditions est jugée invalide ou inapplicable, les dispositions restantes resteront en vigueur.</p>
+    </section>
 
-  <section>
-    <h2>14. Contact Information</h2>
-    <p><strong>General support:</strong> support@vulcainvpn.com</p>
-  </section>
+  <% else %>
+    <h1>Terms of Service</h1>
+    <p>Last updated: March 29, 2026</p>
 
-  <section>
-    <h2>15. Severability</h2>
-    <p>If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions will remain in full force and effect.</p>
-  </section>
+    <section>
+      <h2>1. Acceptance of Terms</h2>
+      <p>By creating an account or using Vulcain VPN ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not use the Service.</p>
+      <p>These terms constitute a legally binding agreement between you and Vulcain VPN.</p>
+    </section>
+
+    <section>
+      <h2>2. Account Registration</h2>
+      <p>To use the Service, you must:</p>
+      <ul>
+        <li>Be at least 18 years of age</li>
+        <li>Provide accurate and complete registration information</li>
+        <li>Maintain the security of your account credentials</li>
+        <li>Notify us immediately of any unauthorized access to your account</li>
+      </ul>
+      <p><strong>You are responsible for all activity that occurs under your account.</strong></p>
+    </section>
+
+    <section>
+      <h2>3. Fair Use Policy & Device Limits</h2>
+      <p><strong>Each subscription allows up to 3 simultaneous device connections.</strong></p>
+
+      <h3>Connection Monitoring</h3>
+      <p>To enforce this limit and prevent fraud, we monitor connection metadata including:</p>
+      <ul>
+        <li>IP addresses of connected devices</li>
+        <li>Connection timestamps</li>
+        <li>Approximate geographic location (city/country)</li>
+      </ul>
+      <p>This data is automatically deleted after 24-48 hours. See our Privacy Policy for details.</p>
+
+      <h3>Account Sharing Prohibited</h3>
+      <p><strong>Sharing your account credentials with others is strictly prohibited.</strong></p>
+      <p>Each subscription is for personal use only. You may connect up to 3 of your own devices simultaneously, but you may not:</p>
+      <ul>
+        <li>Share your username and password with friends, family, or colleagues</li>
+        <li>Allow others to use your account credentials</li>
+        <li>Use your account from multiple countries simultaneously (this triggers security alerts)</li>
+      </ul>
+
+      <h3>Security Measures</h3>
+      <p>We employ automated security systems to detect:</p>
+      <ul>
+        <li><strong>Password theft</strong> – If your account is used from multiple countries at the same time, all connections will be terminated and your account temporarily locked for investigation</li>
+        <li><strong>Excessive connections</strong> – Attempting to connect more than 3 devices simultaneously will result in the oldest connections being terminated</li>
+        <li><strong>Suspicious activity</strong> – Unusual patterns may trigger automatic security measures</li>
+      </ul>
+
+      <h3>Account Suspension</h3>
+      <p>Violations of the fair use policy may result in:</p>
+      <ul>
+        <li>Temporary account suspension for investigation</li>
+        <li>Permanent account termination for repeated violations</li>
+        <li>No refund for suspended or terminated accounts due to policy violations</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Acceptable Use</h2>
+      <p>You agree to use the Service only for lawful purposes. <strong>Prohibited uses include:</strong></p>
+      <ul>
+        <li>Any illegal activities, including but not limited to copyright infringement, hacking, harassment, fraud, or distribution of malware</li>
+        <li>Activities that violate laws in your jurisdiction or the jurisdiction where you're connecting</li>
+        <li>Excessive bandwidth usage that degrades service quality for other users</li>
+        <li>Running public servers, torrenting copyrighted material, or hosting content through the VPN</li>
+        <li>Attempting to bypass, disable, or interfere with security features of the Service</li>
+        <li>Reverse engineering, decompiling, or attempting to extract source code from our applications</li>
+      </ul>
+      <p><strong>You are solely responsible for ensuring your use complies with all applicable laws.</strong> We do not endorse or permit illegal activities.</p>
+    </section>
+
+    <section>
+      <h2>5. Subscription & Payment Terms</h2>
+
+      <h3>Billing</h3>
+      <ul>
+        <li>Subscriptions are billed in advance on a monthly or annual basis</li>
+        <li>All payments are processed securely through Stripe</li>
+        <li>Prices are subject to change with 30 days' notice</li>
+        <li>All fees are non-refundable except as required by law</li>
+      </ul>
+
+      <h3>Failed Payments</h3>
+      <p>If payment fails:</p>
+      <ul>
+        <li>Service access will be suspended immediately</li>
+        <li>Your account data will be retained for 30 days</li>
+        <li>After 30 days, your account may be deleted permanently</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>6. Service Limitations & Disclaimers</h2>
+
+      <h3>No Uptime Guarantee</h3>
+      <p>We do not guarantee 100% uptime, uninterrupted service, or specific connection speeds. Service may be interrupted for:</p>
+      <ul>
+        <li>Scheduled maintenance (announced in advance when possible)</li>
+        <li>Emergency security updates</li>
+        <li>Infrastructure issues beyond our control</li>
+        <li>DDoS attacks or other malicious activity</li>
+      </ul>
+
+      <h3>Geo-Restricted Content</h3>
+      <p>We do not guarantee access to geo-restricted content (e.g., streaming services, region-locked websites). Many services actively block VPN traffic, and we cannot guarantee bypass of such restrictions.</p>
+
+      <h3>Banking & Financial Apps</h3>
+      <p><strong>Important:</strong> Many banking apps, financial services, and payment platforms restrict or block VPN connections for security reasons. We do not guarantee that the Service will work with:</p>
+      <ul>
+        <li>Online banking websites and mobile apps</li>
+        <li>Payment processors (PayPal, Stripe, etc.)</li>
+        <li>Cryptocurrency exchanges</li>
+        <li>Trading platforms</li>
+      </ul>
+      <p>Your financial institution may flag, block, or suspend your account if you access it via VPN. <strong>Use at your own risk.</strong></p>
+
+      <h3>Censored Countries</h3>
+      <p>In countries with strict internet censorship or national firewalls (e.g., China, Iran, UAE), governments may actively detect, block, or interfere with VPN traffic. <strong>We do not guarantee service functionality in such jurisdictions.</strong></p>
+      <p>Using a VPN may be illegal in some countries. You are responsible for understanding and complying with local laws.</p>
+    </section>
+
+    <section>
+      <h2>7. Subscription Expiration & Renewal</h2>
+      <p>When your subscription expires:</p>
+      <ul>
+        <li>Service access is immediately suspended</li>
+        <li>You cannot connect to VPN servers</li>
+        <li>Your account and devices remain registered</li>
+      </ul>
+      <p>When you renew or purchase a new subscription:</p>
+      <ul>
+        <li>Your existing devices are automatically linked to the new subscription</li>
+        <li>You can immediately reconnect without re-registering devices</li>
+        <li>Previous connection history is not retained (48-hour deletion policy)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>8. Termination</h2>
+      <p>We may suspend or terminate your account immediately, with or without notice, if you:</p>
+      <ul>
+        <li>Violate these Terms of Service</li>
+        <li>Engage in fraudulent activity or payment chargebacks</li>
+        <li>Share your account credentials with others</li>
+        <li>Use the Service for illegal activities</li>
+        <li>Cause harm to our infrastructure or other users</li>
+      </ul>
+      <p><strong>Terminated accounts are not eligible for refunds.</strong></p>
+
+      <h3>Effect of Termination</h3>
+      <p>Upon termination:</p>
+      <ul>
+        <li>Your access to the Service is immediately revoked</li>
+        <li>Your account data is retained for 30 days, then permanently deleted</li>
+        <li>Connection logs are deleted within 48 hours per our privacy policy</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>9. Disclaimer of Warranties</h2>
+      <p>THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:</p>
+      <ul>
+        <li>Warranties of merchantability or fitness for a particular purpose</li>
+        <li>Guarantees of uninterrupted, secure, or error-free service</li>
+        <li>Promises of specific speeds, privacy levels, or access to content</li>
+      </ul>
+      <p>We make no warranties about the accuracy, reliability, or completeness of the Service.</p>
+    </section>
+
+    <section>
+      <h2>10. Limitation of Liability</h2>
+      <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, VULCAIN VPN SHALL NOT BE LIABLE FOR:</p>
+      <ul>
+        <li>Indirect, incidental, special, consequential, or punitive damages</li>
+        <li>Loss of profits, data, use, goodwill, or other intangible losses</li>
+        <li>Unauthorized access to your data or accounts</li>
+        <li>Actions taken by third parties (ISPs, governments, websites)</li>
+        <li>Interruption, errors, or service downtime</li>
+      </ul>
+      <p><strong>Our total liability is limited to the amount you paid for the Service in the 12 months preceding the claim.</strong></p>
+    </section>
+
+    <section>
+      <h2>11. Indemnification</h2>
+      <p>You agree to indemnify and hold Vulcain VPN harmless from any claims, damages, losses, or expenses (including legal fees) arising from:</p>
+      <ul>
+        <li>Your use or misuse of the Service</li>
+        <li>Your violation of these Terms or applicable laws</li>
+        <li>Your violation of third-party rights</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>12. Changes to Terms</h2>
+      <p>We may update these Terms at any time. Material changes will be communicated via:</p>
+      <ul>
+        <li>Email notification to your registered address</li>
+        <li>Prominent notice on our website</li>
+        <li>In-app notification (if applicable)</li>
+      </ul>
+      <p>Changes take effect 30 days after notification. Continued use of the Service after changes constitutes acceptance.</p>
+      <p>If you don't agree to updated Terms, you must cancel your subscription before the changes take effect.</p>
+    </section>
+
+    <section>
+      <h2>13. Governing Law & Dispute Resolution</h2>
+      <p>These Terms are governed by French law. Any disputes will be resolved in the courts of France.</p>
+      <p>For EU consumers: You retain the right to bring claims in your country of residence under consumer protection laws.</p>
+    </section>
+
+    <section>
+      <h2>14. Contact Information</h2>
+      <p><strong>General support:</strong> support@vulcainvpn.com</p>
+    </section>
+
+    <section>
+      <h2>15. Severability</h2>
+      <p>If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions will remain in full force and effect.</p>
+    </section>
+  <% end %>
 </div>
-
-
 
 <style>
   .policy-container {

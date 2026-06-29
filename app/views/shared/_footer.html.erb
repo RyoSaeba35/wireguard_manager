@@ -1,10 +1,10 @@
 <footer class="footer">
   <div class="footer-links">
-    <%= link_to "Data Privacy", privacy_path %>
-    <%= link_to "Terms of Service", terms_path %>
-    <%= link_to "Logging Policy", logging_path %>
+    <%= link_to t('footer.privacy'), privacy_path %>
+    <%= link_to t('footer.terms'), terms_path %>
+    <%= link_to t('footer.logging'), logging_path %>
   </div>
-  <p class="footer-copyright">&copy; 2025 Vulcain VPN. All rights reserved.</p>
+  <p class="footer-copyright"><%= t('footer.copyright') %></p>
 </footer>
 
 <style>
@@ -36,7 +36,6 @@
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.8);
   }
-  /* Mobile styles */
   @media (max-width: 480px) {
     .footer {
       padding: 1rem;

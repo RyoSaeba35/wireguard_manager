@@ -1,122 +1,244 @@
 <div class="policy-container">
-  <h1>Data Privacy Policy</h1>
-  <p>Last updated: March 29, 2026</p>
+  <% if I18n.locale == :fr %>
+    <h1>Politique de confidentialité des données</h1>
+    <p>Dernière mise à jour : 29 mars 2026</p>
 
-  <section>
-    <h2>1. Data We Collect</h2>
+    <section>
+      <h2>1. Données que nous collectons</h2>
 
-    <h3>Account Data (Permanent)</h3>
-    <ul>
-      <li><strong>Email address</strong> – For account access, support, and service updates</li>
-      <li><strong>Payment information</strong> – Processed securely by Stripe (we don't store credit card details)</li>
-      <li><strong>Subscription status</strong> – To manage your service access and billing</li>
-    </ul>
+      <h3>Données de compte (permanentes)</h3>
+      <ul>
+        <li><strong>Adresse email</strong> – Pour l'accès au compte, le support et les mises à jour du service</li>
+        <li><strong>Informations de paiement</strong> – Traitées en toute sécurité par Stripe (nous ne stockons pas les détails de carte bancaire)</li>
+        <li><strong>Statut d'abonnement</strong> – Pour gérer votre accès au service et la facturation</li>
+      </ul>
 
-    <h3>Connection Metadata (Temporary - 24-48 hours)</h3>
-    <p>To prevent fraud and enforce our 3-device limit, we temporarily collect:</p>
-    <ul>
-      <li><strong>Your IP address</strong> – To identify devices and detect unauthorized sharing</li>
-      <li><strong>Connection timestamps</strong> – To enforce simultaneous connection limits</li>
-      <li><strong>Approximate location (city/country)</strong> – To detect password theft</li>
-      <li><strong>Anonymous session identifier</strong> – A random code like "NAUIZ_1" (not your real identity)</li>
-    </ul>
-    <p><strong>⏱️ Automatically deleted after 24-48 hours via log rotation.</strong></p>
+      <h3>Métadonnées de connexion (temporaires - 24-48 heures)</h3>
+      <p>Pour prévenir la fraude et appliquer notre limite de 3 appareils, nous collectons temporairement :</p>
+      <ul>
+        <li><strong>Votre adresse IP</strong> – Pour identifier les appareils et détecter le partage non autorisé</li>
+        <li><strong>Horodatages de connexion</strong> – Pour appliquer les limites de connexions simultanées</li>
+        <li><strong>Localisation approximative (ville/pays)</strong> – Pour détecter le vol de mot de passe</li>
+        <li><strong>Identifiant de session anonyme</strong> – Un code aléatoire comme "NAUIZ_1" (pas votre identité réelle)</li>
+      </ul>
+      <p><strong>⏱️ Supprimées automatiquement après 24-48 heures par rotation des logs.</strong></p>
 
-    <h3>What We DO NOT Collect</h3>
-    <ul>
-      <li>❌ Websites you visit or browsing history</li>
-      <li>❌ Traffic content (downloads, uploads, messages)</li>
-      <li>❌ DNS queries or search history</li>
-      <li>❌ Long-term connection records</li>
-    </ul>
-    <p><strong>Your browsing activity is completely private and never logged.</strong></p>
-  </section>
+      <h3>Ce que nous ne collectons PAS</h3>
+      <ul>
+        <li>❌ Les sites que vous visitez ou l'historique de navigation</li>
+        <li>❌ Le contenu du trafic (téléchargements, envois, messages)</li>
+        <li>❌ Les requêtes DNS ou l'historique de recherche</li>
+        <li>❌ Les enregistrements de connexion à long terme</li>
+      </ul>
+      <p><strong>Votre activité de navigation est totalement privée et jamais journalisée.</strong></p>
+    </section>
 
-  <section>
-    <h2>2. How We Use Your Data</h2>
+    <section>
+      <h2>2. Comment nous utilisons vos données</h2>
 
-    <h3>Service Provision</h3>
-    <ul>
-      <li>Authenticate your account and manage subscriptions</li>
-      <li>Process payments securely through Stripe</li>
-      <li>Provide customer support</li>
-    </ul>
+      <h3>Fourniture du service</h3>
+      <ul>
+        <li>Authentifier votre compte et gérer les abonnements</li>
+        <li>Traiter les paiements en toute sécurité via Stripe</li>
+        <li>Fournir le support client</li>
+      </ul>
 
-    <h3>Security & Fraud Prevention</h3>
-    <ul>
-      <li>Enforce the 3-device simultaneous connection limit</li>
-      <li>Detect and prevent password theft (e.g., account used in France and China at the same time)</li>
-      <li>Identify unauthorized account sharing</li>
-    </ul>
+      <h3>Sécurité & prévention de la fraude</h3>
+      <ul>
+        <li>Appliquer la limite de 3 connexions simultanées par appareil</li>
+        <li>Détecter et prévenir le vol de mot de passe (ex. compte utilisé en France et en Chine en même temps)</li>
+        <li>Identifier le partage de compte non autorisé</li>
+      </ul>
 
-    <h3>Legal Basis (GDPR)</h3>
-    <ul>
-      <li><strong>Contract performance</strong> (Article 6(1)(b)) – To provide the VPN service you paid for</li>
-      <li><strong>Legitimate interest</strong> (Article 6(1)(f)) – To prevent fraud and abuse</li>
-    </ul>
+      <h3>Base légale (RGPD)</h3>
+      <ul>
+        <li><strong>Exécution du contrat</strong> (Article 6(1)(b)) – Pour fournir le service VPN que vous avez payé</li>
+        <li><strong>Intérêt légitime</strong> (Article 6(1)(f)) – Pour prévenir la fraude et les abus</li>
+      </ul>
 
-    <p><strong>We do not sell, rent, or share your data with third parties for marketing purposes.</strong></p>
-  </section>
+      <p><strong>Nous ne vendons, ne louons et ne partageons pas vos données avec des tiers à des fins marketing.</strong></p>
+    </section>
 
-  <section>
-    <h2>3. Data Retention</h2>
-    <ul>
-      <li><strong>Connection logs:</strong> Automatically deleted after 24-48 hours</li>
-      <li><strong>Account data:</strong> Retained while your account is active</li>
-      <li><strong>Payment records:</strong> Retained for 7 years (legal/tax requirement)</li>
-      <li><strong>Deleted accounts:</strong> All data permanently deleted within 30 days of account deletion</li>
-    </ul>
-  </section>
+    <section>
+      <h2>3. Conservation des données</h2>
+      <ul>
+        <li><strong>Journaux de connexion :</strong> Supprimés automatiquement après 24-48 heures</li>
+        <li><strong>Données de compte :</strong> Conservées pendant que votre compte est actif</li>
+        <li><strong>Enregistrements de paiement :</strong> Conservés 7 ans (obligation légale/fiscale)</li>
+        <li><strong>Comptes supprimés :</strong> Toutes les données définitivement supprimées dans les 30 jours suivant la suppression du compte</li>
+      </ul>
+    </section>
 
-  <section>
-    <h2>4. Your Rights (GDPR)</h2>
-    <p>Under EU data protection law, you have the right to:</p>
-    <ul>
-      <li><strong>Access</strong> – Request a copy of your personal data</li>
-      <li><strong>Rectification</strong> – Correct inaccurate information</li>
-      <li><strong>Deletion</strong> – Request deletion of your account and data ("right to be forgotten")</li>
-      <li><strong>Data portability</strong> – Receive your data in a machine-readable format</li>
-      <li><strong>Object</strong> – Object to data processing (may limit service functionality)</li>
-      <li><strong>Withdraw consent</strong> – Cancel your account at any time</li>
-    </ul>
-    <p>To exercise these rights, contact us at <strong>support@vulcainvpn.com</strong></p>
-    <p>We will respond within 30 days as required by GDPR.</p>
-  </section>
+    <section>
+      <h2>4. Vos droits (RGPD)</h2>
+      <p>En vertu du droit européen de protection des données, vous avez le droit de :</p>
+      <ul>
+        <li><strong>Accès</strong> – Demander une copie de vos données personnelles</li>
+        <li><strong>Rectification</strong> – Corriger des informations inexactes</li>
+        <li><strong>Suppression</strong> – Demander la suppression de votre compte et de vos données ("droit à l'oubli")</li>
+        <li><strong>Portabilité des données</strong> – Recevoir vos données dans un format lisible par machine</li>
+        <li><strong>Opposition</strong> – Vous opposer au traitement des données (peut limiter les fonctionnalités)</li>
+        <li><strong>Retrait du consentement</strong> – Annuler votre compte à tout moment</li>
+      </ul>
+      <p>Pour exercer ces droits, contactez-nous à <strong>support@vulcainvpn.com</strong></p>
+      <p>Nous répondrons dans les 30 jours comme l'exige le RGPD.</p>
+    </section>
 
-  <section>
-    <h2>5. Data Security</h2>
-    <ul>
-      <li>All VPN connections are encrypted using industry-standard protocols</li>
-      <li>Connection logs stored on secure servers with restricted access</li>
-      <li>Automatic log deletion prevents long-term data accumulation</li>
-      <li>Payment processing handled by PCI-DSS compliant Stripe</li>
-    </ul>
-  </section>
+    <section>
+      <h2>5. Sécurité des données</h2>
+      <ul>
+        <li>Toutes les connexions VPN sont chiffrées avec des protocoles standard de l'industrie</li>
+        <li>Les journaux de connexion sont stockés sur des serveurs sécurisés avec accès restreint</li>
+        <li>La suppression automatique des journaux empêche l'accumulation de données à long terme</li>
+        <li>Le traitement des paiements est géré par Stripe, conforme PCI-DSS</li>
+      </ul>
+    </section>
 
-  <section>
-    <h2>6. International Data Transfers</h2>
-    <p>Our VPN servers are located in France. If you're connecting from outside the EU, your connection metadata may be processed on EU servers under GDPR protection.</p>
-    <p>We do not transfer your data to countries with inadequate data protection laws.</p>
-  </section>
+    <section>
+      <h2>6. Transferts internationaux de données</h2>
+      <p>Nos serveurs VPN sont situés en France. Si vous vous connectez depuis l'extérieur de l'UE, vos métadonnées de connexion peuvent être traitées sur des serveurs UE sous la protection du RGPD.</p>
+      <p>Nous ne transférons pas vos données vers des pays dont la législation sur la protection des données est insuffisante.</p>
+    </section>
 
-  <section>
-    <h2>7. Changes to This Policy</h2>
-    <p>We may update this policy to reflect service improvements or legal requirements. Material changes will be communicated via email at least 30 days in advance.</p>
-    <p>Continued use of the service after policy updates constitutes acceptance.</p>
-    <p><strong>Last updated:</strong> March 29, 2026</p>
-  </section>
+    <section>
+      <h2>7. Modifications de cette politique</h2>
+      <p>Nous pouvons mettre à jour cette politique pour refléter les améliorations du service ou les exigences légales. Les modifications importantes seront communiquées par email au moins 30 jours à l'avance.</p>
+      <p>La poursuite de l'utilisation du service après les mises à jour constitue une acceptation.</p>
+      <p><strong>Dernière mise à jour :</strong> 29 mars 2026</p>
+    </section>
 
-  <section>
-    <h2>8. Contact & Complaints</h2>
-    <p><strong>Privacy inquiries:</strong> support@vulcainvpn.com</p>
-    <p><strong>General support:</strong> support@vulcainvpn.com</p>
-    <p>If you're unsatisfied with our response, you have the right to lodge a complaint with your local data protection authority (e.g., CNIL in France).</p>
-  </section>
+    <section>
+      <h2>8. Contact & réclamations</h2>
+      <p><strong>Demandes de confidentialité :</strong> support@vulcainvpn.com</p>
+      <p><strong>Support général :</strong> support@vulcainvpn.com</p>
+      <p>Si vous n'êtes pas satisfait de notre réponse, vous avez le droit de déposer une plainte auprès de votre autorité locale de protection des données (ex. CNIL en France).</p>
+    </section>
 
-  <section>
-    <h2>9. Children's Privacy</h2>
-    <p>Our service is not intended for users under 18. We do not knowingly collect data from children. If we become aware of such collection, we will delete it immediately.</p>
-  </section>
+    <section>
+      <h2>9. Confidentialité des mineurs</h2>
+      <p>Notre service n'est pas destiné aux utilisateurs de moins de 18 ans. Nous ne collectons pas sciemment de données provenant d'enfants. Si nous en prenons conscience, nous les supprimerons immédiatement.</p>
+    </section>
+
+  <% else %>
+    <h1>Data Privacy Policy</h1>
+    <p>Last updated: March 29, 2026</p>
+
+    <section>
+      <h2>1. Data We Collect</h2>
+
+      <h3>Account Data (Permanent)</h3>
+      <ul>
+        <li><strong>Email address</strong> – For account access, support, and service updates</li>
+        <li><strong>Payment information</strong> – Processed securely by Stripe (we don't store credit card details)</li>
+        <li><strong>Subscription status</strong> – To manage your service access and billing</li>
+      </ul>
+
+      <h3>Connection Metadata (Temporary - 24-48 hours)</h3>
+      <p>To prevent fraud and enforce our 3-device limit, we temporarily collect:</p>
+      <ul>
+        <li><strong>Your IP address</strong> – To identify devices and detect unauthorized sharing</li>
+        <li><strong>Connection timestamps</strong> – To enforce simultaneous connection limits</li>
+        <li><strong>Approximate location (city/country)</strong> – To detect password theft</li>
+        <li><strong>Anonymous session identifier</strong> – A random code like "NAUIZ_1" (not your real identity)</li>
+      </ul>
+      <p><strong>⏱️ Automatically deleted after 24-48 hours via log rotation.</strong></p>
+
+      <h3>What We DO NOT Collect</h3>
+      <ul>
+        <li>❌ Websites you visit or browsing history</li>
+        <li>❌ Traffic content (downloads, uploads, messages)</li>
+        <li>❌ DNS queries or search history</li>
+        <li>❌ Long-term connection records</li>
+      </ul>
+      <p><strong>Your browsing activity is completely private and never logged.</strong></p>
+    </section>
+
+    <section>
+      <h2>2. How We Use Your Data</h2>
+
+      <h3>Service Provision</h3>
+      <ul>
+        <li>Authenticate your account and manage subscriptions</li>
+        <li>Process payments securely through Stripe</li>
+        <li>Provide customer support</li>
+      </ul>
+
+      <h3>Security & Fraud Prevention</h3>
+      <ul>
+        <li>Enforce the 3-device simultaneous connection limit</li>
+        <li>Detect and prevent password theft (e.g., account used in France and China at the same time)</li>
+        <li>Identify unauthorized account sharing</li>
+      </ul>
+
+      <h3>Legal Basis (GDPR)</h3>
+      <ul>
+        <li><strong>Contract performance</strong> (Article 6(1)(b)) – To provide the VPN service you paid for</li>
+        <li><strong>Legitimate interest</strong> (Article 6(1)(f)) – To prevent fraud and abuse</li>
+      </ul>
+
+      <p><strong>We do not sell, rent, or share your data with third parties for marketing purposes.</strong></p>
+    </section>
+
+    <section>
+      <h2>3. Data Retention</h2>
+      <ul>
+        <li><strong>Connection logs:</strong> Automatically deleted after 24-48 hours</li>
+        <li><strong>Account data:</strong> Retained while your account is active</li>
+        <li><strong>Payment records:</strong> Retained for 7 years (legal/tax requirement)</li>
+        <li><strong>Deleted accounts:</strong> All data permanently deleted within 30 days of account deletion</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Your Rights (GDPR)</h2>
+      <p>Under EU data protection law, you have the right to:</p>
+      <ul>
+        <li><strong>Access</strong> – Request a copy of your personal data</li>
+        <li><strong>Rectification</strong> – Correct inaccurate information</li>
+        <li><strong>Deletion</strong> – Request deletion of your account and data ("right to be forgotten")</li>
+        <li><strong>Data portability</strong> – Receive your data in a machine-readable format</li>
+        <li><strong>Object</strong> – Object to data processing (may limit service functionality)</li>
+        <li><strong>Withdraw consent</strong> – Cancel your account at any time</li>
+      </ul>
+      <p>To exercise these rights, contact us at <strong>support@vulcainvpn.com</strong></p>
+      <p>We will respond within 30 days as required by GDPR.</p>
+    </section>
+
+    <section>
+      <h2>5. Data Security</h2>
+      <ul>
+        <li>All VPN connections are encrypted using industry-standard protocols</li>
+        <li>Connection logs stored on secure servers with restricted access</li>
+        <li>Automatic log deletion prevents long-term data accumulation</li>
+        <li>Payment processing handled by PCI-DSS compliant Stripe</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>6. International Data Transfers</h2>
+      <p>Our VPN servers are located in France. If you're connecting from outside the EU, your connection metadata may be processed on EU servers under GDPR protection.</p>
+      <p>We do not transfer your data to countries with inadequate data protection laws.</p>
+    </section>
+
+    <section>
+      <h2>7. Changes to This Policy</h2>
+      <p>We may update this policy to reflect service improvements or legal requirements. Material changes will be communicated via email at least 30 days in advance.</p>
+      <p>Continued use of the service after policy updates constitutes acceptance.</p>
+      <p><strong>Last updated:</strong> March 29, 2026</p>
+    </section>
+
+    <section>
+      <h2>8. Contact & Complaints</h2>
+      <p><strong>Privacy inquiries:</strong> support@vulcainvpn.com</p>
+      <p><strong>General support:</strong> support@vulcainvpn.com</p>
+      <p>If you're unsatisfied with our response, you have the right to lodge a complaint with your local data protection authority (e.g., CNIL in France).</p>
+    </section>
+
+    <section>
+      <h2>9. Children's Privacy</h2>
+      <p>Our service is not intended for users under 18. We do not knowingly collect data from children. If we become aware of such collection, we will delete it immediately.</p>
+    </section>
+  <% end %>
 </div>
 
 <style>

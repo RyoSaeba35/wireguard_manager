@@ -339,21 +339,21 @@
 <div class="subscription-container">
   <!-- Header -->
   <div class="subscription-header">
-    <h1 style="text-align: center;">Subscription #<%= @subscription.name %></h1>
+    <h1 style="text-align: center;"><%= I18n.locale == :fr ? 'Abonnement' : 'Subscription' %> #<%= @subscription.name %></h1>
 
     <div class="subscription-meta">
       <div class="meta-item">
-        <strong>Plan</strong>
+        <strong><%= I18n.locale == :fr ? 'Forfait' : 'Plan' %></strong>
         <span><%= @subscription.plan.name %></span>
       </div>
 
       <div class="meta-item">
-        <strong>Status</strong>
+        <strong><%= I18n.locale == :fr ? 'Statut' : 'Status' %></strong>
         <span><%= @subscription.status.titleize %></span>
       </div>
 
       <div class="meta-item">
-        <strong>Expires</strong>
+        <strong><%= I18n.locale == :fr ? 'Expire le' : 'Expires' %></strong>
         <span class="local-time-container">
           <span id="local-time-text">
             <%= @subscription.expires_at.in_time_zone("Etc/UTC").strftime("%d/%m/%Y %H:%M") %>
@@ -365,63 +365,68 @@
       </div>
 
       <div class="meta-item">
-        <strong>Time Remaining</strong>
-        <span id="countdown">Calculating...</span>
+        <strong><%= I18n.locale == :fr ? 'Temps restant' : 'Time Remaining' %></strong>
+        <span id="countdown"><%= I18n.locale == :fr ? 'Calcul en cours...' : 'Calculating...' %></span>
       </div>
     </div>
   </div>
 
   <% if @subscription.payment_pending? && @pending_payment %>
-    <!-- Pending Payment State -->
     <div class="alert alert-warning">
-      <h3 style="margin-top: 0;">⚠️ Payment Pending</h3>
-      <p>Your subscription is waiting for payment confirmation.</p>
+      <h3 style="margin-top: 0;">⚠️ <%= I18n.locale == :fr ? 'Paiement en attente' : 'Payment Pending' %></h3>
+      <p><%= I18n.locale == :fr ? 'Votre abonnement est en attente de confirmation de paiement.' : 'Your subscription is waiting for payment confirmation.' %></p>
       <div style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <%= link_to "Complete Payment", @stripe_session_url, class: "btn" %>
-        <%= button_to "Cancel Subscription", cancel_user_subscription_path(current_user, @subscription),
+        <%= link_to (I18n.locale == :fr ? 'Finaliser le paiement' : 'Complete Payment'), @stripe_session_url, class: "btn" %>
+        <%= button_to (I18n.locale == :fr ? "Annuler l'abonnement" : 'Cancel Subscription'), cancel_user_subscription_path(current_user, @subscription),
             method: :patch, class: "btn btn-secondary", style: "margin-left: 1rem;",
-            data: { confirm: "Are you sure you want to cancel this subscription?" } %>
+            data: { confirm: (I18n.locale == :fr ? 'Êtes-vous sûr de vouloir annuler cet abonnement ?' : 'Are you sure you want to cancel this subscription?') } %>
       </div>
     </div>
 
   <% elsif @subscription.active? %>
-    <!-- Active Subscription -->
 
     <% if @devices.empty? %>
-      <!-- No devices yet - show app download -->
       <div class="download-app">
-        <h3>📱 Get Started with VulcainVPN</h3>
-        <p>Download the VulcainVPN app to connect your devices</p>
+        <h3>📱 <%= I18n.locale == :fr ? 'Commencer avec VulcainVPN' : 'Get Started with VulcainVPN' %></h3>
+        <p><%= I18n.locale == :fr ? "Téléchargez l'application VulcainVPN pour connecter vos appareils" : 'Download the VulcainVPN app to connect your devices' %></p>
         <div class="app-buttons">
-          <a href="#" class="app-btn">📱 Download for Android</a>
-          <a href="#" class="app-btn">🍎 Download for iOS (Coming Soon)</a>
-          <a href="#" class="app-btn">💻 Download for Desktop (Coming Soon)</a>
+          <a href="#" class="app-btn">📱 <%= I18n.locale == :fr ? 'Télécharger pour Android' : 'Download for Android' %></a>
+          <a href="#" class="app-btn">🍎 <%= I18n.locale == :fr ? 'iOS (Bientôt disponible)' : 'Download for iOS (Coming Soon)' %></a>
+          <a href="#" class="app-btn">💻 <%= I18n.locale == :fr ? 'Bureau (Bientôt disponible)' : 'Download for Desktop (Coming Soon)' %></a>
         </div>
       </div>
 
       <div class="alert alert-info">
-        <h4 style="margin-top: 0;">How to Connect:</h4>
+        <h4 style="margin-top: 0;"><%= I18n.locale == :fr ? 'Comment se connecter :' : 'How to Connect:' %></h4>
         <ol style="margin-bottom: 0;">
-          <li>Download the VulcainVPN app for your device</li>
-          <li>Login with your email: <strong><%= current_user.email %></strong></li>
-          <li>Your device will be registered automatically</li>
-          <li>Tap "Connect" to start using the VPN</li>
+          <% if I18n.locale == :fr %>
+            <li>Téléchargez l'application VulcainVPN pour votre appareil</li>
+            <li>Connectez-vous avec votre email : <strong><%= current_user.email %></strong></li>
+            <li>Votre appareil sera enregistré automatiquement</li>
+            <li>Appuyez sur "Connecter" pour utiliser le VPN</li>
+          <% else %>
+            <li>Download the VulcainVPN app for your device</li>
+            <li>Login with your email: <strong><%= current_user.email %></strong></li>
+            <li>Your device will be registered automatically</li>
+            <li>Tap "Connect" to start using the VPN</li>
+          <% end %>
         </ol>
         <p style="margin-top: 1rem; margin-bottom: 0;">
-          <%= link_to "View detailed setup guide →", setup_guide_path %>
+          <%= link_to (I18n.locale == :fr ? 'Voir le guide de configuration détaillé →' : 'View detailed setup guide →'), setup_guide_path %>
         </p>
       </div>
 
     <% else %>
-      <!-- Show devices and connections -->
-
-      <!-- Devices Section -->
       <div class="section">
-        <h2>Your Devices (<%= @devices.count %> registered)</h2>
+        <h2><%= I18n.locale == :fr ? "Vos appareils (#{@devices.count} enregistrés)" : "Your Devices (#{@devices.count} registered)" %></h2>
 
         <div style="background: #e3f2fd; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem;">
-          ℹ️ You can register unlimited devices, but only <strong><%= @subscription.max_devices %></strong> can be connected simultaneously.
-          Currently <strong><%= @active_connections.count %>/<%= @subscription.max_devices %></strong> connections active.
+          ℹ️ <%= I18n.locale == :fr ? "Vous pouvez enregistrer un nombre illimité d'appareils, mais seulement" : 'You can register unlimited devices, but only' %>
+          <strong><%= @subscription.max_devices %></strong>
+          <%= I18n.locale == :fr ? 'peuvent être connectés simultanément.' : 'can be connected simultaneously.' %>
+          <%= I18n.locale == :fr ? 'Actuellement' : 'Currently' %>
+          <strong><%= @active_connections.count %>/<%= @subscription.max_devices %></strong>
+          <%= I18n.locale == :fr ? 'connexions actives.' : 'connections active.' %>
         </div>
 
         <div class="device-grid">
@@ -432,17 +437,17 @@
             <div class="device-card <%= is_connected ? '' : 'inactive' %>">
               <div class="device-info">
                 <div class="device-name"><%= device.name.capitalize %></div>
-                  <div class="device-meta">
-                    <div class="meta-registered">Registered: <%= device.created_at.strftime("%d/%m/%Y") %></div>
-                    <% if is_connected && connection %>
-                      <div class="meta-server">
-                        Server: <span class="server-badge"> <%= connection.server.name %></span>
-                      </div>
-                    <% end %>
-                  </div>
+                <div class="device-meta">
+                  <div class="meta-registered"><%= I18n.locale == :fr ? 'Enregistré le :' : 'Registered:' %> <%= device.created_at.strftime("%d/%m/%Y") %></div>
+                  <% if is_connected && connection %>
+                    <div class="meta-server">
+                      <%= I18n.locale == :fr ? 'Serveur :' : 'Server:' %> <span class="server-badge"><%= connection.server.name %></span>
+                    </div>
+                  <% end %>
+                </div>
               </div>
               <div class="device-status <%= is_connected ? 'connected' : 'disconnected' %>">
-                <%= is_connected ? '🟢 Connected' : '⚫ Disconnected' %>
+                <%= is_connected ? "🟢 #{I18n.locale == :fr ? 'Connecté' : 'Connected'}" : "⚫ #{I18n.locale == :fr ? 'Déconnecté' : 'Disconnected'}" %>
               </div>
             </div>
           <% end %>
@@ -450,34 +455,29 @@
 
         <% if @active_connections.count >= @subscription.max_devices %>
           <p style="margin-top: 1rem; color: #856404;">
-            ⚠️ Maximum simultaneous connections reached (<%= @subscription.max_devices %>). Disconnect from a device to connect another.
+            ⚠️ <%= I18n.locale == :fr ? "Nombre maximum de connexions simultanées atteint (#{@subscription.max_devices}). Déconnectez un appareil pour en connecter un autre." : "Maximum simultaneous connections reached (#{@subscription.max_devices}). Disconnect from a device to connect another." %>
           </p>
         <% end %>
       </div>
 
-      <!-- Active Connections Section -->
       <% if @active_connections.any? %>
         <div class="section">
-          <h2>Active Connections (<%= @active_connections.count %>)</h2>
+          <h2><%= I18n.locale == :fr ? "Connexions actives (#{@active_connections.count})" : "Active Connections (#{@active_connections.count})" %></h2>
 
           <table class="connection-table">
             <thead>
               <tr>
-                <th>Device</th>
-                <th>Server</th>
-                <th>Connected Since</th>
-                <th>Duration</th>
+                <th><%= I18n.locale == :fr ? 'Appareil' : 'Device' %></th>
+                <th><%= I18n.locale == :fr ? 'Serveur' : 'Server' %></th>
+                <th><%= I18n.locale == :fr ? 'Connecté depuis' : 'Connected Since' %></th>
+                <th><%= I18n.locale == :fr ? 'Durée' : 'Duration' %></th>
               </tr>
             </thead>
             <tbody>
               <% @active_connections.each do |conn| %>
                 <tr>
                   <td><%= conn.device.name %></td>
-                  <td>
-                    <span class="server-badge">
-                      <%= conn.server.name %>
-                    </span>
-                  </td>
+                  <td><span class="server-badge"><%= conn.server.name %></span></td>
                   <td><%= conn.connected_at.strftime("%d/%m/%Y %H:%M") %></td>
                   <td><%= distance_of_time_in_words(conn.connected_at, Time.current) %></td>
                 </tr>
@@ -487,18 +487,17 @@
         </div>
       <% end %>
 
-      <!-- Recent Connections Section -->
       <% if @recent_connections.any? %>
         <div class="section">
-          <h2>Recent Connection History</h2>
+          <h2><%= I18n.locale == :fr ? 'Historique des connexions récentes' : 'Recent Connection History' %></h2>
 
           <table class="connection-table">
             <thead>
               <tr>
-                <th>Device</th>
-                <th>Connected</th>
-                <th>Disconnected</th>
-                <th>Duration</th>
+                <th><%= I18n.locale == :fr ? 'Appareil' : 'Device' %></th>
+                <th><%= I18n.locale == :fr ? 'Connecté' : 'Connected' %></th>
+                <th><%= I18n.locale == :fr ? 'Déconnecté' : 'Disconnected' %></th>
+                <th><%= I18n.locale == :fr ? 'Durée' : 'Duration' %></th>
               </tr>
             </thead>
             <tbody>
@@ -516,18 +515,16 @@
       <% end %>
     <% end %>
 
-    <!-- Setup Guide Link -->
     <div style="text-align: center; margin-top: 1.5rem; margin-bottom: 1.5rem;">
-      <%= link_to "📖 View Setup Guide", setup_guide_path, class: "btn btn-secondary" %>
+      <%= link_to (I18n.locale == :fr ? '📖 Voir le guide de configuration' : '📖 View Setup Guide'), setup_guide_path, class: "btn btn-secondary" %>
     </div>
 
   <% else %>
-    <!-- Expired/Failed Subscription -->
     <div class="empty-state">
       <div class="empty-state-icon">⚠️</div>
-      <h3>This subscription is <%= @subscription.status %></h3>
+      <h3><%= I18n.locale == :fr ? "Cet abonnement est #{@subscription.status}" : "This subscription is #{@subscription.status}" %></h3>
       <p>
-        <%= link_to "Subscribe again", new_user_subscription_path(current_user), class: "btn" %>
+        <%= link_to (I18n.locale == :fr ? 'Se réabonner' : 'Subscribe again'), new_user_subscription_path(current_user), class: "btn" %>
       </p>
     </div>
   <% end %>
