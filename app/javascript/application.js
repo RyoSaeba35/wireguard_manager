@@ -5,3 +5,4 @@ import "bootstrap"
 // Import Splide JavaScript only (CSS is already in layout)
 import Splide from "@splidejs/splide";
 window.Splide = Splide; // Make Splide globally available
+import "controllers"
