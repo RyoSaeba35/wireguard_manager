@@ -95,9 +95,11 @@
           <div class="app-icon">🤖</div>
           <h3>Android</h3>
           <p><%= I18n.locale == :fr ? 'Téléphones & Tablettes' : 'Phones & Tablets' %></p>
+          <span class="status-badge available"><%= I18n.locale == :fr ? 'Disponible' : 'Available Now' %></span>
           <a href="https://play.google.com/store/apps/details?id=com.vulcainvpn.app"
-            class="status-badge available">
-            <%= I18n.locale == :fr ? 'Disponible sur Google Play' : 'Get it on Google Play' %>
+            class="download-btn android-download"
+            target="_blank">
+            <%= I18n.locale == :fr ? 'Télécharger' : 'Download' %>
           </a>
         </div>
 
