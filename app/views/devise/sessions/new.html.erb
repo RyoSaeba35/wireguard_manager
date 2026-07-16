@@ -77,6 +77,35 @@
   .signup-link a:hover {
     color: #ffc33c;
   }
+
+  .password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .password-wrapper input {
+    width: 100%;
+    padding-right: 3rem;
+    box-sizing: border-box;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #999;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+  }
+
+  .password-toggle:hover {
+    color: #ff6e08;
+  }
 </style>
 
 <div class="login-super-container">
@@ -88,9 +117,25 @@
         <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true, placeholder: t('auth.sign_in.email') %>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" data-controller="password-toggle">
         <%= f.label :password, t('auth.sign_in.password') %>
-        <%= f.password_field :password, autocomplete: "current-password", required: true, placeholder: t('auth.sign_in.password') %>
+        <div class="password-wrapper">
+          <%= f.password_field :password,
+              autocomplete: "current-password",
+              required: true,
+              placeholder: t('auth.sign_in.password'),
+              data: { "password-toggle-target": "field" } %>
+          <button type="button"
+                  class="password-toggle"
+                  data-password-toggle-target="button"
+                  data-action="click->password-toggle#toggle"
+                  aria-label="Show password">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <% if devise_mapping.rememberable? %>
