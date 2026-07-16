@@ -197,41 +197,43 @@
 </style>
 
 <script>
-  let hamburgerClickHandler = null;
+  (function() {
+    let hamburgerClickHandler = null;
 
-  document.addEventListener('turbo:load', initNav);
-  document.addEventListener('turbo:render', initNav);
+    function initNav() {
+      const hamburger = document.querySelector('.hamburger');
+      const navLinks = document.querySelector('.nav-links');
 
-  function initNav() {
-    const hamburger = document.querySelector('.hamburger');
-    const navLinks = document.querySelector('.nav-links');
+      if (!hamburger || !navLinks) return;
 
-    if (!hamburger || !navLinks) return;
+      if (hamburgerClickHandler) {
+        hamburger.removeEventListener('click', hamburgerClickHandler);
+      }
 
-    if (hamburgerClickHandler) {
-      hamburger.removeEventListener('click', hamburgerClickHandler);
+      hamburgerClickHandler = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        navLinks.classList.toggle('active');
+      };
+
+      hamburger.addEventListener('click', hamburgerClickHandler);
+
+      navLinks.addEventListener('click', function(e) {
+        if (e.target.closest('a, button')) {
+          navLinks.classList.remove('active');
+        }
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!hamburger.contains(e.target) &&
+            !navLinks.contains(e.target) &&
+            navLinks.classList.contains('active')) {
+          navLinks.classList.remove('active');
+        }
+      });
     }
 
-    hamburgerClickHandler = function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      navLinks.classList.toggle('active');
-    };
-
-    hamburger.addEventListener('click', hamburgerClickHandler);
-
-    navLinks.addEventListener('click', function(e) {
-      if (e.target.closest('a, button')) {
-        navLinks.classList.remove('active');
-      }
-    });
-
-    document.addEventListener('click', function(e) {
-      if (!hamburger.contains(e.target) &&
-          !navLinks.contains(e.target) &&
-          navLinks.classList.contains('active')) {
-        navLinks.classList.remove('active');
-      }
-    });
-  }
+    document.addEventListener('turbo:load', initNav);
+    document.addEventListener('turbo:render', initNav);
+  })();
 </script>
