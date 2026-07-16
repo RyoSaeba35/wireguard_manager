@@ -350,11 +350,14 @@
 
   // Countdown functions
   function updateCountdown(expiresAt) {
+    const el = document.getElementById("countdown");
+    if (!el) return;
+
     const now = new Date();
     const diff = expiresAt - now;
 
     if (diff <= 0) {
-      document.getElementById("countdown").textContent = "<%= I18n.locale == :fr ? '⚠️ Abonnement expiré' : '⚠️ Subscription expired' %>";
+      el.textContent = "<%= I18n.locale == :fr ? '⚠️ Abonnement expiré' : '⚠️ Subscription expired' %>";
       return;
     }
 
@@ -367,7 +370,7 @@
     if (hours > 0 || days > 0) parts.push(`${hours} <%= I18n.locale == :fr ? 'heure' : 'hour' %>${hours !== 1 ? 's' : ''}`);
     parts.push(`${minutes} <%= I18n.locale == :fr ? 'minute' : 'minute' %>${minutes !== 1 ? 's' : ''}`);
 
-    document.getElementById("countdown").textContent = `⏱️ ${parts.join(', ')} <%= I18n.locale == :fr ? 'restants' : 'remaining' %>`;
+    el.textContent = `⏱️ ${parts.join(', ')} <%= I18n.locale == :fr ? 'restants' : 'remaining' %>`;
   }
 
   function initializeCountdown() {
