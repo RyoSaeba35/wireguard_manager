@@ -91,11 +91,14 @@
 
       <div class="app-download-grid" id="platform-grid">
         <!-- Mobile cards (iOS & Android) -->
-        <div class="app-card mobile-card" data-platform="android" data-available="false">
+        <div class="app-card mobile-card" data-platform="android" data-available="true">
           <div class="app-icon">🤖</div>
           <h3>Android</h3>
           <p><%= I18n.locale == :fr ? 'Téléphones & Tablettes' : 'Phones & Tablets' %></p>
-          <span class="status-badge coming-soon"><%= I18n.locale == :fr ? 'Bientôt disponible' : 'Coming Soon' %></span>
+          <a href="https://play.google.com/store/apps/details?id=com.vulcainvpn.app"
+            class="status-badge available">
+            <%= I18n.locale == :fr ? 'Disponible sur Google Play' : 'Get it on Google Play' %>
+          </a>
         </div>
 
         <div class="app-card mobile-card" data-platform="ios" data-available="false">
@@ -415,8 +418,8 @@
       detectedPlatform = 'android';
       platformName = platforms.android.name;
       platformSpec = platforms.android.spec;
-      downloadUrl = 'https://play.google.com/store/apps/details?id=com.vulcainvpn';
-      isAvailable = false;
+      downloadUrl = 'https://play.google.com/store/apps/details?id=com.vulcainvpn.app';
+      isAvailable = true;
       icon = platforms.android.icon;
     } else if (/Windows/i.test(ua)) {
       detectedPlatform = 'windows';
