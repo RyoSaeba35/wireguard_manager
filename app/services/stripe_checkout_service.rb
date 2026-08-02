@@ -29,7 +29,7 @@ class StripeCheckoutService
         quantity: 1
       }],
       customer_email: @user.email,
-      allow_promotion_codes: true,
+      allow_promotion_codes: monthly_plan?,
       billing_address_collection: 'required',
       metadata: {
         subscription_id: @subscription.name,
@@ -40,5 +40,11 @@ class StripeCheckoutService
       cancel_url: Rails.application.routes.url_helpers.new_user_subscription_url(@user, host: host),
       automatic_tax: { enabled: false }
     )
+  end
+
+  private
+
+  def monthly_plan?
+    @subscription.plan.interval == "month"
   end
 end
