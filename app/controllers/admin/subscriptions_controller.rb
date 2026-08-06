@@ -34,6 +34,8 @@ module Admin
         max_devices: 3
       )
 
+      UserMailer.subscription_activated(@user, subscription, invite_review: false).deliver_later
+      
       render json: {
         success: true,
         subscription: {

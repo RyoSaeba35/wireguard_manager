@@ -65,6 +65,19 @@ class Subscription < ApplicationRecord
     expires_at < Time.current
   end
 
+  def activate!
+    activated = false
+    with_lock do
+      if self[:status] != "active"
+        update!(status: "active")
+        activated = true
+      end
+    end
+    if activated && user.present?
+      UserMailer.subscription_activated(user, self, invite_review: true).deliver_later
+    end
+  end
+
   # Helper: current active devices
   def active_devices_count
     devices.where(active: true).count

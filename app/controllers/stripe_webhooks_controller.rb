@@ -44,7 +44,7 @@ class StripeWebhooksController < ApplicationController
     return unless subscription.payment_pending?
 
     # ⭐ NEW: Just activate (no pool management)
-    subscription.update!(status: "active")
+    subscription.activate!
     UserMailer.subscription_activated(subscription.user, subscription).deliver_later
     Rails.logger.info "Subscription #{subscription.name} activated via webhook"
   end

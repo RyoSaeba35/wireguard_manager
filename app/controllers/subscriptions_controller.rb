@@ -87,7 +87,7 @@ class SubscriptionsController < ApplicationController
           @pending_payment = true
           @stripe_session_url = session.url
         when "complete"
-          @subscription.update!(status: "active")
+          @subscription.activate!
           redirect_to user_subscription_path(current_user, @subscription),
                       notice: "Your payment was successful! You can now connect your devices."
           return

@@ -35,17 +35,17 @@
           </tr>
         </table>
 
-        <!-- Welcome Message -->
+        <!-- Greeting -->
         <p style="font-size: 16px; margin: 20px 0 16px 0; text-align: left;">
           Hello <%= @user.email %>,
         </p>
 
-        <!-- Success Message -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; margin: 20px 0;">
+        <!-- Warning Message -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px; margin: 20px 0;">
           <tr>
             <td style="padding: 15px; text-align: center;">
-              <p style="margin: 0; font-size: 18px; color: #155724; font-weight: bold;">
-                Your subscription is now active!
+              <p style="margin: 0; font-size: 18px; color: #856404; font-weight: bold;">
+                ⚠️ We couldn't process your payment
               </p>
             </td>
           </tr>
@@ -53,27 +53,27 @@
 
         <!-- Main Message -->
         <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;">
-          Thank you for subscribing to <strong>Vulcain VPN</strong>. Your subscription <strong>#<%= @subscription.name %></strong> is ready to use.
+          Unfortunately, the payment for your <strong>Vulcain VPN</strong> subscription <strong>#<%= @subscription.name %></strong> didn't go through, so your subscription hasn't been activated.
         </p>
 
         <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;">
-          With Vulcain VPN, you can enjoy fast, secure, and private internet access with a French IP address.
+          This usually happens for a simple reason — an expired card, insufficient funds, or your bank declining the charge. No charge has been made.
         </p>
 
-        <!-- Getting Started Section -->
+        <!-- What to do Section -->
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; background-color: #f8f9fa; border-radius: 4px; margin: 20px 0;">
           <tr>
             <td style="padding: 20px;">
               <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: bold; color: #2c3e50;">
-                Getting Started:
+                How to fix it:
               </p>
 
               <p style="margin: 0 0 8px 0; font-size: 15px; color: #2c3e50;">
-                <strong>1.</strong> Download and install the Vulcain VPN app on your device
+                <strong>1.</strong> Check your card details or try a different payment method
               </p>
 
               <p style="margin: 0 0 8px 0; font-size: 15px; color: #2c3e50;">
-                <strong>2.</strong> Log in with your account credentials
+                <strong>2.</strong> Start a new subscription from your account
               </p>
 
               <p style="margin: 0; font-size: 15px; color: #2c3e50;">
@@ -83,13 +83,12 @@
           </tr>
         </table>
 
-        <!-- CTA Buttons -->
+        <!-- CTA Button -->
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; margin: 20px 0;">
           <tr>
             <td style="text-align: center;">
-              <!-- Primary CTA -->
               <a
-                href="https://www.vulcainvpn.com/setup"
+                href="https://www.vulcainvpn.com/subscriptions/new"
                 class="cta-btn cta-btn-primary"
                 style="
                   background-color: #e74c3c;
@@ -104,11 +103,10 @@
                   font-weight: bold;
                 "
               >
-                Get Started Now
+                Try Again
               </a>
             </td>
           </tr>
-          <!-- Secondary Link -->
         </table>
 
         <!-- Help Section -->
@@ -119,9 +117,9 @@
                 <strong>Need help?</strong>
               </p>
               <p style="font-size: 15px; margin: 0; text-align: left; color: #555;">
-                Check our
-                <a href="https://www.vulcainvpn.com/setup" style="color: #ff6e08; text-decoration: none;">setup guide</a> or
-                <a href="mailto:support@vulcainvpn.com" style="color: #ff6e08; text-decoration: none;">contact support</a>.
+                If you keep running into trouble, just
+                <a href="mailto:support@vulcainvpn.com" style="color: #ff6e08; text-decoration: none;">contact support</a>
+                and we'll sort it out with you.
               </p>
             </td>
           </tr>
@@ -129,7 +127,7 @@
 
         <!-- Regards -->
         <p style="font-size: 16px; margin: 20px 0 0 0; text-align: left;">
-          Welcome to Vulcain VPN!<br>
+          Thanks,<br>
           <strong>The Vulcain VPN Team</strong>
         </p>
 
