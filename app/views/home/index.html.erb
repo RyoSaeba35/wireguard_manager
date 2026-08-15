@@ -1,3 +1,24 @@
+<% content_for :title, "VulcainVPN — Secure WireGuard VPN | France Server | No Logs" %>
+<% content_for :meta_description, "VulcainVPN gives you a dedicated France VPN server with WireGuard, Hysteria2 and Shadowsocks. No logs, no overselling. Android & Windows. From €15/month." %>
+
+<% content_for :head do %>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "VulcainVPN",
+  "operatingSystem": "Android, Windows",
+  "applicationCategory": "SecurityApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "15",
+    "priceCurrency": "EUR"
+  },
+  "description": "Fast, private VPN with WireGuard and a dedicated France server. No logs."
+}
+</script>
+<% end %>
+
 <div class="super-container">
   <section class="hero">
     <h1><%= t('home.hero.title') %><br><%= t('home.hero.subtitle') %></h1>
@@ -749,4 +770,37 @@
       answer.style.display = 'block';
     }
   }
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "<%= t('home.faq.logs.question') %>",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "<%= t('home.faq.logs.answer_1') %> <%= t('home.faq.logs.answer_2') %>"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "<%= t('home.faq.protocols.question') %>",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "<%= t('home.faq.protocols.answer') %>"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "<%= t('home.faq.speed.question') %>",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "<%= t('home.faq.speed.answer_1') %> <%= t('home.faq.speed.answer_2') %>"
+      }
+    }
+  ]
+}
 </script>

@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="<%= I18n.locale %>">
   <head>
-    <title><%= content_for(:title) || "Vulcain VPN" %></title>
+    <title><%= yield(:title).presence || "Vulcain VPN" %></title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <%# <meta name="apple-mobile-web-app-capable" content="yes"> %>
     <%# <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> %>
     <%# <meta name="apple-mobile-web-app-title" content="Vulcain VPN"> %>
     <meta name="theme-color" content="#432923">
+    <meta name="description" content="<%= yield(:meta_description).presence || "VulcainVPN — Fast, private VPN with a dedicated France server. WireGuard, Hysteria2 & Shadowsocks. No logs. From €15/month." %>">
+    <link rel="canonical" href="https://www.vulcainvpn.com<%= request.path %>">
 
     <!-- Favicon and Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -22,10 +24,10 @@
     <meta property="og:title" content="Vulcain VPN: Fast & Secure France VPN with Advanced Encryption">
     <meta property="og:description" content="Vulcain VPN: Fast, secure France server with advanced encryption. Enjoy reliable and private browsing, streaming, and downloading with high-speed connections.">
     <meta property="og:image" content="https://www.vulcainvpn.com/Vulcain_VPN_logo_2.png">
-    <meta property="og:url" content="https://www.vulcainvpn.com">
+    <meta property="og:url" content="https://www.vulcainvpn.com<%= request.path %>">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Vulcain VPN">
-    <meta property="og:locale" content="en_US">
+    <meta property="og:locale" content="<%= I18n.locale == :fr ? 'fr_FR' : 'en_US' %>">
 
     <!-- PWA Manifest -->
     <%# <link rel="manifest" href="/manifest.json"> %>
