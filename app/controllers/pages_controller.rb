@@ -1,6 +1,18 @@
 class PagesController < ApplicationController
   before_action :authenticate_user!, only: [:subscriptions_expired]
-  skip_before_action :authenticate_user!, only: [:privacy, :terms, :logging]
+  skip_before_action :authenticate_user!, only: [
+    :privacy,
+    :terms,
+    :logging,
+    :blog,
+    :vpn_expats_france,
+    :vpn_france_logs,
+    :vpn_voyage,
+    :vpn_vie_privee,
+    :vpn_vs_grands,
+    :vpn_teletravail,
+    :vpn_android
+  ]
 
   def privacy
   end
