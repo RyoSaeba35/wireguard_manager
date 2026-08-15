@@ -4,6 +4,11 @@
     <%= link_to t('footer.terms'), terms_path %>
     <%= link_to t('footer.logging'), logging_path %>
   </div>
+  <div class="footer-links footer-resources">
+    <%= link_to (I18n.locale == :fr ? "VPN pour expats" : "VPN for expats"), blog_vpn_expats_path %>
+    <%= link_to (I18n.locale == :fr ? "VPN sans logs" : "VPN no browsing logs"), blog_vpn_logs_path %>
+    <%= link_to (I18n.locale == :fr ? "VPN en voyage" : "VPN while travelling"), blog_vpn_voyage_path %>
+  </div>
   <p class="footer-copyright"><%= t('footer.copyright') %></p>
 </footer>
 
@@ -29,6 +34,10 @@
   }
   .footer-links a:hover {
     text-decoration: underline;
+  }
+  .footer-resources {
+    opacity: 0.75;
+    font-size: 0.85rem;
   }
   .footer-copyright {
     margin: 0 auto;
