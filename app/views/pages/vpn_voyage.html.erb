@@ -1,0 +1,156 @@
+<% content_for :title, "Protéger sa connexion en voyage | VPN sécurisé | VulcainVPN" %>
+<% content_for :meta_description, "Wi-Fi d'hôtel, aéroport, café : comment protéger votre connexion en voyage avec un VPN. Serveur France, chiffrement WireGuard, 3 appareils couverts." %>
+
+<% content_for :head do %>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Protéger sa connexion internet en voyage : guide pratique",
+  "author": { "@type": "Organization", "name": "VulcainVPN" },
+  "publisher": { "@type": "Organization", "name": "VulcainVPN", "url": "https://www.vulcainvpn.com" },
+  "datePublished": "2026-03-29",
+  "description": "Guide pratique pour sécuriser sa connexion internet en voyage, notamment sur les Wi-Fi publics d'hôtels et d'aéroports."
+}
+</script>
+<% end %>
+
+<div class="article-container">
+  <% if I18n.locale == :fr %>
+
+    <h1>Protéger sa connexion internet en voyage</h1>
+    <p class="article-intro">En voyage, vous connectez votre téléphone et votre ordinateur à des Wi-Fi que vous ne contrôlez pas. Hôtel, aéroport, café, coworking — ces réseaux sont pratiques, mais ils exposent votre connexion à des risques réels.</p>
+
+    <h2>Pourquoi les Wi-Fi publics sont risqués</h2>
+    <p>Un réseau Wi-Fi public non sécurisé permet à quelqu'un sur le même réseau d'intercepter votre trafic. Ce n'est pas théorique — c'est une technique simple accessible à n'importe qui avec un peu de matériel.</p>
+    <p>Ce qui peut être intercepté sur un Wi-Fi non sécurisé :</p>
+    <ul>
+      <li>Vos identifiants sur les sites sans HTTPS (encore nombreux)</li>
+      <li>Les cookies de session — qui permettent de se connecter à votre place sur certains services</li>
+      <li>Vos emails si vous utilisez un client mail non chiffré</li>
+      <li>Les données que vous envoyez sur des formulaires non sécurisés</li>
+    </ul>
+
+    <h2>Ce qu'un VPN change concrètement</h2>
+    <p>Quand vous activez VulcainVPN, tout votre trafic est <strong>chiffré avant de quitter votre appareil</strong>. Même si quelqu'un intercepte les données sur le Wi-Fi de l'hôtel, il ne voit qu'un flux chiffré illisible.</p>
+    <p>Le chiffrement fonctionne sur tous vos appareils connectés simultanément — téléphone, ordinateur portable, tablette — avec un seul abonnement.</p>
+
+    <div class="article-highlight">
+      <h3>En pratique en voyage</h3>
+      <p><span class="checkmark">➤</span> <strong>Wi-Fi hôtel</strong> — activez le VPN dès que vous vous connectez, avant d'ouvrir email ou banque</p>
+      <p><span class="checkmark">➤</span> <strong>Aéroport</strong> — les réseaux d'aéroport sont parmi les plus ciblés, le VPN est particulièrement utile</p>
+      <p><span class="checkmark">➤</span> <strong>Café / coworking</strong> — même logique, réseau partagé avec des inconnus</p>
+      <p><span class="checkmark">➤</span> <strong>Carte SIM locale</strong> — même sur données mobiles, le VPN chiffre votre trafic vis-à-vis de l'opérateur local</p>
+    </div>
+
+    <h2>Plusieurs protocoles selon votre situation</h2>
+    <p>VulcainVPN propose trois protocoles de connexion :</p>
+    <ul>
+      <li><strong>WireGuard</strong> — le plus rapide, idéal pour une connexion normale en voyage en Europe</li>
+      <li><strong>Hysteria2</strong> — conçu pour les réseaux à forte latence ou instables (connexion satellitaire, réseau surchargé)</li>
+      <li><strong>Shadowsocks</strong> — utile sur les réseaux qui filtrent ou ralentissent les connexions VPN classiques</li>
+    </ul>
+    <p>L'application sélectionne automatiquement le meilleur protocole selon votre réseau.</p>
+
+    <h2>Disponible sur Android et Windows</h2>
+    <p>L'application VulcainVPN est disponible sur Android et Windows. Un abonnement couvre jusqu'à 3 appareils simultanément — parfait pour couvrir téléphone et ordinateur en même temps.</p>
+
+    <div class="article-cta">
+      <p>Sécurisez votre connexion partout où vous voyagez.</p>
+      <a href="<%= new_user_registration_path %>" class="cta-btn">Créer un compte — à partir de €15/mois</a>
+    </div>
+
+    <div class="article-related">
+      <h3>En savoir plus</h3>
+      <ul>
+        <li><a href="<%= blog_vpn_expats_path %>">VPN pour expats en France</a></li>
+        <li><a href="<%= blog_vpn_logs_path %>">VPN France sans logs de navigation</a></li>
+        <li><a href="<%= logging_path %>">Notre politique de journalisation</a></li>
+      </ul>
+    </div>
+
+  <% else %>
+
+    <h1>Protecting Your Internet Connection While Travelling</h1>
+    <p class="article-intro">When travelling, you connect your phone and laptop to Wi-Fi networks you don't control. Hotels, airports, cafés, coworking spaces — these networks are convenient, but they expose your connection to real risks.</p>
+
+    <h2>Why Public Wi-Fi Is Risky</h2>
+    <p>An unsecured public Wi-Fi network allows anyone on the same network to intercept your traffic. This isn't theoretical — it's a simple technique accessible to anyone with basic equipment.</p>
+    <p>What can be intercepted on an unsecured Wi-Fi:</p>
+    <ul>
+      <li>Your credentials on sites without HTTPS</li>
+      <li>Session cookies — which can allow someone to log in as you on certain services</li>
+      <li>Your emails if you use an unencrypted mail client</li>
+      <li>Data you submit through unsecured forms</li>
+    </ul>
+
+    <h2>What a VPN Actually Changes</h2>
+    <p>When you activate VulcainVPN, all your traffic is <strong>encrypted before leaving your device</strong>. Even if someone intercepts data on the hotel Wi-Fi, they only see an unreadable encrypted stream.</p>
+    <p>Encryption works across all your simultaneously connected devices — phone, laptop, tablet — under a single subscription.</p>
+
+    <div class="article-highlight">
+      <h3>In Practice While Travelling</h3>
+      <p><span class="checkmark">➤</span> <strong>Hotel Wi-Fi</strong> — activate the VPN as soon as you connect, before opening email or banking</p>
+      <p><span class="checkmark">➤</span> <strong>Airport</strong> — airport networks are among the most targeted, VPN is especially useful here</p>
+      <p><span class="checkmark">➤</span> <strong>Café / coworking</strong> — same logic, shared network with strangers</p>
+      <p><span class="checkmark">➤</span> <strong>Local SIM card</strong> — even on mobile data, the VPN encrypts your traffic from the local operator</p>
+    </div>
+
+    <h2>Multiple Protocols for Your Situation</h2>
+    <p>VulcainVPN offers three connection protocols:</p>
+    <ul>
+      <li><strong>WireGuard</strong> — the fastest, ideal for normal connections while travelling in Europe</li>
+      <li><strong>Hysteria2</strong> — designed for high-latency or unstable networks (satellite connection, congested network)</li>
+      <li><strong>Shadowsocks</strong> — useful on networks that filter or throttle standard VPN connections</li>
+    </ul>
+    <p>The app automatically selects the best protocol based on your network.</p>
+
+    <h2>Available on Android and Windows</h2>
+    <p>The VulcainVPN app is available on Android and Windows. One subscription covers up to 3 simultaneous devices — perfect for covering your phone and laptop at the same time.</p>
+
+    <div class="article-cta">
+      <p>Secure your connection wherever you travel.</p>
+      <a href="<%= new_user_registration_path %>" class="cta-btn">Create an account — from €15/month</a>
+    </div>
+
+    <div class="article-related">
+      <h3>Learn More</h3>
+      <ul>
+        <li><a href="<%= blog_vpn_expats_path %>">VPN for French expats</a></li>
+        <li><a href="<%= blog_vpn_logs_path %>">France VPN with no browsing logs</a></li>
+        <li><a href="<%= logging_path %>">Our logging policy</a></li>
+      </ul>
+    </div>
+
+  <% end %>
+</div>
+
+<style>
+  .article-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 4rem 2rem 3rem 2rem;
+    line-height: 1.8;
+    color: #333;
+  }
+  .article-container h1 { font-size: 2.2rem; color: #2c3e50; margin-bottom: 1.5rem; }
+  .article-container h2 { font-size: 1.5rem; color: #2c3e50; margin-top: 2.5rem; margin-bottom: 1rem; }
+  .article-container h3 { font-size: 1.2rem; color: #2c3e50; margin-bottom: 1rem; }
+  .article-intro { font-size: 1.15rem; color: #555; border-left: 4px solid #ff6e08; padding-left: 1rem; margin-bottom: 2rem; }
+  .article-highlight { background-color: #f9f9f9; border-left: 4px solid #ff6e08; padding: 1.5rem 2rem; border-radius: 4px; margin: 2rem 0; }
+  .article-highlight p { margin: 0.7rem 0; }
+  .article-container ul { margin: 1rem 0 1rem 1.5rem; }
+  .article-container ul li { margin-bottom: 0.6rem; }
+  .article-container a { color: #ff6e08; text-decoration: none; }
+  .article-container a:hover { text-decoration: underline; }
+  .article-cta { background-color: #2c3e50; color: white; padding: 2rem; border-radius: 8px; text-align: center; margin: 3rem 0 2rem 0; }
+  .article-cta p { font-size: 1.1rem; margin-bottom: 1rem; }
+  .article-related { border-top: 1px solid #e0e0e0; padding-top: 1.5rem; margin-top: 2rem; }
+  .article-related ul { list-style: none; margin-left: 0; padding-left: 0; }
+  .article-related ul li { margin-bottom: 0.5rem; }
+  .article-related ul li::before { content: "→ "; color: #ff6e08; }
+  @media (max-width: 768px) {
+    .article-container { padding: 2rem 1rem; }
+    .article-container h1 { font-size: 1.7rem; }
+  }
+</style>

@@ -1,0 +1,152 @@
+<% content_for :title, "VPN France sans logs de navigation | VulcainVPN" %>
+<% content_for :meta_description, "VulcainVPN ne stocke pas votre activité de navigation. Métadonnées de connexion supprimées en 24-48h. Serveur dédié en France. Transparence totale." %>
+
+<% content_for :head do %>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "VPN France sans logs de navigation : ce que ça veut dire concrètement",
+  "author": { "@type": "Organization", "name": "VulcainVPN" },
+  "publisher": { "@type": "Organization", "name": "VulcainVPN", "url": "https://www.vulcainvpn.com" },
+  "datePublished": "2026-03-29",
+  "description": "Explication claire et honnête de ce que VulcainVPN journalise et ne journalise pas, et pourquoi."
+}
+</script>
+<% end %>
+
+<div class="article-container">
+  <% if I18n.locale == :fr %>
+
+    <h1>VPN France sans logs de navigation</h1>
+    <p class="article-intro">La plupart des VPN affichent "no logs" sans expliquer ce que ça veut dire. Voilà ce que VulcainVPN journalise réellement, ce qu'il ne journalise pas, et pourquoi — en toute transparence.</p>
+
+    <h2>Ce que "sans logs de navigation" veut dire</h2>
+    <p>Il existe deux catégories de données qu'un VPN pourrait théoriquement enregistrer :</p>
+    <ul>
+      <li><strong>Les logs d'activité</strong> — les sites que vous visitez, ce que vous téléchargez, vos requêtes DNS, votre historique de navigation. C'est ce qui intéresse les annonceurs, les gouvernements et les pirates.</li>
+      <li><strong>Les métadonnées de connexion</strong> — votre IP, l'heure de connexion, la localisation approximative. Ce sont des données techniques minimales.</li>
+    </ul>
+    <p>VulcainVPN <strong>ne collecte jamais les logs d'activité</strong>. Ce que vous faites en ligne est totalement privé et n'est jamais enregistré.</p>
+
+    <h2>Ce que nous journalisons (et pourquoi)</h2>
+    <p>Soyons honnêtes : nous collectons temporairement des métadonnées de connexion minimales. C'est nécessaire pour deux raisons concrètes :</p>
+    <ul>
+      <li><strong>Appliquer la limite de 3 appareils</strong> — chaque abonnement permet 3 connexions simultanées. Sans surveiller les connexions actives, nous ne pouvons pas appliquer cette règle.</li>
+      <li><strong>Détecter le vol de compte</strong> — si votre compte est utilisé en France et en Asie simultanément, c'est probablement un vol de mot de passe. Nous détectons ça et bloquons la connexion suspecte.</li>
+    </ul>
+
+    <div class="article-highlight">
+      <h3>Ce que nous collectons temporairement</h3>
+      <p><span class="checkmark">➤</span> Votre adresse IP — pour identifier l'appareil</p>
+      <p><span class="checkmark">➤</span> Horodatage de connexion — pour la limite d'appareils</p>
+      <p><span class="checkmark">➤</span> Localisation approximative (ville/pays) — pour détecter le vol de compte</p>
+      <p><span class="checkmark">➤</span> Identifiant anonyme — un code aléatoire, pas votre email</p>
+      <br>
+      <p><strong>Durée de conservation : 24-48 heures maximum, puis suppression automatique.</strong></p>
+    </div>
+
+    <h2>Pourquoi c'est différent d'un vrai "no logs"</h2>
+    <p>Un VPN qui dit "no logs" absolu soit ment, soit ne peut pas détecter les abus. Nous préférons être transparents : nous collectons le minimum nécessaire, nous le supprimons rapidement, et nous ne regardons jamais ce que vous faites en ligne.</p>
+    <p>Notre politique complète est publiée et lisible : <a href="<%= logging_path %>">Politique de journalisation</a>.</p>
+
+    <h2>Serveur en France, RGPD</h2>
+    <p>Nos serveurs sont hébergés en France. Les données sont traitées sous la juridiction française et la protection du RGPD. Nous ne transférons jamais vos données vers des pays tiers.</p>
+
+    <div class="article-cta">
+      <p>Un VPN transparent, basé en France, à partir de €15/mois.</p>
+      <a href="<%= new_user_registration_path %>" class="cta-btn">Créer un compte</a>
+    </div>
+
+    <div class="article-related">
+      <h3>En savoir plus</h3>
+      <ul>
+        <li><a href="<%= logging_path %>">Politique de journalisation complète</a></li>
+        <li><a href="<%= blog_vpn_expats_path %>">VPN pour expats en France</a></li>
+        <li><a href="<%= blog_vpn_voyage_path %>">Protéger sa connexion en voyage</a></li>
+      </ul>
+    </div>
+
+  <% else %>
+
+    <h1>France VPN with No Browsing Logs</h1>
+    <p class="article-intro">Most VPNs display "no logs" without explaining what that means. Here's what VulcainVPN actually logs, what it doesn't, and why — in full transparency.</p>
+
+    <h2>What "No Browsing Logs" Actually Means</h2>
+    <p>There are two categories of data a VPN could theoretically record:</p>
+    <ul>
+      <li><strong>Activity logs</strong> — sites you visit, what you download, DNS queries, browsing history. This is what advertisers, governments, and hackers are after.</li>
+      <li><strong>Connection metadata</strong> — your IP, connection time, approximate location. These are minimal technical data points.</li>
+    </ul>
+    <p>VulcainVPN <strong>never collects activity logs</strong>. What you do online is completely private and never recorded.</p>
+
+    <h2>What We Do Log (And Why)</h2>
+    <p>To be honest: we temporarily collect minimal connection metadata. This is necessary for two concrete reasons:</p>
+    <ul>
+      <li><strong>Enforcing the 3-device limit</strong> — each subscription allows 3 simultaneous connections. Without monitoring active connections, we can't enforce this.</li>
+      <li><strong>Detecting account theft</strong> — if your account is used in France and Asia simultaneously, that's likely a stolen password. We detect this and block the suspicious connection.</li>
+    </ul>
+
+    <div class="article-highlight">
+      <h3>What We Temporarily Collect</h3>
+      <p><span class="checkmark">➤</span> Your IP address — to identify the device</p>
+      <p><span class="checkmark">➤</span> Connection timestamp — for the device limit</p>
+      <p><span class="checkmark">➤</span> Approximate location (city/country) — to detect account theft</p>
+      <p><span class="checkmark">➤</span> Anonymous identifier — a random code, not your email</p>
+      <br>
+      <p><strong>Retention period: 24-48 hours maximum, then automatic deletion.</strong></p>
+    </div>
+
+    <h2>Why This Differs from Absolute "No Logs"</h2>
+    <p>A VPN claiming absolute "no logs" is either lying or unable to detect abuse. We prefer transparency: we collect the minimum necessary, delete it quickly, and never look at what you do online.</p>
+    <p>Our full policy is published and readable: <a href="<%= logging_path %>">Logging Policy</a>.</p>
+
+    <h2>France-Based Server, GDPR</h2>
+    <p>Our servers are hosted in France. Data is processed under French jurisdiction and GDPR protection. We never transfer your data to third countries.</p>
+
+    <div class="article-cta">
+      <p>A transparent VPN, based in France, from €15/month.</p>
+      <a href="<%= new_user_registration_path %>" class="cta-btn">Create an account</a>
+    </div>
+
+    <div class="article-related">
+      <h3>Learn More</h3>
+      <ul>
+        <li><a href="<%= logging_path %>">Full logging policy</a></li>
+        <li><a href="<%= blog_vpn_expats_path %>">VPN for French expats</a></li>
+        <li><a href="<%= blog_vpn_voyage_path %>">Protecting your connection while travelling</a></li>
+      </ul>
+    </div>
+
+  <% end %>
+</div>
+
+<style>
+  .article-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 4rem 2rem 3rem 2rem;
+    line-height: 1.8;
+    color: #333;
+  }
+  .article-container h1 { font-size: 2.2rem; color: #2c3e50; margin-bottom: 1.5rem; }
+  .article-container h2 { font-size: 1.5rem; color: #2c3e50; margin-top: 2.5rem; margin-bottom: 1rem; }
+  .article-container h3 { font-size: 1.2rem; color: #2c3e50; margin-bottom: 1rem; }
+  .article-intro { font-size: 1.15rem; color: #555; border-left: 4px solid #ff6e08; padding-left: 1rem; margin-bottom: 2rem; }
+  .article-highlight { background-color: #f9f9f9; border-left: 4px solid #ff6e08; padding: 1.5rem 2rem; border-radius: 4px; margin: 2rem 0; }
+  .article-highlight p { margin: 0.7rem 0; }
+  .article-container ul { margin: 1rem 0 1rem 1.5rem; }
+  .article-container ul li { margin-bottom: 0.6rem; }
+  .article-container a { color: #ff6e08; text-decoration: none; }
+  .article-container a:hover { text-decoration: underline; }
+  .article-cta { background-color: #2c3e50; color: white; padding: 2rem; border-radius: 8px; text-align: center; margin: 3rem 0 2rem 0; }
+  .article-cta p { font-size: 1.1rem; margin-bottom: 1rem; }
+  .article-related { border-top: 1px solid #e0e0e0; padding-top: 1.5rem; margin-top: 2rem; }
+  .article-related ul { list-style: none; margin-left: 0; padding-left: 0; }
+  .article-related ul li { margin-bottom: 0.5rem; }
+  .article-related ul li::before { content: "→ "; color: #ff6e08; }
+  @media (max-width: 768px) {
+    .article-container { padding: 2rem 1rem; }
+    .article-container h1 { font-size: 1.7rem; }
+  }
+</style>

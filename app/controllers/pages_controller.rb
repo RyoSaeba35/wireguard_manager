@@ -11,6 +11,15 @@ class PagesController < ApplicationController
   def logging
   end
 
+  def vpn_expats_france
+  end
+
+  def vpn_france_logs
+  end
+
+  def vpn_voyage
+  end
+
   def subscriptions_expired
     @expired_subscriptions = current_user.subscriptions.expired.order(expires_at: :desc)
   end

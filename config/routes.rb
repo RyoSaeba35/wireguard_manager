@@ -126,6 +126,11 @@ Rails.application.routes.draw do
   get "logging", to: "pages#logging"
   get "expired_subscriptions", to: "pages#subscriptions_expired", as: :expired_subscriptions
 
+  # SEO Articles
+  get "blog/vpn-expats-france",            to: "pages#vpn_expats_france",  as: :blog_vpn_expats
+  get "blog/vpn-france-sans-logs-navigation", to: "pages#vpn_france_logs", as: :blog_vpn_logs
+  get "blog/proteger-connexion-en-voyage", to: "pages#vpn_voyage",         as: :blog_vpn_voyage
+
   # Setup guide and downloads
   get "setup", to: "dashboard#setup", as: :setup_guide
   get "download_config/:filename", to: "downloads#config", as: :download_config, constraints: { filename: /[^\/]+/ }
