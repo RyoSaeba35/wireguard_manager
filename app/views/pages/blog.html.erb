@@ -1,0 +1,189 @@
+<% content_for :title, "Blog VPN | Conseils privacy & sécurité | VulcainVPN" %>
+<% content_for :meta_description, "Guides et conseils sur la privacy, la sécurité en ligne et l'utilisation d'un VPN. Par VulcainVPN, serveur dédié France." %>
+
+<div class="blog-container">
+  <% if I18n.locale == :fr %>
+    <h1>Blog VulcainVPN</h1>
+    <p class="blog-intro">Guides pratiques sur la sécurité en ligne, la confidentialité et l'utilisation d'un VPN.</p>
+
+    <div class="blog-grid">
+
+      <a href="<%= blog_vpn_expats_path %>" class="blog-card">
+        <div class="blog-card-tag">Expats</div>
+        <h2>VPN pour expats en France</h2>
+        <p>Vous vivez à l'étranger et avez besoin d'un accès sécurisé depuis la France ? Banque en ligne, démarches administratives, navigation sécurisée.</p>
+        <span class="blog-card-cta">Lire l'article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_logs_path %>" class="blog-card">
+        <div class="blog-card-tag">Privacy</div>
+        <h2>VPN France sans logs de navigation</h2>
+        <p>Ce que VulcainVPN journalise réellement, ce qu'il ne journalise pas, et pourquoi — en toute transparence.</p>
+        <span class="blog-card-cta">Lire l'article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_voyage_path %>" class="blog-card">
+        <div class="blog-card-tag">Sécurité</div>
+        <h2>Protéger sa connexion en voyage</h2>
+        <p>Wi-Fi hôtel, aéroport, café : comment chiffrer votre connexion sur les réseaux publics et pourquoi c'est important.</p>
+        <span class="blog-card-cta">Lire l'article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_privee_path %>" class="blog-card">
+        <div class="blog-card-tag">Privacy</div>
+        <h2>Ce que votre FAI voit sans VPN</h2>
+        <p>Votre fournisseur d'accès voit plus que vous ne le pensez. Domaines visités, horaires, volume — voilà ce qui est exposé sans VPN.</p>
+        <span class="blog-card-cta">Lire l'article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_vs_grands_path %>" class="blog-card">
+        <div class="blog-card-tag">Comparatif</div>
+        <h2>VulcainVPN vs NordVPN / ExpressVPN</h2>
+        <p>Serveur dédié, pas d'overselling, connexion rapide : pourquoi un petit VPN français peut faire mieux que les géants du marché.</p>
+        <span class="blog-card-cta">Lire l'article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_teletravail_path %>" class="blog-card">
+        <div class="blog-card-tag">Télétravail</div>
+        <h2>VPN pour télétravailler depuis l'étranger</h2>
+        <p>Appels vidéo, outils d'entreprise, réseaux locaux non sécurisés : comment rester efficace et protégé en télétravail nomade.</p>
+        <span class="blog-card-cta">Lire l'article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_android_path %>" class="blog-card">
+        <div class="blog-card-tag">Android</div>
+        <h2>Sécurité Android : VPN + antivirus</h2>
+        <p>Antivirus et VPN protègent contre des menaces différentes. Les deux sont complémentaires — voilà pourquoi et comment.</p>
+        <span class="blog-card-cta">Lire l'article →</span>
+      </a>
+
+    </div>
+
+  <% else %>
+    <h1>VulcainVPN Blog</h1>
+    <p class="blog-intro">Practical guides on online security, privacy and VPN usage.</p>
+
+    <div class="blog-grid">
+
+      <a href="<%= blog_vpn_expats_path %>" class="blog-card">
+        <div class="blog-card-tag">Expats</div>
+        <h2>VPN for French Expats</h2>
+        <p>Living abroad and need secure access from France? Online banking, admin portals, secure browsing — all covered.</p>
+        <span class="blog-card-cta">Read article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_logs_path %>" class="blog-card">
+        <div class="blog-card-tag">Privacy</div>
+        <h2>France VPN with No Browsing Logs</h2>
+        <p>What VulcainVPN actually logs, what it doesn't, and why — in full transparency.</p>
+        <span class="blog-card-cta">Read article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_voyage_path %>" class="blog-card">
+        <div class="blog-card-tag">Security</div>
+        <h2>Protecting Your Connection While Travelling</h2>
+        <p>Hotel Wi-Fi, airports, cafés: how to encrypt your connection on public networks and why it matters.</p>
+        <span class="blog-card-cta">Read article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_privee_path %>" class="blog-card">
+        <div class="blog-card-tag">Privacy</div>
+        <h2>What Your ISP Sees Without a VPN</h2>
+        <p>Your internet provider sees more than you think. Visited domains, schedules, volume — here's what's exposed without a VPN.</p>
+        <span class="blog-card-cta">Read article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_vs_grands_path %>" class="blog-card">
+        <div class="blog-card-tag">Comparison</div>
+        <h2>VulcainVPN vs NordVPN / ExpressVPN</h2>
+        <p>Dedicated server, no overselling, fast connection: why a small French VPN can outperform the market giants.</p>
+        <span class="blog-card-cta">Read article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_teletravail_path %>" class="blog-card">
+        <div class="blog-card-tag">Remote Work</div>
+        <h2>VPN for Remote Work Abroad</h2>
+        <p>Video calls, company tools, unsecured local networks: how to stay efficient and protected while working remotely.</p>
+        <span class="blog-card-cta">Read article →</span>
+      </a>
+
+      <a href="<%= blog_vpn_android_path %>" class="blog-card">
+        <div class="blog-card-tag">Android</div>
+        <h2>Android Security: VPN + Antivirus</h2>
+        <p>Antivirus and VPN protect against different threats. The two are complementary — here's why and how.</p>
+        <span class="blog-card-cta">Read article →</span>
+      </a>
+
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .blog-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 4rem 2rem 3rem 2rem;
+  }
+  .blog-container h1 {
+    font-size: 2.2rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+  .blog-intro {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+  }
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
+  }
+  .blog-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.8rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+    border-top: 4px solid #ff6e08;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .blog-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+  }
+  .blog-card-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #ff6e08;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.8rem;
+  }
+  .blog-card h2 {
+    font-size: 1.15rem;
+    color: #2c3e50;
+    margin-bottom: 0.8rem;
+    line-height: 1.4;
+  }
+  .blog-card p {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    flex-grow: 1;
+    margin-bottom: 1.2rem;
+  }
+  .blog-card-cta {
+    color: #ff6e08;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  @media (max-width: 768px) {
+    .blog-container { padding: 2rem 1rem; }
+    .blog-container h1 { font-size: 1.7rem; }
+    .blog-grid { grid-template-columns: 1fr; }
+  }
+</style>

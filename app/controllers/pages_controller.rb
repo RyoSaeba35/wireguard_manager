@@ -11,6 +11,9 @@ class PagesController < ApplicationController
   def logging
   end
 
+  def blog
+  end
+
   def vpn_expats_france
   end
 
@@ -18,6 +21,18 @@ class PagesController < ApplicationController
   end
 
   def vpn_voyage
+  end
+
+  def vpn_vie_privee
+  end
+
+  def vpn_vs_grands
+  end
+
+  def vpn_teletravail
+  end
+
+  def vpn_android
   end
 
   def subscriptions_expired

@@ -1,0 +1,141 @@
+<% content_for :title, "Ce que votre FAI voit sans VPN | VulcainVPN" %>
+<% content_for :meta_description, "Sans VPN, votre fournisseur d'accès voit tout votre trafic. Découvrez ce qui est exposé et comment un VPN rapide protège votre vie privée." %>
+
+<% content_for :head do %>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "VPN et vie privée : ce que votre FAI voit sans VPN",
+  "author": { "@type": "Organization", "name": "VulcainVPN" },
+  "publisher": { "@type": "Organization", "name": "VulcainVPN", "url": "https://www.vulcainvpn.com" },
+  "datePublished": "2026-03-29",
+  "description": "Ce que votre fournisseur d'accès internet voit réellement sans VPN, et comment un VPN protège votre vie privée sans ralentir votre connexion."
+}
+</script>
+<% end %>
+
+<div class="article-container">
+  <% if I18n.locale == :fr %>
+
+    <h1>Ce que votre FAI voit sans VPN</h1>
+    <p class="article-intro">Votre fournisseur d'accès internet (Orange, Free, SFR, Bouygues...) voit beaucoup plus de choses que vous ne le pensez. Sans VPN, votre trafic lui est entièrement visible. Voilà ce qui est exposé — et ce qu'un VPN change concrètement.</p>
+
+    <h2>Ce que votre FAI voit sans VPN</h2>
+    <p>Votre FAI est le passage obligatoire entre votre appareil et internet. Chaque requête transite par ses serveurs. Sans chiffrement, il voit :</p>
+    <ul>
+      <li><strong>Tous les domaines que vous visitez</strong> — même sur des sites HTTPS, le nom de domaine (ex. vulcainvpn.com) est visible dans les requêtes DNS</li>
+      <li><strong>Les horaires de votre activité</strong> — quand vous vous connectez, combien de temps, quelle fréquence</li>
+      <li><strong>Le volume de données échangées</strong> — ce qui permet d'inférer le type d'usage (streaming, téléchargement, navigation)</li>
+      <li><strong>Votre adresse IP publique</strong> — qui identifie votre connexion de façon unique</li>
+    </ul>
+    <p>En France, les FAI sont légalement obligés de conserver ces métadonnées pendant un an (loi sur la rétention des données). Ces données peuvent être demandées par les autorités.</p>
+
+    <h2>Le HTTPS ne suffit pas</h2>
+    <p>Beaucoup de gens pensent que le cadenas HTTPS dans le navigateur les protège. C'est partiellement vrai — le <strong>contenu</strong> de vos échanges est chiffré. Mais le <strong>nom de domaine</strong> reste visible, notamment via les requêtes DNS qui transitent en clair par défaut.</p>
+    <p>Autrement dit, votre FAI ne voit pas ce que vous lisez sur un article, mais il voit que vous avez visité ce site, à quelle heure, et combien de temps.</p>
+
+    <h2>Ce qu'un VPN change</h2>
+    <p>Quand vous utilisez VulcainVPN, tout votre trafic est chiffré avant de quitter votre appareil et transite par notre serveur en France. Votre FAI ne voit alors qu'une chose : une connexion chiffrée vers notre serveur. Ni les domaines visités, ni le contenu, ni les requêtes DNS.</p>
+
+    <div class="article-highlight">
+      <h3>Sans VPN vs avec VulcainVPN</h3>
+      <p><span class="checkmark">➤</span> <strong>Sans VPN</strong> — FAI voit : domaines visités, horaires, volume, IP publique</p>
+      <p><span class="checkmark">➤</span> <strong>Avec VulcainVPN</strong> — FAI voit : connexion chiffrée vers un serveur VPN. C'est tout.</p>
+    </div>
+
+    <h2>Et la vitesse dans tout ça ?</h2>
+    <p>C'est la vraie question. Beaucoup de VPN ralentissent considérablement la connexion — parfois de 50% à 80% — parce que leurs serveurs sont surchargés par des milliers d'utilisateurs simultanés.</p>
+    <p>VulcainVPN fonctionne différemment : <strong>serveur dédié, nombre d'abonnés volontairement limité</strong>. Si votre connexion internet de base est rapide (fibre, 4G/5G), vous conservez l'essentiel de cette vitesse à travers le VPN. Le chiffrement ajoute une légère latence inévitable, mais pas de congestion liée à la surcharge.</p>
+    <p>La règle simple : votre vitesse VPN sera proche de votre vitesse internet de base, pas un dixième de celle-ci.</p>
+
+    <h2>Les requêtes DNS : le maillon faible souvent oublié</h2>
+    <p>Même avec HTTPS activé partout, vos requêtes DNS — la "traduction" d'un nom de domaine en adresse IP — transitent souvent en clair par les serveurs de votre FAI. VulcainVPN route aussi vos DNS à travers le tunnel chiffré, éliminant cette fuite.</p>
+
+    <div class="article-cta">
+      <p>Reprenez le contrôle de votre vie privée en ligne — sans sacrifier la vitesse.</p>
+      <a href="<%= new_user_registration_path %>" class="cta-btn">Essayer VulcainVPN — à partir de €15/mois</a>
+    </div>
+
+    <div class="article-related">
+      <h3>En savoir plus</h3>
+      <ul>
+        <li><a href="<%= blog_vpn_logs_path %>">VPN France sans logs de navigation</a></li>
+        <li><a href="<%= blog_vpn_voyage_path %>">Protéger sa connexion en voyage</a></li>
+        <li><a href="<%= logging_path %>">Notre politique de journalisation</a></li>
+      </ul>
+    </div>
+
+  <% else %>
+
+    <h1>What Your ISP Sees Without a VPN</h1>
+    <p class="article-intro">Your internet service provider sees far more than you think. Without a VPN, your traffic is entirely visible to them. Here's what's exposed — and what a VPN actually changes.</p>
+
+    <h2>What Your ISP Sees Without a VPN</h2>
+    <p>Your ISP is the mandatory gateway between your device and the internet. Every request passes through their servers. Without encryption, they see:</p>
+    <ul>
+      <li><strong>Every domain you visit</strong> — even on HTTPS sites, the domain name is visible in DNS requests</li>
+      <li><strong>Your activity schedule</strong> — when you connect, for how long, how frequently</li>
+      <li><strong>Data volume exchanged</strong> — which allows inferring your usage type (streaming, downloading, browsing)</li>
+      <li><strong>Your public IP address</strong> — which uniquely identifies your connection</li>
+    </ul>
+    <p>In France, ISPs are legally required to retain this metadata for one year. It can be requested by authorities.</p>
+
+    <h2>HTTPS Isn't Enough</h2>
+    <p>Many people think the HTTPS padlock protects them. It's partially true — the <strong>content</strong> of your exchanges is encrypted. But the <strong>domain name</strong> remains visible, particularly via DNS requests which travel in plain text by default.</p>
+    <p>Your ISP can't see what you're reading, but they can see which site you visited, when, and for how long.</p>
+
+    <h2>What a VPN Changes</h2>
+    <p>When you use VulcainVPN, all your traffic is encrypted before leaving your device and routes through our France server. Your ISP then sees only one thing: an encrypted connection to our server. No visited domains, no content, no DNS queries.</p>
+
+    <div class="article-highlight">
+      <h3>Without VPN vs With VulcainVPN</h3>
+      <p><span class="checkmark">➤</span> <strong>Without VPN</strong> — ISP sees: domains visited, schedules, volume, public IP</p>
+      <p><span class="checkmark">➤</span> <strong>With VulcainVPN</strong> — ISP sees: encrypted connection to a VPN server. That's it.</p>
+    </div>
+
+    <h2>What About Speed?</h2>
+    <p>That's the real question. Many VPNs slow down your connection considerably — sometimes by 50–80% — because their servers are overloaded by thousands of simultaneous users.</p>
+    <p>VulcainVPN works differently: <strong>dedicated server, deliberately limited subscriber count</strong>. If your base internet connection is fast (fibre, 4G/5G), you keep most of that speed through the VPN. Encryption adds a slight unavoidable latency, but no congestion from server overload.</p>
+    <p>The simple rule: your VPN speed will be close to your base internet speed — not a tenth of it.</p>
+
+    <h2>DNS Requests: The Often-Forgotten Weak Link</h2>
+    <p>Even with HTTPS everywhere, your DNS requests — the "translation" of a domain name to an IP address — often travel in plain text through your ISP's servers. VulcainVPN routes your DNS through the encrypted tunnel too, eliminating this leak.</p>
+
+    <div class="article-cta">
+      <p>Take back control of your online privacy — without sacrificing speed.</p>
+      <a href="<%= new_user_registration_path %>" class="cta-btn">Try VulcainVPN — from €15/month</a>
+    </div>
+
+    <div class="article-related">
+      <h3>Learn More</h3>
+      <ul>
+        <li><a href="<%= blog_vpn_logs_path %>">France VPN with no browsing logs</a></li>
+        <li><a href="<%= blog_vpn_voyage_path %>">Protecting your connection while travelling</a></li>
+        <li><a href="<%= logging_path %>">Our logging policy</a></li>
+      </ul>
+    </div>
+
+  <% end %>
+</div>
+
+<style>
+  .article-container { max-width: 800px; margin: 0 auto; padding: 4rem 2rem 3rem 2rem; line-height: 1.8; color: #333; }
+  .article-container h1 { font-size: 2.2rem; color: #2c3e50; margin-bottom: 1.5rem; }
+  .article-container h2 { font-size: 1.5rem; color: #2c3e50; margin-top: 2.5rem; margin-bottom: 1rem; }
+  .article-container h3 { font-size: 1.2rem; color: #2c3e50; margin-bottom: 1rem; }
+  .article-intro { font-size: 1.15rem; color: #555; border-left: 4px solid #ff6e08; padding-left: 1rem; margin-bottom: 2rem; }
+  .article-highlight { background-color: #f9f9f9; border-left: 4px solid #ff6e08; padding: 1.5rem 2rem; border-radius: 4px; margin: 2rem 0; }
+  .article-highlight p { margin: 0.7rem 0; }
+  .article-container ul { margin: 1rem 0 1rem 1.5rem; }
+  .article-container ul li { margin-bottom: 0.6rem; }
+  .article-container a { color: #ff6e08; text-decoration: none; }
+  .article-container a:hover { text-decoration: underline; }
+  .article-cta { background-color: #2c3e50; color: white; padding: 2rem; border-radius: 8px; text-align: center; margin: 3rem 0 2rem 0; }
+  .article-cta p { font-size: 1.1rem; margin-bottom: 1rem; color: white; }
+  .article-related { border-top: 1px solid #e0e0e0; padding-top: 1.5rem; margin-top: 2rem; }
+  .article-related ul { list-style: none; margin-left: 0; padding-left: 0; }
+  .article-related ul li { margin-bottom: 0.5rem; }
+  .article-related ul li::before { content: "→ "; color: #ff6e08; }
+  @media (max-width: 768px) { .article-container { padding: 2rem 1rem; } .article-container h1 { font-size: 1.7rem; } }
+</style>

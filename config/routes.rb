@@ -127,10 +127,17 @@ Rails.application.routes.draw do
   get "expired_subscriptions", to: "pages#subscriptions_expired", as: :expired_subscriptions
 
   # SEO Articles
+  get "blog", to: "pages#blog", as: :blog
   get "blog/vpn-expats-france",            to: "pages#vpn_expats_france",  as: :blog_vpn_expats
   get "blog/vpn-france-sans-logs-navigation", to: "pages#vpn_france_logs", as: :blog_vpn_logs
   get "blog/proteger-connexion-en-voyage", to: "pages#vpn_voyage",         as: :blog_vpn_voyage
+  get "blog/vpn-vie-privee-fai",        to: "pages#vpn_vie_privee",   as: :blog_vpn_privee
+  get "blog/vpn-vs-nordvpn-expressvpn", to: "pages#vpn_vs_grands",    as: :blog_vpn_vs_grands
+  get "blog/vpn-teletravail-etranger",  to: "pages#vpn_teletravail",  as: :blog_vpn_teletravail
+  get "blog/vpn-android-securite",      to: "pages#vpn_android",      as: :blog_vpn_android
 
+  get "sitemap.xml", to: "sitemaps#index", defaults: { format: :xml }
+  
   # Setup guide and downloads
   get "setup", to: "dashboard#setup", as: :setup_guide
   get "download_config/:filename", to: "downloads#config", as: :download_config, constraints: { filename: /[^\/]+/ }
