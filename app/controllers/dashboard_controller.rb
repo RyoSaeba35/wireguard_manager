@@ -3,10 +3,10 @@ class DashboardController < ApplicationController
   before_action :authenticate_user!, except: [:setup]
 
   def show
-    @user_ip = request.env['HTTP_X_FORWARDED_FOR'] || request.remote_ip
-    @user_ip = @user_ip.to_s.strip.gsub(/^::ffff:/, '')
+    raw_ip = request.env['HTTP_X_FORWARDED_FOR']&.split(',')&.first || request.remote_ip
+    @user_ip = raw_ip.to_s.strip.gsub(/^::ffff:/, '')
 
-    # ⭐ NEW: Get VPN server IPs for connection detection
+    # Get VPN server IPs for connection detection
     @vpn_server_ips = Rails.cache.fetch("active_vpn_server_ips", expires_in: 5.minutes) do
       Server.active.pluck(:ip_address).map(&:to_s).map(&:strip)
     end
@@ -16,7 +16,7 @@ class DashboardController < ApplicationController
     @expired_subscriptions = current_user.subscriptions.expired
     @has_subscription = @active_subscription.present?
 
-    # ⭐ NEW: Calculate overall system status
+    # Calculate overall system status
     if @has_subscription
       @active_devices = @active_subscription.devices.where(active: true)
       @current_connections = @active_subscription.vpn_connections.active.includes(:server)
@@ -63,7 +63,7 @@ class DashboardController < ApplicationController
     end
   end
 
-  # ⭐ NEW: Calculate overall system status
+  # Calculate overall system status
   def calculate_system_status
     # Cache for 2 minutes to avoid hammering servers
     Rails.cache.fetch("system_status", expires_in: 2.minutes) do
@@ -72,7 +72,7 @@ class DashboardController < ApplicationController
     end
   end
 
-  # ⭐ NEW: Check overall system health
+  # Check overall system health
   def system_health_check
     all_servers = Server.active
     healthy_servers = all_servers.where(healthy: true)
@@ -105,7 +105,7 @@ class DashboardController < ApplicationController
     }
   end
 
-  # ⭐ NEW: Determine system status based on health and capacity
+  # Determine system status based on health and capacity
   def determine_status(healthy_count, total_servers, capacity_percent, subscription_percent)
     # Calculate server health percentage
     server_health_percent = total_servers > 0 ? (healthy_count.to_f / total_servers * 100).round(1) : 0
@@ -128,7 +128,7 @@ class DashboardController < ApplicationController
     "OK"
   end
 
-  # ⭐ NEW: Format status for display
+  # Format status for display
   def format_system_status(status_info)
     case status_info[:status]
     when "OK"
