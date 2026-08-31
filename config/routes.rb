@@ -138,7 +138,7 @@ Rails.application.routes.draw do
   get "blog/vpn-android-securite",      to: "pages#vpn_android",      as: :blog_vpn_android
 
   get "sitemap.xml", to: "sitemaps#index", defaults: { format: :xml }
-  
+
   # Setup guide and downloads
   get "setup", to: "dashboard#setup", as: :setup_guide
   get "download_config/:filename", to: "downloads#config", as: :download_config, constraints: { filename: /[^\/]+/ }
@@ -186,4 +186,7 @@ Rails.application.routes.draw do
       post "diagnostic_report", to: "diagnostics#create"
     end
   end
+
+  post '/cookies/accept',  to: 'cookies#accept',  as: :accept_cookies
+  post '/cookies/decline', to: 'cookies#decline', as: :decline_cookies
 end

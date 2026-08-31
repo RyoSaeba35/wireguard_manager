@@ -1,0 +1,34 @@
+<% unless cookies[:cookie_consent].present? %>
+  <div id="cookie-banner" style="
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #1a1a1a; color: #fff;
+    padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; z-index: 9999;
+    border-top: 3px solid #432923;
+    flex-wrap: wrap;">
+    <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+      <% if I18n.locale == :fr %>
+        Ce site utilise Google Analytics pour comprendre le trafic.
+        Vos données ne seront collectées qu'avec votre consentement.
+        <%= link_to "Politique de confidentialité", privacy_path, style: "color: #e07060; text-decoration: underline;" %>
+      <% else %>
+        This site uses Google Analytics to understand traffic.
+        Your data will only be collected with your consent.
+        <%= link_to "Privacy policy", privacy_path, style: "color: #e07060; text-decoration: underline;" %>
+      <% end %>
+    </p>
+    <div style="display: flex; gap: 8px; flex-shrink: 0;">
+      <%= button_to I18n.locale == :fr ? "Refuser" : "Decline",
+            decline_cookies_path, method: :post,
+            style: "background: transparent; border: 1px solid #555; color: #aaa;
+                    padding: 6px 16px; border-radius: 4px; cursor: pointer;
+                    font-size: 13px; white-space: nowrap;" %>
+      <%= button_to I18n.locale == :fr ? "Accepter" : "Accept",
+            accept_cookies_path, method: :post,
+            style: "background: #432923; border: none; color: #fff;
+                    padding: 6px 16px; border-radius: 4px; cursor: pointer;
+                    font-size: 13px; font-weight: 500; white-space: nowrap;" %>
+    </div>
+  </div>
+<% end %>

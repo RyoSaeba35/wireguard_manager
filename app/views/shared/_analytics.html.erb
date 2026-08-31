@@ -1,0 +1,9 @@
+<% if Rails.env.production? && cookies[:cookie_consent] == 'accepted' %>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-NPSJ9MK06C"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-NPSJ9MK06C');
+  </script>
+<% end %>
