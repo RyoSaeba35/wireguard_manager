@@ -1,0 +1,120 @@
+<% content_for :title, "Mentions légales | VulcainVPN" %>
+<% content_for :meta_description, "Mentions légales de VulcainVPN — éditeur, hébergeur, propriété intellectuelle." %>
+
+<div class="policy-container">
+  <% if I18n.locale == :fr %>
+    <h1>Mentions légales</h1>
+    <p>Dernière mise à jour : août 2026</p>
+
+    <section>
+      <h2>Éditeur du site</h2>
+      <p>
+        Pierre Libran<br>
+        Entrepreneur individuel — Galerne Studio<br>
+        SIRET : 10699681200017<br>
+        23 rue Dumenge, 69004 Lyon, France<br>
+        Email : <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a>
+      </p>
+    </section>
+
+    <section>
+      <h2>Directeur de la publication</h2>
+      <p>Pierre Libran</p>
+    </section>
+
+    <section>
+      <h2>Hébergement</h2>
+      <p>
+        Le site et le backend applicatif sont hébergés par :<br>
+        <strong>Heroku (Salesforce, Inc.)</strong><br>
+        415 Mission Street, San Francisco, CA 94105, États-Unis<br>
+        <a href="https://www.heroku.com" target="_blank">heroku.com</a>
+      </p>
+      <p>
+        Les serveurs VPN sont hébergés par :<br>
+        <strong>OVH SAS</strong><br>
+        2 rue Kellermann, 59100 Roubaix, France<br>
+        <a href="https://www.ovh.com" target="_blank">ovh.com</a>
+      </p>
+    </section>
+
+    <section>
+      <h2>Propriété intellectuelle</h2>
+      <p>L'ensemble des éléments constituant ce site (textes, visuels, logo, code source, applications) est la propriété exclusive de Pierre Libran / Galerne Studio, sauf mention contraire. Toute reproduction partielle ou totale est interdite sans autorisation préalable écrite.</p>
+    </section>
+
+    <section>
+      <h2>Données personnelles</h2>
+      <p>Pour toute question relative au traitement de vos données personnelles, consultez notre <a href="/privacy">politique de confidentialité</a>. Conformément au RGPD, vous pouvez exercer vos droits en contactant <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a>. En cas de réclamation, vous pouvez saisir la <a href="https://www.cnil.fr" target="_blank">CNIL</a>.</p>
+    </section>
+
+    <section>
+      <h2>Droit applicable</h2>
+      <p>Les présentes mentions légales sont soumises au droit français. En cas de litige, les tribunaux français seront seuls compétents.</p>
+    </section>
+
+  <% else %>
+    <h1>Legal Notice</h1>
+    <p>Last updated: August 2026</p>
+
+    <section>
+      <h2>Publisher</h2>
+      <p>
+        Pierre Libran<br>
+        Sole trader — Galerne Studio<br>
+        SIRET: 10699681200017<br>
+        23 rue Dumenge, 69004 Lyon, France<br>
+        Email: <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a>
+      </p>
+    </section>
+
+    <section>
+      <h2>Publication Director</h2>
+      <p>Pierre Libran</p>
+    </section>
+
+    <section>
+      <h2>Hosting</h2>
+      <p>
+        Website and application backend:<br>
+        <strong>Heroku (Salesforce, Inc.)</strong><br>
+        415 Mission Street, San Francisco, CA 94105, USA<br>
+        <a href="https://www.heroku.com" target="_blank">heroku.com</a>
+      </p>
+      <p>
+        VPN servers:<br>
+        <strong>OVH SAS</strong><br>
+        2 rue Kellermann, 59100 Roubaix, France<br>
+        <a href="https://www.ovh.com" target="_blank">ovh.com</a>
+      </p>
+    </section>
+
+    <section>
+      <h2>Intellectual Property</h2>
+      <p>All elements of this site (text, visuals, logo, source code, applications) are the exclusive property of Pierre Libran / Galerne Studio unless otherwise stated. Any reproduction without prior written permission is prohibited.</p>
+    </section>
+
+    <section>
+      <h2>Personal Data</h2>
+      <p>For questions about your personal data, see our <a href="/privacy">privacy policy</a>. To exercise your GDPR rights, contact <a href="mailto:support@vulcainvpn.com">support@vulcainvpn.com</a>. You may also lodge a complaint with the <a href="https://www.cnil.fr" target="_blank">CNIL</a>.</p>
+    </section>
+
+    <section>
+      <h2>Governing Law</h2>
+      <p>This legal notice is governed by French law. Any disputes shall be subject to the jurisdiction of French courts.</p>
+    </section>
+  <% end %>
+</div>
+
+<style>
+  .policy-container {
+    max-width: 800px;
+    margin: 0 auto 2rem auto;
+    padding: 4rem 2rem 2rem 2rem;
+    line-height: 1.8;
+    min-height: calc(100vh - 273px);
+  }
+  .policy-container h1 { color: #2c3e50; text-align: center; margin-bottom: 1rem; }
+  .policy-container h2 { color: #2c3e50; margin-top: 2rem; }
+  .policy-container p { margin-bottom: 1rem; }
+</style>

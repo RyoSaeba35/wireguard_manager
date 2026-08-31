@@ -4,6 +4,7 @@ class PagesController < ApplicationController
     :privacy,
     :terms,
     :logging,
+    :mentions_legales,
     :blog,
     :vpn_expats_france,
     :vpn_france_logs,
@@ -21,6 +22,9 @@ class PagesController < ApplicationController
   end
 
   def logging
+  end
+
+  def mentions_legales
   end
 
   def blog
