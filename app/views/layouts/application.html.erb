@@ -203,6 +203,21 @@
         }
       }
 
+      // Preserve Tawk.to widget across Turbo navigations
+      document.addEventListener('turbo:before-render', function(event) {
+        document.querySelectorAll('[id^="tawk-"]').forEach(function(el) {
+          if (el.id) {
+            el.setAttribute('data-turbo-permanent', '');
+            if (!event.detail.newBody.querySelector('#' + el.id)) {
+              const placeholder = document.createElement('div');
+              placeholder.id = el.id;
+              placeholder.setAttribute('data-turbo-permanent', '');
+              event.detail.newBody.appendChild(placeholder);
+            }
+          }
+        });
+      });
+
       document.addEventListener('DOMContentLoaded', initPage);
       document.addEventListener('turbo:load', initPage);
       window.addEventListener('resize', initScrollingFlash);
