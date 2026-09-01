@@ -1,17 +1,24 @@
 <!DOCTYPE html>
 <html lang="<%= I18n.locale %>">
   <head>
+    <!-- ===================== META ===================== -->
     <title><%= yield(:title).presence || "Vulcain VPN" %></title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <%# <meta name="apple-mobile-web-app-capable" content="yes"> %>
-    <%# <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> %>
-    <%# <meta name="apple-mobile-web-app-title" content="Vulcain VPN"> %>
     <meta name="theme-color" content="#432923">
     <meta name="description" content="<%= yield(:meta_description).presence || "VulcainVPN — Fast, private VPN with a dedicated France server. WireGuard, Hysteria2 & Shadowsocks. No logs. From €15/month." %>">
     <link rel="canonical" href="https://www.vulcainvpn.com<%= request.path %>">
 
-    <!-- Favicon and Icons -->
+    <!-- ===================== OPEN GRAPH ===================== -->
+    <meta property="og:title" content="Vulcain VPN: Fast & Secure France VPN with Advanced Encryption">
+    <meta property="og:description" content="Vulcain VPN: Fast, secure France server with advanced encryption. Enjoy reliable and private browsing, streaming, and downloading with high-speed connections.">
+    <meta property="og:image" content="https://www.vulcainvpn.com/Vulcain_VPN_logo_2.png">
+    <meta property="og:url" content="https://www.vulcainvpn.com<%= request.path %>">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Vulcain VPN">
+    <meta property="og:locale" content="<%= I18n.locale == :fr ? 'fr_FR' : 'en_US' %>">
+
+    <!-- ===================== ICONS ===================== -->
     <link rel="icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
@@ -21,136 +28,42 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
 
-    <!-- Open Graph / Social Media Meta Tags -->
-    <meta property="og:title" content="Vulcain VPN: Fast & Secure France VPN with Advanced Encryption">
-    <meta property="og:description" content="Vulcain VPN: Fast, secure France server with advanced encryption. Enjoy reliable and private browsing, streaming, and downloading with high-speed connections.">
-    <meta property="og:image" content="https://www.vulcainvpn.com/Vulcain_VPN_logo_2.png">
-    <meta property="og:url" content="https://www.vulcainvpn.com<%= request.path %>">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Vulcain VPN">
-    <meta property="og:locale" content="<%= I18n.locale == :fr ? 'fr_FR' : 'en_US' %>">
-
-    <!-- PWA Manifest -->
-    <%# <link rel="manifest" href="/manifest.json"> %>
-
-    <!-- Google Analytics 4 -->
-    <%= render 'shared/analytics' %>
-
+    <!-- ===================== RAILS ===================== -->
     <%= csp_meta_tag %>
     <%= csrf_meta_tags %>
     <%= javascript_include_tag 'rails-ujs' %>
     <%= yield :head %>
 
-    <!-- Stylesheets -->
+    <!-- ===================== STYLESHEETS ===================== -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
     <%= stylesheet_link_tag "application", media: "all" %>
 
-    <!-- JavaScript -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    <!-- ===================== JAVASCRIPT ===================== -->
     <%= javascript_importmap_tags %>
     <% if controller_path.start_with?('admin/') %>
       <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <% end %>
-  </head>
 
-  <body>
-    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
-    <%= render "shared/header" %>
-    <div style="position: relative;">
-      <% if notice %>
-        <div class="flash flash-notice" id="notice-flash" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 1000;">
-          <div class="scrolling-text-container">
-            <div class="scrolling-text">
-              <%= notice %>
-            </div>
-          </div>
-          <button class="flash-close" onclick="this.parentElement.style.display='none'">&times;</button>
-        </div>
-      <% end %>
-      <% if alert %>
-        <div class="flash flash-alert" id="alert-flash" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 1000;">
-          <div class="scrolling-text-container">
-            <div class="scrolling-text">
-              <%= alert %>
-            </div>
-          </div>
-          <button class="flash-close" onclick="this.parentElement.style.display='none'">&times;</button>
-        </div>
-      <% end %>
-      <%= yield %>
-    </div>
+    <!-- ===================== ANALYTICS ===================== -->
+    <%= render 'shared/analytics' %>
 
-    <%= render "shared/footer" %>
-    <%= render 'shared/cookie_banner' %>
-
+    <!-- ===================== TAWK.TO (only if cookies accepted) ===================== -->
     <% if cookies[:cookie_consent] == 'accepted' %>
       <script type="text/javascript">
         var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
         (function(){
-        var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-        s1.async=true;
-        s1.src='https://embed.tawk.to/6a95c7192a1468344425a8f9/1k1ch3em8';
-        s1.charset='UTF-8';
-        s1.setAttribute('crossorigin','*');
-        s0.parentNode.insertBefore(s1,s0);
+          var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+          s1.async=true;
+          s1.src='https://embed.tawk.to/6a95c7192a1468344425a8f9/1k1ch3em8';
+          s1.charset='UTF-8';
+          s1.setAttribute('crossorigin','*');
+          s0.parentNode.insertBefore(s1,s0);
         })();
       </script>
-    <% elsif cookies[:cookie_consent] == 'declined' %>
-      <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
-        <a href="mailto:support@vulcainvpn.com" style="
-          background: #432923; color: white;
-          padding: 12px 20px; border-radius: 8px;
-          text-decoration: none; font-size: 14px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-          💬 Support
-        </a>
-      </div>
     <% end %>
 
-    <script>
-      // Function to auto-close flash messages
-      function autoCloseFlash(flashElement) {
-        if (flashElement) {
-          setTimeout(() => {
-            flashElement.style.opacity = '0';
-            setTimeout(() => {
-              flashElement.remove();
-            }, 300);
-          }, 15000);
-        }
-      }
-
-      // Function to initialize scrolling for flash messages
-      function initScrollingFlash() {
-        document.querySelectorAll('.scrolling-text-container').forEach(function(container) {
-          const text = container.querySelector('.scrolling-text');
-          if (text && text.scrollWidth > container.clientWidth) {
-            text.style.animationPlayState = 'running';
-          }
-        });
-      }
-
-      // Initialize on DOM load and Turbo navigation
-      document.addEventListener('DOMContentLoaded', function() {
-        const noticeFlash = document.getElementById('notice-flash');
-        const alertFlash = document.getElementById('alert-flash');
-        autoCloseFlash(noticeFlash);
-        autoCloseFlash(alertFlash);
-        initScrollingFlash();
-      });
-
-      document.addEventListener('turbo:load', function() {
-        const noticeFlash = document.getElementById('notice-flash');
-        const alertFlash = document.getElementById('alert-flash');
-        autoCloseFlash(noticeFlash);
-        autoCloseFlash(alertFlash);
-        initScrollingFlash();
-      });
-
-      // Recheck scrolling on window resize
-      window.addEventListener('resize', initScrollingFlash);
-    </script>
-
+    <!-- ===================== STYLES ===================== -->
     <style>
       body {
         font-family: 'Arial', sans-serif;
@@ -160,7 +73,8 @@
         line-height: 1.6;
         height: 100vh;
       }
-      /* Flash messages styling */
+
+      /* Flash messages */
       .flash {
         padding: 12px 20px;
         margin: 0 auto;
@@ -168,63 +82,22 @@
         font-size: 14px;
         text-align: center;
         width: 100%;
-        /* max-width: 500px; */
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        /* animation: fadeIn 0.3s ease-in-out; */
-        /* transition: opacity 0.3s ease-in-out;  */
         position: absolute;
         z-index: 1000;
-        overflow: hidden; /* Hide overflow to enable scrolling */
-        white-space: nowrap; /* Prevent text from wrapping */
+        overflow: hidden;
+        white-space: nowrap;
       }
-
       .flash-notice {
         background-color: #d4edda;
         color: #155724;
         border: 1px solid #c3e6cb;
       }
-
       .flash-alert {
         background-color: #f8d7da;
         color: #721c24;
         border: 1px solid #f5c6cb;
       }
-
-      /* Container for the scrolling text */
-      .scrolling-text-container {
-        display: inline-block;
-        width: calc(100% - 25px); /* Account for close button */
-        overflow: hidden;
-        vertical-align: middle;
-      }
-
-      /* The actual scrolling text */
-      .scrolling-text {
-        display: inline-block;
-        white-space: nowrap;
-        animation: scroll-left 20s linear infinite;
-        animation-play-state: paused; /* Pause by default */
-      }
-
-      .scrolling-text-container:hover .scrolling-text {
-        animation-play-state: paused;
-      }
-
-      /* Keyframes for the scrolling animation */
-      @keyframes scroll-left {
-        0% {
-          transform: translateX(0);
-        }
-        100% {
-          transform: translateX(-100%); /* Move text to the left */
-        }
-      }
-
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
       .flash-close {
         position: absolute;
         top: 50%;
@@ -236,6 +109,103 @@
         cursor: pointer;
         margin-left: 10px;
       }
+
+      /* Scrolling text */
+      .scrolling-text-container {
+        display: inline-block;
+        width: calc(100% - 25px);
+        overflow: hidden;
+        vertical-align: middle;
+      }
+      .scrolling-text {
+        display: inline-block;
+        white-space: nowrap;
+        animation: scroll-left 20s linear infinite;
+        animation-play-state: paused;
+      }
+      .scrolling-text-container:hover .scrolling-text {
+        animation-play-state: paused;
+      }
+
+      @keyframes scroll-left {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
     </style>
+  </head>
+
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+
+    <%= render "shared/header" %>
+
+    <div style="position: relative;">
+      <% if notice %>
+        <div class="flash flash-notice" id="notice-flash" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 1000;">
+          <div class="scrolling-text-container">
+            <div class="scrolling-text"><%= notice %></div>
+          </div>
+          <button class="flash-close" onclick="this.parentElement.style.display='none'">&times;</button>
+        </div>
+      <% end %>
+      <% if alert %>
+        <div class="flash flash-alert" id="alert-flash" style="position: absolute; left: 50%; transform: translateX(-50%); z-index: 1000;">
+          <div class="scrolling-text-container">
+            <div class="scrolling-text"><%= alert %></div>
+          </div>
+          <button class="flash-close" onclick="this.parentElement.style.display='none'">&times;</button>
+        </div>
+      <% end %>
+      <%= yield %>
+    </div>
+
+    <%= render "shared/footer" %>
+    <%= render 'shared/cookie_banner' %>
+
+    <!-- Fallback support button if cookies declined -->
+    <% if cookies[:cookie_consent] == 'declined' %>
+      <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
+        <a href="mailto:support@vulcainvpn.com" style="background: #432923; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+          💬 Support
+        </a>
+      </div>
+    <% end %>
+
+    <!-- ===================== PAGE SCRIPTS ===================== -->
+    <script>
+      function autoCloseFlash(el) {
+        if (!el) return;
+        setTimeout(() => {
+          el.style.opacity = '0';
+          setTimeout(() => el.remove(), 300);
+        }, 15000);
+      }
+
+      function initScrollingFlash() {
+        document.querySelectorAll('.scrolling-text-container').forEach(function(container) {
+          const text = container.querySelector('.scrolling-text');
+          if (text && text.scrollWidth > container.clientWidth) {
+            text.style.animationPlayState = 'running';
+          }
+        });
+      }
+
+      function initPage() {
+        autoCloseFlash(document.getElementById('notice-flash'));
+        autoCloseFlash(document.getElementById('alert-flash'));
+        initScrollingFlash();
+        if (typeof Tawk_API !== 'undefined' && typeof Tawk_API.showWidget === 'function') {
+          Tawk_API.showWidget();
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', initPage);
+      document.addEventListener('turbo:load', initPage);
+      window.addEventListener('resize', initScrollingFlash);
+    </script>
   </body>
 </html>
