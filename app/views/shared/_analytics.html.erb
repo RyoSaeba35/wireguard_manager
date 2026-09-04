@@ -1,8 +1,16 @@
-<% if Rails.env.production? && cookies[:cookie_consent] == 'accepted' %>
+<% if Rails.env.production? %>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-NPSJ9MK06C"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
+
+    // Consent Mode v2 — always load, honour stored choice
+    gtag('consent', 'default', {
+      analytics_storage: '<%= cookies[:cookie_consent] == "accepted" ? "granted" : "denied" %>',
+      ad_storage:        'denied',
+      wait_for_update:   500
+    });
+
     gtag('js', new Date());
     gtag('config', 'G-NPSJ9MK06C');
   </script>

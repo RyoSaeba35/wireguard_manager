@@ -26,6 +26,7 @@
                     font-size: 13px; white-space: nowrap;" %>
       <%= button_to I18n.locale == :fr ? "Accepter" : "Accept",
             accept_cookies_path, method: :post,
+            form: { onsubmit: "if(typeof gtag!=='undefined'){gtag('consent','update',{analytics_storage:'granted'})}" },
             style: "background: #432923; border: none; color: #fff;
                     padding: 6px 16px; border-radius: 4px; cursor: pointer;
                     font-size: 13px; font-weight: 500; white-space: nowrap;" %>
