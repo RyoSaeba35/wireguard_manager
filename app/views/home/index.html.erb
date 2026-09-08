@@ -23,7 +23,11 @@
   <section class="hero">
     <h1><%= t('home.hero.title') %><br><%= t('home.hero.subtitle') %></h1>
     <p><%= t('home.hero.description') %></p>
-    <a href="<%= new_user_registration_path %>" class="cta-btn"><%= t('home.hero.cta') %></a>
+    <a href="<%= new_user_registration_path %>" class="cta-btn"
+      data-umami-event="signup_click"
+      data-umami-event-location="hero">
+      <%= t('home.hero.cta') %>
+    </a>
   </section>
 
   <section class="features">
@@ -61,7 +65,11 @@
               <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
             <% end %>
           </div>
-          <a href="<%= new_user_registration_path %>" class="plan-btn"><%= t('home.pricing.sign_up') %></a>
+          <a href="<%= new_user_registration_path %>" class="plan-btn"
+            data-umami-event="signup_click"
+            data-umami-event-location="pricing">
+            <%= t('home.pricing.sign_up') %>
+          </a>
         </div>
       <% end %>
     </div>
@@ -83,7 +91,11 @@
                     <p><strong><span class="checkmark">➤</span> <%= feature %></strong></p>
                   <% end %>
                 </div>
-                <a href="<%= new_user_registration_path %>" class="plan-btn"><%= t('home.pricing.sign_up') %></a>
+                <a href="<%= new_user_registration_path %>" class="plan-btn"
+                  data-umami-event="signup_click"
+                  data-umami-event-location="pricing">
+                  <%= t('home.pricing.sign_up') %>
+                </a>
               </div>
             </div>
           <% end %>
@@ -98,12 +110,16 @@
     <p class="downloads-subtitle"><%= t('home.downloads.subtitle') %><br>
     <small class="downloads-subtitle"><%= t('home.downloads.coming_soon') %></small></p>
     <div class="download-buttons">
-      <a href="<%= download_windows_path %>" class="download-badge-link">
+      <a href="<%= download_windows_path %>" class="download-badge-link"
+        data-umami-event="download_click"
+        data-umami-event-location="windows">
         <img src="/windows-button.png"
             alt="Download for Windows"
             class="download-badge google-play-badge">
       </a>
-      <a href="https://play.google.com/store/apps/details?id=com.vulcainvpn.app" class="download-badge-link">
+      <a href="https://play.google.com/store/apps/details?id=com.vulcainvpn.app" class="download-badge-link"
+        data-umami-event="download_click"
+        data-umami-event-location="android">
         <img src="/googleplay-button.png"
             alt="Get it on Google Play"
             class="download-badge google-play-badge">

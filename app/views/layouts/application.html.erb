@@ -48,6 +48,10 @@
     <!-- ===================== ANALYTICS ===================== -->
     <%= render 'shared/analytics' %>
 
+    <% if Rails.env.production? %>
+      <script defer src="https://umami-production-2843.up.railway.app/script.js" data-website-id="YOUR-WEBSITE-ID"></script>
+    <% end %>
+
     <!-- ===================== TAWK.TO (only if cookies accepted) ===================== -->
     <% if cookies[:cookie_consent] == 'accepted' %>
       <script type="text/javascript">
