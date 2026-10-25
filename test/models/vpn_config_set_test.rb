@@ -25,7 +25,7 @@ class VpnConfigSetTest < ActiveSupport::TestCase
     create_config_set(server: @paris, ip_address: "10.155.0.2")
 
     assert_raises(ActiveRecord::RecordNotUnique) do
-      VpnConfigSet.insert_all([{ server_id: @paris.id, ip_address: "10.155.0.2", status: "available",
+      VpnConfigSet.insert_all!([{ server_id: @paris.id, ip_address: "10.155.0.2", status: "available",
                                  created_at: Time.current, updated_at: Time.current }])
     end
   end
