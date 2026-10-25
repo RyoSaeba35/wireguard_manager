@@ -6,7 +6,9 @@ class VpnConfigSet < ApplicationRecord
 
   # Statuses: available, in_use, used, recycling
   validates :status, inclusion: { in: %w[available in_use used recycling] }
-  validates :ip_address, presence: true, uniqueness: true
+  # Unique per server, not globally: every server uses the same 10.155.0.0/16
+  # range on its own WireGuard network (see the matching DB index).
+  validates :ip_address, presence: true, uniqueness: { scope: :server_id }
 
   scope :available, -> { where(status: 'available') }
   scope :in_use, -> { where(status: 'in_use') }

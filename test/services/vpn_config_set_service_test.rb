@@ -64,3 +64,34 @@ class VpnConfigSetServiceTest < ActiveSupport::TestCase
     assert_not called
   end
 end
+
+# Building pools for several servers: the SSH write is stubbed out.
+class VpnConfigSetServicePoolTest < ActiveSupport::TestCase
+  def build_pool(server, size)
+    service = VpnConfigSetService.new(server)
+    service.stub(:write_configs_to_server, ->(_configs) {}) do
+      service.create_pool(size)
+    end
+  end
+
+  test "a second server gets its own pool starting at the same addresses" do
+    paris = create_server(name: "Paris")
+    frankfurt = create_server(name: "Frankfurt")
+
+    build_pool(paris, 3)
+    build_pool(frankfurt, 3) # failed before: global unique index on ip_address
+
+    expected = %w[10.155.0.2 10.155.0.3 10.155.0.4]
+    assert_equal expected, paris.vpn_config_sets.order(:id).pluck(:ip_address)
+    assert_equal expected, frankfurt.vpn_config_sets.order(:id).pluck(:ip_address)
+  end
+
+  test "growing a server's pool continues after its own last address" do
+    paris = create_server
+    build_pool(paris, 2)
+    build_pool(paris, 2)
+
+    assert_equal %w[10.155.0.2 10.155.0.3 10.155.0.4 10.155.0.5],
+                 paris.vpn_config_sets.order(:id).pluck(:ip_address)
+  end
+end
