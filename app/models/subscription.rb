@@ -65,17 +65,37 @@ class Subscription < ApplicationRecord
     expires_at < Time.current
   end
 
+  # Activates a paid subscription. Idempotent: the Stripe webhook and the
+  # success-page check can both call it, only the first one does anything,
+  # so the welcome email is sent exactly once.
+  #
+  # ✅ The paid period now starts at activation (payment), not when the
+  # checkout page was opened. Before, a user who paid hours after opening
+  # checkout lost those hours.
   def activate!
     activated = false
     with_lock do
       if self[:status] != "active"
-        update!(status: "active")
+        update!(status: "active", expires_at: self.class.expiry_from(plan&.interval))
         activated = true
       end
     end
     if activated && user.present?
       UserMailer.subscription_activated(user, self, invite_review: true).deliver_later
     end
+    activated
+  end
+
+  # End of a paid period starting now. The 2 extra hours are the grace period
+  # the checkout code already used.
+  def self.expiry_from(interval, from: Time.current)
+    period = case interval
+             when "week"  then 1.week
+             when "month" then 1.month
+             when "year"  then 1.year
+             else 1.month
+             end
+    from + period + 2.hours
   end
 
   # Helper: current active devices

@@ -43,7 +43,7 @@ namespace :wireguard do
           server.ip_address,
           server.ssh_user,
           keys: [private_key_path],
-          verify_host_key: :never,
+          verify_host_key: SshHostKeyVerifier.new(server),
           non_interactive: true,
           auth_methods: ['publickey'],
           keepalive: true,

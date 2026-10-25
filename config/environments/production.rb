@@ -44,7 +44,13 @@ Rails.application.configure do
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
   # Use Heroku Redis for caching and Sidekiq.
-  config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'] }
+  # ✅ Same TLS settings as Sidekiq and Rack::Attack: Heroku Redis uses a
+  # self-signed certificate (rediss://). Without ssl_params every cache read
+  # and write failed silently, so Rails.cache never cached anything.
+  config.cache_store = :redis_cache_store, {
+    url: ENV['REDIS_URL'],
+    ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_NONE }
+  }
 
   # Use Sidekiq for background jobs.
   config.active_job.queue_adapter = :sidekiq

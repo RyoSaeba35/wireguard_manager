@@ -43,14 +43,15 @@ class Api::SessionsController < ApplicationController
     user.update_column(:failed_attempts, 0) if user.failed_attempts.to_i.positive?
 
     # Generate access token (JWT)
-    access_token, _payload = Warden::JWTAuth::UserEncoder.new.call(
+    access_token, access_payload = Warden::JWTAuth::UserEncoder.new.call(
       user,
       :user,
       nil
     )
 
-    # Generate refresh token
-    refresh_token = user.generate_refresh_token
+    # Generate refresh token, linked to this access token so logout can revoke
+    # this device's session only
+    refresh_token = user.generate_refresh_token(access_jti: access_payload["jti"])
 
     # Clean up old expired tokens
     user.cleanup_refresh_tokens
@@ -92,20 +93,29 @@ class Api::SessionsController < ApplicationController
       # Find user and validate token
       user = User.find(decoded['sub'])
 
+      # 🔐 A locked account must not keep a session alive through refresh.
+      # Checked before consuming, so the token still works once unlocked.
+      if user.access_locked?
+        render json: {
+          error: "Account is locked. Check your email for an unlock link, or try again in 1 hour."
+        }, status: :forbidden
+        return
+      end
+
       unless user.consume_refresh_token(decoded['jti'])
         render json: { error: "Invalid or expired refresh token" }, status: :unauthorized
         return
       end
 
       # Generate new access token
-      new_access_token, _payload = Warden::JWTAuth::UserEncoder.new.call(
+      new_access_token, access_payload = Warden::JWTAuth::UserEncoder.new.call(
         user,
         :user,
         nil
       )
 
-      # Generate new refresh token (rotate refresh tokens)
-      new_refresh_token = user.generate_refresh_token
+      # Generate new refresh token (rotate refresh tokens), linked to the new access token
+      new_refresh_token = user.generate_refresh_token(access_jti: access_payload["jti"])
 
       render json: {
         access_token: new_access_token,
@@ -116,7 +126,7 @@ class Api::SessionsController < ApplicationController
         }
       }, status: :ok
 
-    rescue JWT::DecodeError => e
+    rescue JWT::DecodeError
       render json: { error: "Invalid refresh token" }, status: :unauthorized
     rescue ActiveRecord::RecordNotFound
       render json: { error: "User not found" }, status: :unauthorized
@@ -124,27 +134,41 @@ class Api::SessionsController < ApplicationController
   end
 
   # DELETE api/logout
+  #
+  # ✅ Signs out THIS device only. It used to delete every refresh token the
+  # user had, so logging out on Windows also logged out the phone.
+  #
+  # The current device's refresh token is found through the access token that
+  # was issued with it (refresh_tokens.access_jti). The app may also send its
+  # refresh token in the body; that one is revoked too.
   def destroy
     token = request.headers['Authorization']&.split(' ')&.last
 
     if token.present?
       begin
+        # Signature is still checked; expiry is not, so a user whose access
+        # token just expired can still log out cleanly.
         payload = JWT.decode(
           token,
           ENV['DEVISE_JWT_SECRET_KEY'],
           true,
-          algorithm: 'HS256'
+          { algorithm: 'HS256', verify_expiration: false }
         ).first
 
-        JwtDenylist.create!(
-          jti: payload['jti'],
-          exp: Time.at(payload['exp'])
-        )
+        if payload['type'] != 'refresh' && payload['jti'].present?
+          JwtDenylist.find_or_create_by!(jti: payload['jti']) do |entry|
+            entry.exp = Time.at(payload['exp'].to_i)
+          end
 
-        # Revoke all refresh tokens for this user
-        user = User.find(payload['sub'])
-        user.refresh_tokens.destroy_all
+          user = User.find(payload['sub'])
+          user.refresh_tokens.where(access_jti: payload['jti']).delete_all
 
+          # Tokens issued before this change have no access_jti and cannot be
+          # tied to a device; revoke those (one-time, legacy sessions only).
+          user.refresh_tokens.where(access_jti: nil).delete_all
+
+          revoke_refresh_token_from_body(user)
+        end
       rescue JWT::DecodeError
         Rails.logger.warn "Logout with invalid JWT token"
       rescue ActiveRecord::RecordNotFound
@@ -153,5 +177,24 @@ class Api::SessionsController < ApplicationController
     end
 
     render json: { message: "Logged out successfully" }, status: :ok
+  end
+
+  private
+
+  def revoke_refresh_token_from_body(user)
+    return if params[:refresh_token].blank?
+
+    decoded = JWT.decode(
+      params[:refresh_token],
+      ENV['DEVISE_JWT_SECRET_KEY'],
+      true,
+      { algorithm: 'HS256', verify_expiration: false }
+    ).first
+
+    return unless decoded['type'] == 'refresh' && decoded['sub'].to_s == user.id.to_s
+
+    user.refresh_tokens.where(jti: decoded['jti']).delete_all
+  rescue JWT::DecodeError
+    nil
   end
 end

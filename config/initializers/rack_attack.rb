@@ -19,7 +19,8 @@
 # Sidekiq, because Heroku Redis uses a self-signed certificate: if the
 # connection failed, Rack::Attack would silently never throttle anything.
 
-if ENV["REDIS_URL"].present?
+# (Tests use the in-memory/null store instead; see test/integration/api/rate_limiting_test.rb)
+if ENV["REDIS_URL"].present? && !Rails.env.test?
   Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
     url: ENV["REDIS_URL"],
     ssl_params: { verify_mode: OpenSSL::SSL::VERIFY_NONE },
@@ -48,6 +49,11 @@ class Rack::Attack
     # Never break requests because of this lookup; keep the last known list
     Rails.logger.error "[Rack::Attack] Could not load VPN server IPs: #{e.message}"
     @vpn_exit_ips
+  end
+
+  # Forget the cached list (tests, or right after adding a server in the console)
+  def self.reset_vpn_exit_ips!
+    @vpn_exit_ips_mutex.synchronize { @vpn_exit_ips_loaded_at = nil }
   end
 
   def self.vpn_exit?(ip)

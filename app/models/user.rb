@@ -17,11 +17,13 @@ class User < ApplicationRecord
   # REMOVED: has_many :shadowsocks_clients, through: :subscriptions
   # REMOVED: has_many :hysteria2_clients, through: :subscriptions
 
-  def generate_refresh_token
+  # access_jti links the refresh token to the access token issued with it,
+  # so /api/logout can revoke just that device's session.
+  def generate_refresh_token(access_jti: nil)
     jti = SecureRandom.uuid
     exp = 30.days.from_now
 
-    refresh_tokens.create!(jti: jti, exp: exp)
+    refresh_tokens.create!(jti: jti, exp: exp, access_jti: access_jti)
 
     JWT.encode(
       {

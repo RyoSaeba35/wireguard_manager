@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .cta-btn:hover {
+      background-color: #e65c00;
+    }
+    .cta-btn-primary:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #2c3e50; margin: 0; padding: 0;">
+  <!-- Outer table with fixed width -->
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="max-width: 600px; margin: 0 auto;">
+    <tr>
+      <td style="padding: 20px;">
+        <!-- Logo -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto; text-align: center; width: 100%;">
+          <tr>
+            <td style="padding: 10px 0; text-align: center;">
+              <a href="https://www.vulcainvpn.com" style="display: inline-block;">
+                <% if attachments['Vulcain_VPN_logo_3.png'] %>
+                  <%= image_tag(
+                    attachments['Vulcain_VPN_logo_3.png'].url,
+                    alt: "Vulcain VPN Logo",
+                    style: "max-width: 200px; height: auto; display: block; margin: 0 auto; border: 0;"
+                  ) %>
+                <% else %>
+                  <span style="color: #2c3e50; font-weight: bold; font-size: 20px;">Vulcain VPN</span>
+                <% end %>
+              </a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Greeting -->
+        <p style="font-size: 16px; margin: 20px 0 16px 0; text-align: left;">
+          Hello <%= @user.email %>,
+        </p>
+
+        <!-- Notice -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px; margin: 20px 0;">
+          <tr>
+            <td style="padding: 15px; text-align: center;">
+              <p style="margin: 0; font-size: 18px; color: #856404; font-weight: bold;">
+                Your Vulcain VPN subscription has ended
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Main Message -->
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;">
+          Your <strong>Vulcain VPN</strong> subscription <strong>#<%= @subscription.name %></strong>
+          (<%= @subscription.plan&.name %>) expired on
+          <strong><%= (@subscription.expires_at || Time.current).strftime("%d %B %Y") %></strong>.
+          Your devices have been disconnected from our servers.
+        </p>
+
+        <p style="font-size: 16px; margin: 0 0 16px 0; text-align: left;">
+          Your account and devices are still registered. As soon as you start a new subscription,
+          the app reconnects without any new setup.
+        </p>
+
+        <!-- CTA Button -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; margin: 20px 0;">
+          <tr>
+            <td style="text-align: center;">
+              <a
+                href="https://www.vulcainvpn.com/dashboard"
+                class="cta-btn"
+                style="
+                  background-color: #ff6e08;
+                  color: white;
+                  padding: 14px 28px;
+                  border: none;
+                  border-radius: 4px;
+                  font-size: 16px;
+                  text-decoration: none;
+                  display: inline-block;
+                  font-family: Arial, sans-serif;
+                  font-weight: bold;
+                "
+              >
+                Renew my subscription
+              </a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Help Section -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-top: 1px solid #e0e0e0; margin: 30px 0 20px 0; padding-top: 20px;">
+          <tr>
+            <td>
+              <p style="font-size: 15px; margin: 0 0 12px 0; text-align: left; color: #555;">
+                <strong>Need help?</strong>
+              </p>
+              <p style="font-size: 15px; margin: 0; text-align: left; color: #555;">
+                Questions about your subscription? Just
+                <a href="mailto:support@vulcainvpn.com" style="color: #ff6e08; text-decoration: none;">contact support</a>.
+              </p>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Regards -->
+        <p style="font-size: 16px; margin: 20px 0 0 0; text-align: left;">
+          Thanks,<br>
+          <strong>The Vulcain VPN Team</strong>
+        </p>
+
+        <!-- Footer -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-top: 1px solid #e0e0e0; margin-top: 30px; padding-top: 20px;">
+          <tr>
+            <td style="text-align: center;">
+              <p style="font-size: 12px; color: #7f8c8d; margin: 0 0 8px 0;">
+                © 2026 Vulcain VPN. All rights reserved.
+              </p>
+              <p style="font-size: 12px; margin: 0;">
+                <a href="https://www.vulcainvpn.com/privacy" style="color: #7f8c8d; text-decoration: none;">Privacy Policy</a>
+                <span style="color: #7f8c8d;"> • </span>
+                <a href="https://www.vulcainvpn.com/terms" style="color: #7f8c8d; text-decoration: none;">Terms of Service</a>
+                <span style="color: #7f8c8d;"> • </span>
+                <a href="https://www.vulcainvpn.com/logging" style="color: #7f8c8d; text-decoration: none;">Logging Policy</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

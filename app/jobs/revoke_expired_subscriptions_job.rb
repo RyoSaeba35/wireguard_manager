@@ -33,7 +33,11 @@ class RevokeExpiredSubscriptionsJob < ApplicationJob
   end
 
   def notify_user(subscription)
-    SubscriptionMailer.subscription_expired(subscription).deliver_later
+    return unless subscription.user
+
+    # ✅ Was SubscriptionMailer, which never existed: the NameError was
+    # rescued below, so expiry emails were silently never sent.
+    UserMailer.subscription_expired(subscription.user, subscription).deliver_later
   rescue => e
     Rails.logger.error "Failed to send expiry email for #{subscription.name}: #{e.message}"
   end

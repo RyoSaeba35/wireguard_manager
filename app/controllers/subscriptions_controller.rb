@@ -46,13 +46,9 @@ class SubscriptionsController < ApplicationController
       return
     end
 
-    # ⭐ NEW: Just create subscription (no server, no preallocated)
-    expires_at = case selected_plan.interval
-                 when "week"  then 1.week.from_now + 2.hours
-                 when "month" then 1.month.from_now + 2.hours
-                 when "year"  then 1.year.from_now + 2.hours
-                 else 1.month.from_now + 2.hours
-    end
+    # Provisional expiry (the column is required). Subscription#activate!
+    # resets it from the moment payment completes.
+    expires_at = Subscription.expiry_from(selected_plan.interval)
 
     # Generate unique subscription name
     subscription_name = loop do

@@ -10,7 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_25_160000) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_25_180100) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -39,9 +42,27 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_25_160000) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-# Could not dump table "devices" because of following StandardError
-#   Unknown type '' for column 'last_connection_ip'
-
+  create_table "devices", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "subscription_id"
+    t.string "device_id", null: false
+    t.string "platform", null: false
+    t.string "name"
+    t.boolean "active", default: false, null: false
+    t.datetime "last_seen_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "api_key"
+    t.datetime "connected_at"
+    t.datetime "last_heartbeat_at"
+    t.inet "last_connection_ip"
+    t.string "last_protocol_type"
+    t.index ["api_key"], name: "index_devices_on_api_key", unique: true
+    t.index ["subscription_id"], name: "index_devices_on_subscription_id"
+    t.index ["user_id", "device_id"], name: "index_devices_on_user_id_and_device_id", unique: true
+    t.index ["user_id", "subscription_id"], name: "index_devices_on_user_id_and_subscription_id"
+    t.index ["user_id"], name: "index_devices_on_user_id"
+  end
 
   create_table "jwt_denylists", force: :cascade do |t|
     t.string "jti"
@@ -71,6 +92,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_25_160000) do
     t.datetime "exp", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "access_jti"
+    t.index ["access_jti"], name: "index_refresh_tokens_on_access_jti"
     t.index ["exp"], name: "index_refresh_tokens_on_exp"
     t.index ["jti"], name: "index_refresh_tokens_on_jti", unique: true
     t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
@@ -107,6 +130,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_25_160000) do
     t.datetime "last_health_check"
     t.integer "health_failures", default: 0
     t.boolean "singbox_tls_verified", default: false, null: false
+    t.string "ssh_host_key_fingerprint"
   end
 
   create_table "settings", force: :cascade do |t|
@@ -117,14 +141,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_25_160000) do
   end
 
   create_table "subscriptions", force: :cascade do |t|
-    t.integer "user_id"
+    t.bigint "user_id"
     t.string "status", default: "active"
     t.datetime "expires_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name", null: false
     t.decimal "price", precision: 8, scale: 2, null: false
-    t.integer "plan_id"
+    t.bigint "plan_id"
     t.string "plan_interval"
     t.string "stripe_session_id"
     t.integer "max_devices", default: 3
@@ -179,7 +203,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_25_160000) do
   end
 
   create_table "vpn_config_sets", force: :cascade do |t|
-    t.integer "server_id", null: false
+    t.bigint "server_id", null: false
     t.string "ip_address", null: false
     t.text "wireguard_private_key"
     t.text "wireguard_public_key"
@@ -187,7 +211,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_25_160000) do
     t.string "hysteria2_password"
     t.string "shadowsocks_password"
     t.string "status", default: "available", null: false
-    t.integer "device_id"
+    t.bigint "device_id"
     t.datetime "last_rotated_at"
     t.datetime "last_used_at"
     t.datetime "claimed_at"
@@ -201,10 +225,10 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_25_160000) do
   end
 
   create_table "vpn_connections", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.integer "device_id", null: false
-    t.integer "config_set_id", null: false
-    t.integer "server_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "device_id", null: false
+    t.bigint "config_set_id", null: false
+    t.bigint "server_id", null: false
     t.datetime "connected_at", null: false
     t.datetime "disconnected_at"
     t.bigint "bytes_sent"

@@ -1,5 +1,10 @@
 require "active_support/core_ext/integer/time"
 
+# devise-jwt reads this secret when Devise is initialized. `bin/rails test`
+# can boot the app before test/test_helper.rb runs (the dartsass build hook
+# loads it first), so the test value must be set here, not in test_helper.
+ENV["DEVISE_JWT_SECRET_KEY"] ||= "test-only-jwt-secret-#{'x' * 48}"
+
 # The test environment is used exclusively to run your application's
 # test suite. You never need to work with it otherwise. Remember that
 # your test database is "scratch space" for the test suite and is wiped
@@ -64,4 +69,10 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Active Record encryption keys for tests only (Server encrypts SSH keys and
+  # passwords). Fixed values so tests run without config/master.key, e.g. in CI.
+  config.active_record.encryption.primary_key = "test-primary-key-0123456789abcdef"
+  config.active_record.encryption.deterministic_key = "test-deterministic-key-0123456789ab"
+  config.active_record.encryption.key_derivation_salt = "test-key-derivation-salt-0123456789"
 end

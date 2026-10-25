@@ -215,7 +215,7 @@ class VpnConfigSetService
         @server.ip_address,
         @server.ssh_user,
         keys: [private_key_path],
-        verify_host_key: :never,
+        verify_host_key: SshHostKeyVerifier.new(@server),
         timeout: 600,
         keepalive: true,
         keepalive_interval: 30
@@ -362,7 +362,7 @@ class VpnConfigSetService
         @server.ip_address,
         @server.ssh_user,
         keys: [private_key_path],
-        verify_host_key: :never,
+        verify_host_key: SshHostKeyVerifier.new(@server),
         timeout: 600,              # ⭐ 10 minute timeout
         keepalive: true,           # ⭐ Keep connection alive
         keepalive_interval: 30     # ⭐ Send keepalive every 30 seconds
@@ -395,7 +395,7 @@ class VpnConfigSetService
         @server.ip_address,
         @server.ssh_user,
         keys: [private_key_path],
-        verify_host_key: :never,
+        verify_host_key: SshHostKeyVerifier.new(@server),
         timeout: 600,              # ⭐ 10 minute timeout
         keepalive: true,           # ⭐ Keep connection alive
         keepalive_interval: 30     # ⭐ Send keepalive every 30 seconds

@@ -9,7 +9,11 @@ class Device < ApplicationRecord
   belongs_to :subscription, optional: true
 
   # NEW: Pooling associations
-  has_one :vpn_config_set, -> { where(status: 'in_use') }
+  # autosave: false is essential. Without it, saving the device re-saves its
+  # loaded config and writes device_id back: VpnConfigSet#release! sets
+  # device: nil, then `device.update!(...)` (disconnect, connect, register)
+  # silently re-linked the released config to the old device.
+  has_one :vpn_config_set, -> { where(status: 'in_use') }, autosave: false
   has_many :vpn_connections
 
   before_create :generate_api_key

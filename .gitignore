@@ -43,3 +43,6 @@ public/downloads/*.apk
 *.dump.*
 *.sql
 *.rdb
+
+# Node packages are installed on Heroku from yarn.lock
+/node_modules

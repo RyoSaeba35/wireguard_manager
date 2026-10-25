@@ -43,10 +43,11 @@ class StripeWebhooksController < ApplicationController
     return unless subscription
     return unless subscription.payment_pending?
 
-    # ⭐ NEW: Just activate (no pool management)
-    subscription.activate!
-    UserMailer.subscription_activated(subscription.user, subscription).deliver_later
-    Rails.logger.info "Subscription #{subscription.name} activated via webhook"
+    # activate! sends the welcome email itself (exactly once). The webhook used
+    # to send a second copy here, so users got two emails and two review invites.
+    if subscription.activate!
+      Rails.logger.info "Subscription #{subscription.name} activated via webhook"
+    end
   end
 
   def handle_checkout_session_expired(session)

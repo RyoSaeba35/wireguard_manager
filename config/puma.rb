@@ -40,7 +40,6 @@ pidfile ENV["PIDFILE"] if ENV["PIDFILE"]
 # Preload the application before forking worker processes
 preload_app!
 
-# Reconnect to the database in each worker process
-on_worker_boot do
-  ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
-end
+# (The old on_worker_boot { establish_connection } hook is gone: Rails 7.1+
+# reconnects Active Record after fork by itself, and Puma 7 renamed the
+# on_* hooks.)

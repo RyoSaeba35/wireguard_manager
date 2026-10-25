@@ -1,15 +1,34 @@
+# config/database.yml
+#
+# PostgreSQL everywhere (production already runs it on Heroku).
+# Development and test used SQLite before, which cannot represent the inet
+# column on devices: db/schema.rb was dumped with
+#   "Could not dump table devices"
+# so the test database could never be built from it.
+#
+# Local setup (Ubuntu), once:
+#   sudo apt install -y postgresql libpq-dev
+#   sudo -u postgres createuser -s $USER
+#   bin/rails db:create db:migrate          # also rewrites db/schema.rb correctly
+#
+# Connects through the local Unix socket as your OS user by default.
+# Override with PGHOST / PGUSER / PGPASSWORD, or DATABASE_URL (used in CI).
+
 default: &default
-  adapter: sqlite3
+  adapter: postgresql
+  encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  timeout: 5000
+  host: <%= ENV["PGHOST"] %>
+  username: <%= ENV["PGUSER"] %>
+  password: <%= ENV["PGPASSWORD"] %>
 
 development:
   <<: *default
-  database: storage/development.sqlite3
+  database: wireguard_manager_development
 
 test:
   <<: *default
-  database: storage/test.sqlite3
+  database: wireguard_manager_test
 
 production:
   adapter: postgresql
@@ -17,4 +36,3 @@ production:
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   url: <%= ENV['DATABASE_URL'] %>
   database_tasks: true
-

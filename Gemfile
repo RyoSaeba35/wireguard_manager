@@ -1,5 +1,8 @@
 source "https://rubygems.org"
 
+# Ruby version lives in .ruby-version (rbenv, CI and Heroku all read it from here)
+ruby file: ".ruby-version"
+
 # Rails
 gem "rails", "~> 7.2.2", ">= 7.2.2.1"
 
@@ -7,7 +10,7 @@ gem "rails", "~> 7.2.2", ">= 7.2.2.1"
 gem "pg", ">= 1.4" # Use PostgreSQL for Heroku
 
 # Web Server
-gem "puma", ">= 5.0"
+gem "puma", "~> 7.0", ">= 7.0.3" # 7.0.3+ recommended by Heroku for Router 2.0
 
 # Asset Pipeline
 gem "sprockets-rails"
@@ -66,8 +69,6 @@ gem 'aws-sdk-s3', '~> 1.11'
 # Environment Variables
 gem "dotenv-rails", groups: [:development, :test]
 
-# Cron Jobs
-gem "whenever", require: false
 
 # Heroku-Specific
 gem "rails_12factor", group: :production
@@ -84,9 +85,13 @@ group :development, :test do
   gem "sqlite3", ">= 1.4" # Only for development/test
   gem "debug", platforms: %i[mri windows]
   gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
-  gem "web-console"
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
+end
+
+# Debug console on error pages, development only (it refuses to run in test)
+group :development do
+  gem "web-console"
 end
 
 group :test do

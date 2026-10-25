@@ -122,7 +122,7 @@ class ClashApiMonitorJob < ApplicationJob
         server.ssh_user,
         keys: [key_file.path],
         auth_methods: ['publickey'],
-        verify_host_key: :never,
+        verify_host_key: SshHostKeyVerifier.new(server),
         non_interactive: true,
         timeout: 10
       ) do |ssh|
@@ -222,7 +222,7 @@ class ClashApiMonitorJob < ApplicationJob
       else
         # Strategy 2: Match by external IP using raw join to avoid scope conflict
         device = Device.where(active: true)
-          .where('last_connection_ip::text = ?', source_ip)
+          .where('host(last_connection_ip) = ?', source_ip) # inet::text adds "/32", host() doesn't
           .joins('INNER JOIN vpn_config_sets ON vpn_config_sets.device_id = devices.id')
           .where(vpn_config_sets: { server_id: server.id, status: 'in_use' })
           .first
@@ -296,7 +296,7 @@ class ClashApiMonitorJob < ApplicationJob
         server.ssh_user,
         keys: [key_file.path],
         auth_methods: ['publickey'],
-        verify_host_key: :never,
+        verify_host_key: SshHostKeyVerifier.new(server),
         non_interactive: true,
         timeout: 10
       ) do |ssh|
@@ -342,7 +342,7 @@ class ClashApiMonitorJob < ApplicationJob
         server.ssh_user,
         keys: [key_file.path],
         auth_methods: ['publickey'],
-        verify_host_key: :never,
+        verify_host_key: SshHostKeyVerifier.new(server),
         non_interactive: true,
         timeout: 10
       ) do |ssh|
@@ -418,7 +418,7 @@ class ClashApiMonitorJob < ApplicationJob
         server.ssh_user,
         keys: [key_file.path],
         auth_methods: ['publickey'],
-        verify_host_key: :never,
+        verify_host_key: SshHostKeyVerifier.new(server),
         non_interactive: true,
         timeout: 10
       ) do |ssh|

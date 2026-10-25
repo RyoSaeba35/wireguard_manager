@@ -19,6 +19,17 @@ class UserMailer < ApplicationMailer
          subject: "Action needed: your Vulcain VPN payment couldn't be processed")
   end
 
+  # Sent by RevokeExpiredSubscriptionsJob once a subscription has expired.
+  # (The job used to call SubscriptionMailer, which never existed, so this
+  # email was never sent.)
+  def subscription_expired(user, subscription)
+    @user = user
+    @subscription = subscription
+    attach_logo
+    mail(to: @user.email,
+         subject: "Your Vulcain VPN subscription has expired")
+  end
+
   private
 
   def attach_logo
