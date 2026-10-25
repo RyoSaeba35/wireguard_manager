@@ -201,7 +201,10 @@ Devise.setup do |config|
   config.unlock_keys = [:email]
 
   # Defines which strategy will be used to unlock an account.
-  config.unlock_strategy = :email  # Sends an unlock link to the user's email
+  # 🔐 :both = unlock link by email AND automatic unlock after `unlock_in`.
+  # With :email only, anyone could lock any customer out indefinitely just by
+  # sending 5 wrong passwords for their email (the API now counts failures).
+  config.unlock_strategy = :both
 
   # :time  = Re-enables login after a certain amount of time (see :unlock_in below)
   # :both  = Enables both strategies
@@ -213,7 +216,7 @@ Devise.setup do |config|
   config.maximum_attempts = 5
 
   # Time interval to unlock the account if :time is enabled as unlock_strategy.
-  # config.unlock_in = 1.hour
+  config.unlock_in = 1.hour
 
   # Warn on the last attempt before the account is locked.
   # config.last_attempt_warning = true

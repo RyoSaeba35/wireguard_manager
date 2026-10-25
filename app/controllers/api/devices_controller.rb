@@ -1,5 +1,7 @@
 # app/controllers/api/devices_controller.rb
 class Api::DevicesController < ApplicationController
+  include ApiJwtAuthenticatable
+
   protect_from_forgery with: :null_session
   skip_before_action :authenticate_user!, raise: false
   before_action :authenticate_api_user!, only: [:register]
@@ -37,10 +39,13 @@ class Api::DevicesController < ApplicationController
             disconnected_at: Time.current
           )
 
-          # Transfer ownership
+          # Transfer ownership.
+          # 🔐 Rotate the API key: the previous owner's copy must stop working,
+          # otherwise it would keep acting on the new owner's subscription.
           device.update!(
             user: @current_api_user,
             subscription: new_subscription,  # Can be nil if no subscription
+            api_key: SecureRandom.hex(32),
             active: false,
             connected_at: nil,
             last_seen_at: Time.current
@@ -83,9 +88,10 @@ class Api::DevicesController < ApplicationController
     Rails.logger.error "Device registration failed: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
 
+    # 🔐 Don't leak internal error details to the client (they are in the logs)
     render json: {
       error: "Registration failed",
-      message: e.message
+      message: "Device registration failed. Please try again."
     }, status: :unprocessable_entity
   end
 
@@ -200,7 +206,7 @@ class Api::DevicesController < ApplicationController
     }, status: :ok
 
   rescue => e
-    Rails.logger.error "Connection failed for device #{device.id}: #{e.message}"
+    Rails.logger.error "Connection failed for device #{current_device&.id}: #{e.message}"
     render json: {
       error: "Connection failed",
       message: "An error occurred while connecting."
@@ -279,55 +285,12 @@ class Api::DevicesController < ApplicationController
 
   private
 
+  # 🔐 Use Rails' remote_ip: it walks X-Forwarded-For from the right and skips
+  # trusted proxies, so on Heroku it returns the address the router saw.
+  # The old version took the FIRST X-Forwarded-For entry, which the client
+  # controls and can spoof.
   def client_ip_address
-    # Try forwarded headers first (for proxies/load balancers)
-    forwarded_for = request.headers['HTTP_X_FORWARDED_FOR']
-
-    if forwarded_for.present?
-      ip = forwarded_for.split(',').first.strip
-      Rails.logger.debug "📍 IP from X-Forwarded-For: #{ip}"
-      return ip
-    end
-
-    # Try X-Real-IP header (used by some proxies)
-    real_ip = request.headers['HTTP_X_REAL_IP']
-    if real_ip.present?
-      Rails.logger.debug "📍 IP from X-Real-IP: #{real_ip}"
-      return real_ip
-    end
-
-    # Fallback to remote_ip
-    ip = request.remote_ip
-    Rails.logger.debug "📍 IP from remote_ip: #{ip}"
-    ip
-  end
-
-  def authenticate_api_user!
-    token = request.headers['Authorization']&.split(' ')&.last
-
-    unless token.present?
-      render json: { error: "Authorization token required" }, status: :unauthorized
-      return
-    end
-
-    begin
-      payload = JWT.decode(
-        token,
-        ENV['DEVISE_JWT_SECRET_KEY'],
-        true,
-        algorithm: 'HS256'
-      ).first
-
-      if JwtDenylist.exists?(jti: payload['jti'])
-        render json: { error: "Token has been revoked" }, status: :unauthorized
-        return
-      end
-
-      @current_api_user = User.find(payload['sub'])
-
-    rescue JWT::DecodeError, ActiveRecord::RecordNotFound
-      render json: { error: "Invalid or expired token" }, status: :unauthorized
-    end
+    request.remote_ip
   end
 
   def authenticate_device!
@@ -419,7 +382,11 @@ class Api::DevicesController < ApplicationController
         password: config_set.hysteria2_password,
         obfs_type: "salamander",
         obfs_password: server.singbox_salamander_password,
-        tls_server_name: server.singbox_server_name
+        tls_server_name: server.singbox_server_name,
+        # 🔐 false once the server has a real certificate for singbox_server_name
+        # (set servers.singbox_tls_verified = true). Clients then verify TLS
+        # instead of accepting any certificate.
+        tls_insecure: !server.singbox_tls_verified
       }
 
       credentials[:shadowsocks] = {

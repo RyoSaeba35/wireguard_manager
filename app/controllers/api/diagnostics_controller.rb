@@ -1,5 +1,7 @@
 # app/controllers/api/diagnostics_controller.rb
 class Api::DiagnosticsController < ApplicationController
+  include ApiJwtAuthenticatable
+
   protect_from_forgery with: :null_session
   skip_before_action :authenticate_user!, raise: false
   before_action :authenticate_api_user!
@@ -39,36 +41,6 @@ class Api::DiagnosticsController < ApplicationController
 
   rescue => e
     Rails.logger.error "DiagnosticsController#create failed: #{e.message}"
-    render json: { error: 'Failed to send report', message: e.message }, status: :internal_server_error
-  end
-
-  private
-
-  def authenticate_api_user!
-    token = request.headers['Authorization']&.split(' ')&.last
-
-    unless token.present?
-      render json: { error: 'Authorization token required' }, status: :unauthorized
-      return
-    end
-
-    begin
-      payload = JWT.decode(
-        token,
-        ENV['DEVISE_JWT_SECRET_KEY'],
-        true,
-        algorithm: 'HS256'
-      ).first
-
-      if JwtDenylist.exists?(jti: payload['jti'])
-        render json: { error: 'Token has been revoked' }, status: :unauthorized
-        return
-      end
-
-      @current_api_user = User.find(payload['sub'])
-
-    rescue JWT::DecodeError, ActiveRecord::RecordNotFound
-      render json: { error: 'Invalid or expired token' }, status: :unauthorized
-    end
+    render json: { error: 'Failed to send report' }, status: :internal_server_error
   end
 end

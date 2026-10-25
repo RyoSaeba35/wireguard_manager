@@ -22,7 +22,9 @@ class Api::UsersController < Api::BaseController
         active: current_device.active,
         last_seen_at: current_device.last_seen_at
       },
-      connection: config_set ? {
+      # ✅ Needs BOTH a config and a connection record: a device can briefly hold
+      # a config without an open connection row, which used to raise NoMethodError
+      connection: config_set && active_connection ? {
         server: active_connection.server.name,
         location: active_connection.server.location,
         ip: config_set.ip_address,

@@ -21,10 +21,11 @@ class Api::BaseController < ApplicationController
       return
     end
 
-    unless @current_device.subscription.active?
+    # ✅ Safe navigation: devices can now exist without a subscription
+    unless @current_device.subscription&.active?
       render json: {
         error: "Subscription is not active",
-        action_required: "renew"
+        action_required: @current_device.subscription ? "renew" : "subscribe"
       }, status: :forbidden
       return
     end

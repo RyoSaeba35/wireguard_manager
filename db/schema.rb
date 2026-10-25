@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_29_113827) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_25_160000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -106,6 +106,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_29_113827) do
     t.boolean "healthy", default: true
     t.datetime "last_health_check"
     t.integer "health_failures", default: 0
+    t.boolean "singbox_tls_verified", default: false, null: false
   end
 
   create_table "settings", force: :cascade do |t|

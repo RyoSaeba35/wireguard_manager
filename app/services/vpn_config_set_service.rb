@@ -33,26 +33,41 @@ class VpnConfigSetService
   end
 
   # ==========================================
-  # RECYCLE STALE CONFIGS (Every 2 hours)
+  # RECYCLE STALE CONFIGS (every 30 minutes, see config/initializers/sidekiq.rb)
   # ==========================================
+  #
+  # 🔐 RACE FIX: the old version used one lazy relation for three things:
+  #   stale_configs.count  -> query 1
+  #   stale_configs.to_a   -> query 2 (these rows get NEW credentials)
+  #   stale_configs.update_all(status: 'available') -> query 3
+  # The SSH step between query 2 and query 3 can take minutes. Any config
+  # released during that window matched query 3 but not query 2, so it went
+  # back to the pool as 'available' WITHOUT rotation: the previous device's
+  # keys stayed valid and the next device received the same credentials.
+  #
+  # Now we freeze the exact set of rows once, rotate exactly those, and only
+  # flip exactly those IDs (and only if still 'used') to 'available'.
 
   def recycle_stale_configs
-    stale_configs = VpnConfigSet.where(server: @server, status: 'used')
-                                .where('last_used_at < ?', 5.minutes.ago)
+    configs = VpnConfigSet.where(server: @server, status: 'used')
+                          .where('last_used_at < ?', 5.minutes.ago)
+                          .order(:id)
+                          .to_a
 
-    count = stale_configs.count
-    return 0 if count.zero?
+    return 0 if configs.empty?
 
-    Rails.logger.info "Recycling #{count} stale configs for #{@server.name}"
+    ids = configs.map(&:id)
+    Rails.logger.info "Recycling #{ids.size} stale configs for #{@server.name}"
 
     begin
       # Rotate credentials AND update server (batch operation)
-      rotate_and_update_peers(stale_configs.to_a)
+      rotate_and_update_peers(configs)
 
-      # ⭐ Only mark as available if rotation succeeded
-      stale_configs.update_all(
+      # ⭐ Only mark as available if rotation succeeded, and only the rows we rotated
+      count = VpnConfigSet.where(id: ids, status: 'used').update_all(
         status: 'available',
-        last_rotated_at: Time.current
+        last_rotated_at: Time.current,
+        updated_at: Time.current
       )
 
       Rails.logger.info "✅ Recycled #{count} configs for #{@server.name}"

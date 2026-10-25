@@ -4,11 +4,32 @@ class Api::SessionsController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   # POST api/login
+  #
+  # 🔐 Goes through Devise's `valid_for_authentication?` so the :lockable
+  # module counts failed attempts and locks the account after
+  # `config.maximum_attempts` (5). The old code called `valid_password?`
+  # directly, which skipped the counter entirely: unlimited guesses.
+  # Per-IP and per-email throttling is in config/initializers/rack_attack.rb.
   def create
-    user = User.find_by(email: params[:email]&.downcase)
+    user = User.find_by(email: params[:email].to_s.downcase.strip)
 
-    unless user&.valid_password?(params[:password])
+    unless user
       render json: { error: "Invalid email or password" }, status: :unauthorized
+      return
+    end
+
+    # Also unlocks the account first if the :time unlock period has passed
+    authenticated = user.valid_for_authentication? { user.valid_password?(params[:password].to_s) }
+
+    unless authenticated
+      if user.access_locked?
+        render json: {
+          error: "Account is locked after too many failed attempts. " \
+                 "Check your email for an unlock link, or try again in 1 hour."
+        }, status: :forbidden
+      else
+        render json: { error: "Invalid email or password" }, status: :unauthorized
+      end
       return
     end
 
@@ -17,10 +38,9 @@ class Api::SessionsController < ApplicationController
       return
     end
 
-    if user.locked_at.present?
-      render json: { error: "Account is locked. Please contact support." }, status: :forbidden
-      return
-    end
+    # Successful login: reset the failed-attempts counter. Devise does this in
+    # a Warden hook for web logins, but the API doesn't go through Warden.
+    user.update_column(:failed_attempts, 0) if user.failed_attempts.to_i.positive?
 
     # Generate access token (JWT)
     access_token, _payload = Warden::JWTAuth::UserEncoder.new.call(

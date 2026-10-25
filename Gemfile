@@ -31,6 +31,9 @@ gem "devise-jwt"
 # API CORS
 gem "rack-cors"
 
+# Rate limiting (login brute-force protection) - see config/initializers/rack_attack.rb
+gem "rack-attack", "~> 6.7"
+
 # JSON serialization
 gem "active_model_serializers"
 
