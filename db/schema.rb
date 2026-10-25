@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_25_180100) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_25_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -218,7 +218,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_25_180100) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["device_id"], name: "index_vpn_config_sets_on_device_id"
-    t.index ["ip_address"], name: "index_vpn_config_sets_on_ip_address", unique: true
+    t.index ["server_id", "ip_address"], name: "index_vpn_config_sets_on_server_id_and_ip_address", unique: true
     t.index ["server_id", "status"], name: "index_vpn_config_sets_on_server_id_and_status"
     t.index ["server_id"], name: "index_vpn_config_sets_on_server_id"
     t.index ["status", "updated_at"], name: "index_vpn_config_sets_on_status_and_updated_at"
