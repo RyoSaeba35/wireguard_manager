@@ -2,6 +2,9 @@
 #
 # 🔐 Rate limiting for authentication endpoints.
 # Rack::Attack inserts itself into the middleware stack automatically in Rails.
+# Requests arrive through Cloudflare, so every throttle keys on ClientIp.for(req)
+# (the visitor's real IP, see app/lib/client_ip.rb), never on req.ip, which is
+# a rotating Cloudflare edge address.
 #
 # Counters live in Redis so every Heroku dyno shares them. We build a dedicated
 # store (instead of relying on Rails.cache) with the same TLS settings as
@@ -23,22 +26,22 @@ class Rack::Attack
 
   # Login: 10 attempts per minute per IP
   throttle("api/login/ip", limit: 10, period: 1.minute) do |req|
-    req.ip if req.post? && req.path == "/api/login"
+    ClientIp.for(req) if req.post? && req.path == "/api/login"
   end
 
   # Login: 30 attempts per hour per IP (stops slow, steady guessing)
   throttle("api/login/ip/hourly", limit: 30, period: 1.hour) do |req|
-    req.ip if req.post? && req.path == "/api/login"
+    ClientIp.for(req) if req.post? && req.path == "/api/login"
   end
 
   # Token refresh: generous, the app refreshes every ~30 min per device
   throttle("api/refresh/ip", limit: 30, period: 1.minute) do |req|
-    req.ip if req.post? && req.path == "/api/refresh"
+    ClientIp.for(req) if req.post? && req.path == "/api/refresh"
   end
 
   # Diagnostic reports send an email each time: keep them rare
   throttle("api/diagnostic/ip", limit: 5, period: 1.hour) do |req|
-    req.ip if req.post? && req.path == "/api/diagnostic_report"
+    ClientIp.for(req) if req.post? && req.path == "/api/diagnostic_report"
   end
 
   # ------------------------------------------
@@ -47,19 +50,19 @@ class Rack::Attack
 
   # Web login
   throttle("web/login/ip", limit: 10, period: 1.minute) do |req|
-    req.ip if req.post? && req.path == "/users/sign_in"
+    ClientIp.for(req) if req.post? && req.path == "/users/sign_in"
   end
 
   # Password reset, confirmation and unlock emails (prevents email bombing)
   throttle("web/emails/ip", limit: 5, period: 15.minutes) do |req|
     if req.post? && ["/users/password", "/users/confirmation", "/users/unlock"].include?(req.path)
-      req.ip
+      ClientIp.for(req)
     end
   end
 
   # Sign-up
   throttle("web/signup/ip", limit: 5, period: 1.hour) do |req|
-    req.ip if req.post? && req.path == "/users"
+    ClientIp.for(req) if req.post? && req.path == "/users"
   end
 
   # ------------------------------------------
@@ -81,5 +84,5 @@ end
 ActiveSupport::Notifications.subscribe("throttle.rack_attack") do |_name, _start, _finish, _id, payload|
   req = payload[:request]
   Rails.logger.warn "[Rack::Attack] Throttled #{req.env['rack.attack.matched']} " \
-                    "ip=#{req.ip} path=#{req.path}"
+                    "ip=#{ClientIp.for(req)} path=#{req.path}"
 end
