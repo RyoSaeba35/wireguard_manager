@@ -285,12 +285,11 @@ class Api::DevicesController < ApplicationController
 
   private
 
-  # 🔐 Use Rails' remote_ip: it walks X-Forwarded-For from the right and skips
-  # trusted proxies, so on Heroku it returns the address the router saw.
-  # The old version took the FIRST X-Forwarded-For entry, which the client
-  # controls and can spoof.
+  # 🔐 Visitor's real IP behind Cloudflare (see app/lib/client_ip.rb).
+  # Not the first X-Forwarded-For entry (client-controlled, spoofable) and not
+  # request.remote_ip (that is a Cloudflare edge address).
   def client_ip_address
-    request.remote_ip
+    ClientIp.for(request)
   end
 
   def authenticate_device!

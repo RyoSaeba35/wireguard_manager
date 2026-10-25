@@ -3,8 +3,8 @@ class DashboardController < ApplicationController
   before_action :authenticate_user!, except: [:setup]
 
   def show
-    raw_ip = request.env['HTTP_X_FORWARDED_FOR']&.split(',')&.first || request.remote_ip
-    @user_ip = raw_ip.to_s.strip.gsub(/^::ffff:/, '')
+    # Real visitor IP behind Cloudflare (see app/lib/client_ip.rb)
+    @user_ip = ClientIp.for(request)
 
     # Get VPN server IPs for connection detection
     @vpn_server_ips = Rails.cache.fetch("active_vpn_server_ips", expires_in: 5.minutes) do
