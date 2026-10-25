@@ -6,6 +6,14 @@
 # (the visitor's real IP, see app/lib/client_ip.rb), never on req.ip, which is
 # a rotating Cloudflare edge address.
 #
+# VPN exit IPs: the app does not exclude itself from the tunnel, so while a
+# user is connected, their API calls (token refresh, diagnostics, re-login)
+# reach us from the VPN SERVER's IP. All connected users share that address,
+# so the normal per-IP limits would block everyone at once (e.g. /api/refresh
+# at ~900 connected devices per server). Requests from our own servers get
+# separate, much higher limits instead. Accounts stay protected by Devise
+# :lockable (5 failed attempts per account) either way.
+#
 # Counters live in Redis so every Heroku dyno shares them. We build a dedicated
 # store (instead of relying on Rails.cache) with the same TLS settings as
 # Sidekiq, because Heroku Redis uses a self-signed certificate: if the
@@ -21,27 +29,87 @@ end
 
 class Rack::Attack
   # ------------------------------------------
-  # Flutter API (api.vulcainvpn.com)
+  # VPN server IPs (refreshed every 5 minutes, per process)
+  # ------------------------------------------
+  VPN_EXIT_IPS_TTL = 5 * 60
+  @vpn_exit_ips = Set.new
+  @vpn_exit_ips_loaded_at = nil
+  @vpn_exit_ips_mutex = Mutex.new
+
+  def self.vpn_exit_ips
+    @vpn_exit_ips_mutex.synchronize do
+      if @vpn_exit_ips_loaded_at.nil? || Time.now.to_i - @vpn_exit_ips_loaded_at > VPN_EXIT_IPS_TTL
+        @vpn_exit_ips = Server.pluck(:ip_address).compact.map { |ip| ip.to_s.strip }.to_set
+        @vpn_exit_ips_loaded_at = Time.now.to_i
+      end
+      @vpn_exit_ips
+    end
+  rescue StandardError => e
+    # Never break requests because of this lookup; keep the last known list
+    Rails.logger.error "[Rack::Attack] Could not load VPN server IPs: #{e.message}"
+    @vpn_exit_ips
+  end
+
+  def self.vpn_exit?(ip)
+    vpn_exit_ips.include?(ip)
+  end
+
+  # Real client IP, unless it is one of our VPN servers (then nil = not counted)
+  def self.public_ip(req)
+    ip = ClientIp.for(req)
+    vpn_exit?(ip) ? nil : ip
+  end
+
+  # Our VPN server IP if the request came through the tunnel, else nil
+  def self.vpn_exit_ip(req)
+    ip = ClientIp.for(req)
+    vpn_exit?(ip) ? ip : nil
+  end
+
+  # ------------------------------------------
+  # Flutter API (api.vulcainvpn.com), normal internet users
   # ------------------------------------------
 
   # Login: 10 attempts per minute per IP
   throttle("api/login/ip", limit: 10, period: 1.minute) do |req|
-    ClientIp.for(req) if req.post? && req.path == "/api/login"
+    public_ip(req) if req.post? && req.path == "/api/login"
   end
 
   # Login: 30 attempts per hour per IP (stops slow, steady guessing)
   throttle("api/login/ip/hourly", limit: 30, period: 1.hour) do |req|
-    ClientIp.for(req) if req.post? && req.path == "/api/login"
+    public_ip(req) if req.post? && req.path == "/api/login"
   end
 
   # Token refresh: generous, the app refreshes every ~30 min per device
   throttle("api/refresh/ip", limit: 30, period: 1.minute) do |req|
-    ClientIp.for(req) if req.post? && req.path == "/api/refresh"
+    public_ip(req) if req.post? && req.path == "/api/refresh"
   end
 
   # Diagnostic reports send an email each time: keep them rare
   throttle("api/diagnostic/ip", limit: 5, period: 1.hour) do |req|
-    ClientIp.for(req) if req.post? && req.path == "/api/diagnostic_report"
+    public_ip(req) if req.post? && req.path == "/api/diagnostic_report"
+  end
+
+  # ------------------------------------------
+  # Flutter API, requests coming through our own VPN servers
+  # (one counter per server, shared by every connected user)
+  # ------------------------------------------
+
+  # Re-logins from connected users. Brute force through the VPN is still
+  # capped per account by Devise :lockable.
+  throttle("api/login/vpn", limit: 200, period: 1.minute) do |req|
+    vpn_exit_ip(req) if req.post? && req.path == "/api/login"
+  end
+
+  # 3,000 devices per server refreshing every ~30 min is ~100/min on average.
+  # 1,000/min leaves room for bursts (e.g. everyone reconnecting after an outage).
+  throttle("api/refresh/vpn", limit: 1_000, period: 1.minute) do |req|
+    vpn_exit_ip(req) if req.post? && req.path == "/api/refresh"
+  end
+
+  # Each report is an email: cap the total per server
+  throttle("api/diagnostic/vpn", limit: 60, period: 1.hour) do |req|
+    vpn_exit_ip(req) if req.post? && req.path == "/api/diagnostic_report"
   end
 
   # ------------------------------------------
@@ -50,19 +118,34 @@ class Rack::Attack
 
   # Web login
   throttle("web/login/ip", limit: 10, period: 1.minute) do |req|
-    ClientIp.for(req) if req.post? && req.path == "/users/sign_in"
+    public_ip(req) if req.post? && req.path == "/users/sign_in"
   end
 
   # Password reset, confirmation and unlock emails (prevents email bombing)
   throttle("web/emails/ip", limit: 5, period: 15.minutes) do |req|
     if req.post? && ["/users/password", "/users/confirmation", "/users/unlock"].include?(req.path)
-      ClientIp.for(req)
+      public_ip(req)
     end
   end
 
   # Sign-up
   throttle("web/signup/ip", limit: 5, period: 1.hour) do |req|
-    ClientIp.for(req) if req.post? && req.path == "/users"
+    public_ip(req) if req.post? && req.path == "/users"
+  end
+
+  # Website through the VPN: same endpoints, higher shared limits
+  throttle("web/login/vpn", limit: 200, period: 1.minute) do |req|
+    vpn_exit_ip(req) if req.post? && req.path == "/users/sign_in"
+  end
+
+  throttle("web/emails/vpn", limit: 60, period: 15.minutes) do |req|
+    if req.post? && ["/users/password", "/users/confirmation", "/users/unlock"].include?(req.path)
+      vpn_exit_ip(req)
+    end
+  end
+
+  throttle("web/signup/vpn", limit: 60, period: 1.hour) do |req|
+    vpn_exit_ip(req) if req.post? && req.path == "/users"
   end
 
   # ------------------------------------------
