@@ -116,7 +116,7 @@
           <h3>Windows</h3>
           <p>Windows 10/11</p>
           <span class="status-badge available"><%= I18n.locale == :fr ? 'Disponible' : 'Available Now' %></span>
-          <a href="/downloads/VulcainVPN-Setup-1.0.7.exe"
+          <a href="/downloads/VulcainVPN-Setup-1.0.10.exe"
             class="download-btn windows-download" download><%= I18n.locale == :fr ? 'Télécharger' : 'Download' %></a>
         </div>
 
@@ -430,7 +430,7 @@
       detectedPlatform = 'windows';
       platformName = platforms.windows.name;
       platformSpec = platforms.windows.spec;
-      downloadUrl = '/downloads/VulcainVPN-Setup-1.0.7.exe';
+      downloadUrl = '/downloads/VulcainVPN-Setup-1.0.10.exe';
       isAvailable = true;
       icon = platforms.windows.icon;
     } else if (/Macintosh|Mac OS X/i.test(ua)) {

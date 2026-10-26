@@ -146,7 +146,7 @@ Rails.application.routes.draw do
 
   # Downloads with clean URLs
   get "/downloads/VulcainVPN-1.2.2.apk", to: "downloads#apk", as: :download_apk
-  get "/downloads/VulcainVPN-Setup-1.0.7.exe", to: "downloads#windows", as: :download_windows
+  get "/downloads/VulcainVPN-Setup-1.0.10.exe", to: "downloads#windows", as: :download_windows
 
   # Generic file download (for flexibility)
   get "/downloads/:filename", to: "downloads#file", as: :download_file, constraints: { filename: /[^\/]+\.(apk|exe|dmg|zip|deb|rpm)/ }
@@ -187,6 +187,6 @@ Rails.application.routes.draw do
     end
   end
 
-  post '/cookies/accept',  to: 'cookies#accept',  as: :accept_cookies
-  post '/cookies/decline', to: 'cookies#decline', as: :decline_cookies
+  post "/cookies/accept",  to: "cookies#accept",  as: :accept_cookies
+  post "/cookies/decline", to: "cookies#decline", as: :decline_cookies
 end
