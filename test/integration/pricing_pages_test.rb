@@ -14,10 +14,17 @@ class PricingPagesTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "€15"
   end
 
-  test "blog article: French and English texts use the plan price" do
+  # Blog pages show one language at a time: French by default, English with ?locale=en
+  test "blog article in French uses the plan price, French style" do
     get "/blog/proteger-connexion-en-voyage"
     assert_response :ok
     assert_includes response.body, "€12,99/mois"
+    assert_not_includes response.body, "€15"
+  end
+
+  test "blog article in English uses the plan price, English style" do
+    get "/blog/proteger-connexion-en-voyage", params: { locale: "en" }
+    assert_response :ok
     assert_includes response.body, "€12.99/month"
     assert_not_includes response.body, "€15"
   end
@@ -27,6 +34,8 @@ class PricingPagesTest < ActionDispatch::IntegrationTest
 
     get "/blog/vpn-vs-nordvpn-expressvpn"
     assert_includes response.body, "€9/mois"
+
+    get "/blog/vpn-vs-nordvpn-expressvpn", params: { locale: "en" }
     assert_includes response.body, "€9/month"
   end
 
