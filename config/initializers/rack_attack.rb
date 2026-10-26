@@ -96,6 +96,23 @@ class Rack::Attack
     public_ip(req) if req.post? && req.path == "/api/diagnostic_report"
   end
 
+  # Sign-up from the app (same limit as the website sign-up)
+  throttle("api/signup/ip", limit: 5, period: 1.hour) do |req|
+    public_ip(req) if req.post? && req.path == "/api/signup"
+  end
+
+  # Password reset and confirmation emails (prevents email bombing)
+  throttle("api/emails/ip", limit: 5, period: 15.minutes) do |req|
+    if req.post? && ["/api/password/reset", "/api/confirmation/resend"].include?(req.path)
+      public_ip(req)
+    end
+  end
+
+  # Account deletion asks for the password: cap guessing
+  throttle("api/account_delete/ip", limit: 5, period: 15.minutes) do |req|
+    public_ip(req) if req.delete? && req.path == "/api/account"
+  end
+
   # ------------------------------------------
   # Flutter API, requests coming through our own VPN servers
   # (one counter per server, shared by every connected user)
@@ -116,6 +133,20 @@ class Rack::Attack
   # Each report is an email: cap the total per server
   throttle("api/diagnostic/vpn", limit: 60, period: 1.hour) do |req|
     vpn_exit_ip(req) if req.post? && req.path == "/api/diagnostic_report"
+  end
+
+  throttle("api/signup/vpn", limit: 60, period: 1.hour) do |req|
+    vpn_exit_ip(req) if req.post? && req.path == "/api/signup"
+  end
+
+  throttle("api/emails/vpn", limit: 60, period: 15.minutes) do |req|
+    if req.post? && ["/api/password/reset", "/api/confirmation/resend"].include?(req.path)
+      vpn_exit_ip(req)
+    end
+  end
+
+  throttle("api/account_delete/vpn", limit: 60, period: 15.minutes) do |req|
+    vpn_exit_ip(req) if req.delete? && req.path == "/api/account"
   end
 
   # ------------------------------------------

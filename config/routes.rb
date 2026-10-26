@@ -164,6 +164,12 @@ Rails.application.routes.draw do
       post   "refresh", to: "sessions#refresh"
       delete "logout",  to: "sessions#destroy"
 
+      # Account (sign up, emails, deletion)
+      post   "signup",               to: "registrations#create"
+      post   "password/reset",       to: "accounts#reset_password"
+      post   "confirmation/resend",  to: "accounts#resend_confirmation"
+      delete "account",              to: "accounts#destroy"
+
       # Device Management
       post "devices/register", to: "devices#register"
 
