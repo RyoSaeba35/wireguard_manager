@@ -10,6 +10,17 @@ class Plan < ApplicationRecord
 
   scope :active, -> { where(active: true) }
 
+  # Price used in "from €X/month" texts across the site (meta descriptions,
+  # Google structured data, blog articles). Change a plan's price in the admin
+  # panel and every one of those texts follows.
+  #
+  # Cheapest ACTIVE monthly plan; if none is active (e.g. while you swap
+  # plans), the cheapest monthly plan at all; nil only if no monthly plan exists.
+  def self.starting_monthly_price
+    where(interval: "month").active.minimum(:price) ||
+      where(interval: "month").minimum(:price)
+  end
+
   def localized_name
     I18n.locale == :fr && name_fr.present? ? name_fr : name
   end

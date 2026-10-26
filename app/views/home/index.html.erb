@@ -1,5 +1,5 @@
 <% content_for :title, "VulcainVPN — Secure WireGuard VPN | France Server | No Logs" %>
-<% content_for :meta_description, "VulcainVPN gives you a dedicated France VPN server with WireGuard, Hysteria2 and Shadowsocks. No logs, no overselling. Android & Windows. From €15/month." %>
+<% content_for :meta_description, "VulcainVPN gives you a dedicated France VPN server with WireGuard, Hysteria2 and Shadowsocks. No logs, no overselling. Android & Windows. From #{starting_price(:en)}/month." %>
 
 <% content_for :head do %>
 <script type="application/ld+json">
@@ -9,11 +9,13 @@
   "name": "VulcainVPN",
   "operatingSystem": "Android, Windows",
   "applicationCategory": "SecurityApplication",
+<% if starting_price_number %>
   "offers": {
     "@type": "Offer",
-    "price": "15",
+    "price": "<%= starting_price_number %>",
     "priceCurrency": "EUR"
   },
+<% end %>
   "description": "Fast, private VPN with WireGuard and a dedicated France server. No logs."
 }
 </script>

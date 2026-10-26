@@ -27,6 +27,7 @@ module TestFactories
       price: 9.99,
       interval: interval,
       active: true,
+      description: "3 devices, No logs, France server", # pricing cards split it on ", "
       **attrs
     )
   end

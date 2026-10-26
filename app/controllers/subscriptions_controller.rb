@@ -29,7 +29,14 @@ class SubscriptionsController < ApplicationController
   end
 
   def create
-    selected_plan = Plan.find(subscription_params[:plan_id])
+    # Only active plans can be bought: a deactivated plan (e.g. an old price)
+    # must not be purchasable by sending its id directly.
+    selected_plan = Plan.active.find_by(id: subscription_params[:plan_id])
+    unless selected_plan
+      redirect_to new_user_subscription_path(current_user),
+                  alert: "This plan is no longer available. Please choose another one."
+      return
+    end
 
     # ⭐ NEW: Check global capacity
     unless SystemSetting.can_accept_new_subscription?

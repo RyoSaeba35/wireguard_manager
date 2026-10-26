@@ -35,7 +35,7 @@
       <p><span class="checkmark">➤</span> <strong>Utilisateurs par serveur</strong> — Des milliers vs <strong>volontairement limité</strong></p>
       <p><span class="checkmark">➤</span> <strong>Vitesse</strong> — Variable selon la charge vs <strong>proche de votre vitesse de base</strong></p>
       <p><span class="checkmark">➤</span> <strong>Transparence</strong> — Politique marketing vs <strong>politique de logs publiée et détaillée</strong></p>
-      <p><span class="checkmark">➤</span> <strong>Prix</strong> — €3-10/mois avec engagement long vs <strong>€15/mois sans engagement annuel obligatoire</strong></p>
+      <p><span class="checkmark">➤</span> <strong>Prix</strong> — €3-10/mois avec engagement long vs <strong><%= starting_price(:fr) %>/mois sans engagement annuel obligatoire</strong></p>
     </div>
 
     <h2>La question du marketing</h2>
@@ -55,7 +55,7 @@
 
     <div class="article-cta">
       <p>Un VPN rapide, dédié, basé en France. Sans bullshit marketing.</p>
-      <a href="<%= new_user_registration_path %>" class="cta-btn">Créer un compte — à partir de €15/mois</a>
+      <a href="<%= new_user_registration_path %>" class="cta-btn">Créer un compte — à partir de <%= starting_price(:fr) %>/mois</a>
     </div>
 
     <div class="article-related">
@@ -86,7 +86,7 @@
       <p><span class="checkmark">➤</span> <strong>Users per server</strong> — Thousands vs <strong>deliberately limited</strong></p>
       <p><span class="checkmark">➤</span> <strong>Speed</strong> — Variable based on load vs <strong>close to your base speed</strong></p>
       <p><span class="checkmark">➤</span> <strong>Transparency</strong> — Marketing policy vs <strong>detailed published log policy</strong></p>
-      <p><span class="checkmark">➤</span> <strong>Price</strong> — €3-10/month with long commitment vs <strong>€15/month no mandatory annual lock-in</strong></p>
+      <p><span class="checkmark">➤</span> <strong>Price</strong> — €3-10/month with long commitment vs <strong><%= starting_price(:en) %>/month no mandatory annual lock-in</strong></p>
     </div>
 
     <h2>The Marketing Question</h2>
@@ -106,7 +106,7 @@
 
     <div class="article-cta">
       <p>A fast, dedicated VPN based in France. No marketing bullshit.</p>
-      <a href="<%= new_user_registration_path %>" class="cta-btn">Create an account — from €15/month</a>
+      <a href="<%= new_user_registration_path %>" class="cta-btn">Create an account — from <%= starting_price(:en) %>/month</a>
     </div>
 
     <div class="article-related">
