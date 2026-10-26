@@ -3,6 +3,7 @@
 # Account self-service for the Flutter app:
 #   POST   api/password/reset       -> sends the Devise reset email
 #   POST   api/confirmation/resend  -> resends the confirmation email
+#   POST   api/confirmation         -> confirms an email from the app (App Links)
 #   DELETE api/account              -> deletes the account (Google Play requirement)
 #
 # Reset and resend always answer 200 with the same message (Devise paranoid
@@ -33,6 +34,28 @@ class Api::AccountsController < ApplicationController
     User.send_confirmation_instructions(email: email) if email.present?
 
     render json: { message: GENERIC_EMAIL_MESSAGE }, status: :ok
+  end
+
+  # POST api/confirmation
+  # params: confirmation_token (from the email link, opened in the app)
+  def confirm
+    token = params[:confirmation_token].to_s
+    if token.blank?
+      render json: { error: "Missing confirmation token" }, status: :bad_request
+      return
+    end
+
+    user = User.confirm_by_token(token)
+
+    if user.errors.empty?
+      render json: { message: "Email confirmed. You can now sign in.", email: user.email }, status: :ok
+    elsif user.persisted? && user.confirmed? && user.errors.added?(:email, :already_confirmed)
+      render json: { message: "Email already confirmed. You can sign in.", email: user.email }, status: :ok
+    else
+      render json: {
+        error: "This confirmation link is invalid or has expired. Request a new one from the sign in screen."
+      }, status: :unprocessable_entity
+    end
   end
 
   # DELETE api/account

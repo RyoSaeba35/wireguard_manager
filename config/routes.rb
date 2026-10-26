@@ -83,6 +83,9 @@ Rails.application.routes.draw do
   # ==========================================
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # Android App Links verification (confirmation links open the app on phones)
+  get "/.well-known/assetlinks.json", to: "well_known#assetlinks", defaults: { format: :json }
+
   # ==========================================
   # PWA
   # ==========================================
@@ -168,6 +171,7 @@ Rails.application.routes.draw do
       post   "signup",               to: "registrations#create"
       post   "password/reset",       to: "accounts#reset_password"
       post   "confirmation/resend",  to: "accounts#resend_confirmation"
+      post   "confirmation",         to: "accounts#confirm"
       delete "account",              to: "accounts#destroy"
 
       # Device Management

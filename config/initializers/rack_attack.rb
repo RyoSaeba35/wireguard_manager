@@ -108,6 +108,11 @@ class Rack::Attack
     end
   end
 
+  # Email confirmation from the app (token guessing)
+  throttle("api/confirm/ip", limit: 10, period: 15.minutes) do |req|
+    public_ip(req) if req.post? && req.path == "/api/confirmation"
+  end
+
   # Account deletion asks for the password: cap guessing
   throttle("api/account_delete/ip", limit: 5, period: 15.minutes) do |req|
     public_ip(req) if req.delete? && req.path == "/api/account"
@@ -143,6 +148,10 @@ class Rack::Attack
     if req.post? && ["/api/password/reset", "/api/confirmation/resend"].include?(req.path)
       vpn_exit_ip(req)
     end
+  end
+
+  throttle("api/confirm/vpn", limit: 100, period: 15.minutes) do |req|
+    vpn_exit_ip(req) if req.post? && req.path == "/api/confirmation"
   end
 
   throttle("api/account_delete/vpn", limit: 60, period: 15.minutes) do |req|
